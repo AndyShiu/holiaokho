@@ -67,7 +67,7 @@ func (s *Signer) KeyID() string { return s.entity.PrimaryKey.KeyIdString() }
 // DetachSign returns an armored detached signature (Release.gpg, repomd.xml.asc).
 func (s *Signer) DetachSign(data []byte) ([]byte, error) {
 	var buf bytes.Buffer
-	cfg := &packet.Config{DefaultHash: cryptoSHA256(), Time: time.Now}
+	cfg := signConfig()
 	if err := openpgp.ArmoredDetachSign(&buf, s.entity, bytes.NewReader(data), cfg); err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func (s *Signer) DetachSign(data []byte) ([]byte, error) {
 // ClearSign returns a clearsigned document (InRelease).
 func (s *Signer) ClearSign(data []byte) ([]byte, error) {
 	var buf bytes.Buffer
-	cfg := &packet.Config{DefaultHash: cryptoSHA256(), Time: time.Now}
+	cfg := signConfig()
 	w, err := clearsign.Encode(&buf, s.entity.PrivateKey, cfg)
 	if err != nil {
 		return nil, err
@@ -91,9 +91,18 @@ func (s *Signer) ClearSign(data []byte) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+// signConfig produces plain v4 RSA/SHA-256 signatures without the random
+// salt notation go-crypto adds by default: rpm's OpenPGP parser
+// (rpm-sequoia on EL9) rejects signatures carrying unknown notations.
+func signConfig() *packet.Config {
+	no := false
+	return &packet.Config{DefaultHash: cryptoSHA256(), Time: time.Now, NonDeterministicSignaturesViaNotation: &no}
+}
+
 // GenerateKey creates a new armored RSA key pair for repository signing.
 func GenerateKey(name, email string) (private, public string, err error) {
-	e, err := openpgp.NewEntity(name, "Holiaokho repository signing key", email, &packet.Config{RSABits: 3072, Time: time.Now})
+	no := false
+	e, err := openpgp.NewEntity(name, "Holiaokho repository signing key", email, &packet.Config{RSABits: 3072, Time: time.Now, NonDeterministicSignaturesViaNotation: &no})
 	if err != nil {
 		return "", "", err
 	}

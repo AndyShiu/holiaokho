@@ -34,6 +34,7 @@ import (
 	"github.com/holiaokho/holiaokho/internal/format/nuget"
 	"github.com/holiaokho/holiaokho/internal/format/pypi"
 	"github.com/holiaokho/holiaokho/internal/format/raw"
+	"github.com/holiaokho/holiaokho/internal/format/yum"
 	"github.com/holiaokho/holiaokho/internal/model"
 	"github.com/holiaokho/holiaokho/internal/notify"
 	"github.com/holiaokho/holiaokho/internal/repo"
@@ -118,6 +119,7 @@ func New(ctx context.Context, cfg config.Config, log *slog.Logger, sys *System) 
 	s.Formats.Register(helm.Format{})
 	s.Formats.Register(goproxy.Format{})
 	s.Formats.Register(apt.Format{})
+	s.Formats.Register(yum.Format{})
 	s.Formats.Register(s.Docker)
 
 	s.Tasks = task.NewScheduler(d, log)
