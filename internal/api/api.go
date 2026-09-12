@@ -5,6 +5,7 @@
 package api
 
 import (
+	_ "embed"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -25,6 +26,9 @@ import (
 	"github.com/holiaokho/holiaokho/internal/task"
 )
 
+//go:embed openapi.yaml
+var openAPISpec []byte
+
 type API struct {
 	Content *content.Service
 	Engine  *repo.Engine
@@ -44,6 +48,10 @@ func (a *API) Router() http.Handler {
 	r.Get("/status", a.status)
 	r.Get("/status/check", a.need("app:status", auth.Read, a.statusCheck))
 	r.Get("/formats", a.formats)
+	r.Get("/openapi.yaml", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/yaml")
+		w.Write(openAPISpec)
+	})
 
 	r.Post("/session", a.login)
 	r.Get("/session", a.whoami)

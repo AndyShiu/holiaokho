@@ -1,0 +1,405 @@
+openapi: 3.0.3
+info:
+  title: Holiaokho Management API
+  version: 0.1.0
+  description: |
+    Management API for Holiaokho (hó-liāu-khòo). The Web UI and the `holiao`
+    CLI are both clients of this API. Errors use `{code, message, params}`;
+    `code` is a stable key clients localise (en, zh-TW, zh-CN, ja, ko).
+    Authentication: HTTP Basic (username/password or username/user-token),
+    `Authorization: Bearer hlk_...` (user token), or the session cookie set by
+    `POST /session`.
+servers:
+  - url: /api/v1
+tags:
+  - { name: status }
+  - { name: session }
+  - { name: repositories }
+  - { name: storages }
+  - { name: users }
+  - { name: roles }
+  - { name: tokens }
+  - { name: search }
+  - { name: packages }
+  - { name: tasks }
+  - { name: cleanup }
+  - { name: audit }
+components:
+  securitySchemes:
+    basic: { type: http, scheme: basic }
+    bearer: { type: http, scheme: bearer }
+    cookie: { type: apiKey, in: cookie, name: holiaokho_session }
+  schemas:
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string, example: repo.not_found, description: Stable key for localisation }
+        message: { type: string, description: English fallback text }
+        params: { type: array, items: {}, description: Values for the localised template }
+    Repository:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        format: { type: string, enum: [maven, npm, docker, raw] }
+        type: { type: string, enum: [hosted, proxy, group] }
+        storageId: { type: string, format: uuid }
+        online: { type: boolean }
+        attributes: { $ref: '#/components/schemas/RepositoryAttributes' }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    RepositoryView:
+      allOf:
+        - $ref: '#/components/schemas/Repository'
+        - type: object
+          properties:
+            url: { type: string, description: Client-facing base URL of the repository }
+            stats:
+              type: object
+              properties:
+                packages: { type: integer }
+                assets: { type: integer }
+                size: { type: integer, description: Bytes }
+    RepositoryAttributes:
+      type: object
+      description: Common blocks plus one format-specific block (maven, docker).
+      properties:
+        proxy:
+          type: object
+          properties:
+            remoteUrl: { type: string }
+            contentMaxAge: { type: integer, description: Minutes; -1 = cache forever }
+            metadataMaxAge: { type: integer, description: Minutes }
+            negativeCacheTtl: { type: integer, description: Minutes; 0 disables }
+            username: { type: string }
+            password: { type: string, writeOnly: true }
+            blocked: { type: boolean }
+            autoBlock: { type: boolean }
+        hosted:
+          type: object
+          properties:
+            writePolicy: { type: string, enum: [allow, allow_once, deny] }
+        group:
+          type: object
+          properties:
+            members: { type: array, items: { type: string } }
+        maven:
+          type: object
+          properties:
+            layoutPolicy: { type: string, enum: [STRICT, PERMISSIVE] }
+            versionPolicy: { type: string, enum: [RELEASE, SNAPSHOT, MIXED] }
+        docker:
+          type: object
+          properties:
+            httpPort: { type: integer, description: Dedicated port connector (Nexus style); 0 = none }
+            forceBasicAuth: { type: boolean }
+            indexType: { type: string, enum: [HUB, REGISTRY, CUSTOM] }
+            pathEnabled: { type: boolean, description: Serve as /v2/<repo>/<image> on the main port }
+    RepositoryInput:
+      type: object
+      required: [name, format, type]
+      properties:
+        name: { type: string, pattern: '^[A-Za-z0-9._-]+$' }
+        format: { type: string }
+        type: { type: string, enum: [hosted, proxy, group] }
+        storage: { type: string, description: Storage name (default "default") }
+        online: { type: boolean }
+        attributes: { $ref: '#/components/schemas/RepositoryAttributes' }
+    Storage:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        type: { type: string, enum: [fs, s3] }
+        config:
+          type: object
+          description: '`fs`: {path}. `s3`: {endpoint, region, bucket, prefix, accessKey, secretKey, pathStyle}'
+        createdAt: { type: string, format: date-time }
+    User:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        username: { type: string }
+        email: { type: string }
+        displayName: { type: string }
+        source: { type: string, enum: [local, ldap, oidc] }
+        active: { type: boolean }
+        roles: { type: array, items: { type: string } }
+        createdAt: { type: string, format: date-time }
+    UserInput:
+      type: object
+      properties:
+        username: { type: string }
+        email: { type: string }
+        displayName: { type: string }
+        password: { type: string, writeOnly: true }
+        active: { type: boolean }
+        roles: { type: array, items: { type: string } }
+    Privilege:
+      type: object
+      description: |
+        target: `repo:<name>` | `repo:*` | `format:<format>` | `app:<area>` | `*`.
+        actions: read | write | delete | admin | `*` (write implies read; admin implies all on the target).
+        app areas: repositories, storages, users, roles, tasks, search, status, system.
+      properties:
+        target: { type: string }
+        actions: { type: array, items: { type: string } }
+    Role:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        description: { type: string }
+        privileges: { type: array, items: { $ref: '#/components/schemas/Privilege' } }
+    Token:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        name: { type: string }
+        prefix: { type: string }
+        createdAt: { type: string, format: date-time }
+        expiresAt: { type: string, format: date-time, nullable: true }
+        lastUsedAt: { type: string, format: date-time, nullable: true }
+    Package:
+      type: object
+      properties:
+        id: { type: integer }
+        repoId: { type: string, format: uuid }
+        namespace: { type: string, description: 'Maven groupId, npm scope, Docker image path' }
+        name: { type: string }
+        version: { type: string }
+        attrs: { type: object }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        lastDownloadedAt: { type: string, format: date-time, nullable: true }
+    SearchHit:
+      allOf:
+        - $ref: '#/components/schemas/Package'
+        - type: object
+          properties:
+            repository: { type: string }
+            format: { type: string }
+    Asset:
+      type: object
+      properties:
+        id: { type: integer }
+        repoId: { type: string, format: uuid }
+        packageId: { type: integer, nullable: true }
+        path: { type: string }
+        blobDigest: { type: string, nullable: true, example: 'sha256:...' }
+        size: { type: integer }
+        contentType: { type: string }
+        attrs: { type: object }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        cacheExpiresAt: { type: string, format: date-time, nullable: true }
+        lastDownloadedAt: { type: string, format: date-time, nullable: true }
+        negative: { type: boolean, description: Cached upstream 404 }
+    Task:
+      type: object
+      properties:
+        name: { type: string }
+        description: { type: string }
+        interval: { type: string, example: 1h0m0s }
+        lastRun: { type: string, format: date-time, nullable: true }
+        nextRun: { type: string, format: date-time, nullable: true }
+        running: { type: boolean }
+    TaskRun:
+      type: object
+      properties:
+        id: { type: integer }
+        taskName: { type: string }
+        startedAt: { type: string, format: date-time }
+        finishedAt: { type: string, format: date-time, nullable: true }
+        status: { type: string, enum: [running, ok, failed] }
+        log: { type: string }
+    CleanupPolicy:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        format: { type: string, description: Empty = any format }
+        criteria:
+          type: object
+          properties:
+            lastDownloadedDays: { type: integer }
+            lastUpdatedDays: { type: integer }
+            keepLatest: { type: integer }
+            nameRegex: { type: string }
+            versionRegex: { type: string }
+            prerelease: { type: string, enum: ['', 'true', 'false'] }
+        repositories: { type: array, items: { type: string }, readOnly: true }
+    AuditEntry:
+      type: object
+      properties:
+        id: { type: integer }
+        at: { type: string, format: date-time }
+        actor: { type: string }
+        action: { type: string, example: repository.create }
+        targetType: { type: string }
+        targetId: { type: string }
+        detail: { type: object }
+  responses:
+    Error:
+      description: Error
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+security:
+  - basic: []
+  - bearer: []
+  - cookie: []
+paths:
+  /status:
+    get:
+      tags: [status]
+      summary: Server identity and uptime (public)
+      security: []
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { name: { type: string }, version: { type: string }, uptime: { type: string }, formats: { type: array, items: { type: string } } } } } } }
+  /status/check:
+    get:
+      tags: [status]
+      summary: Health checks (database, storages, default admin password, scheduler)
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { healthy: { type: boolean }, checks: { type: object, additionalProperties: { type: object, properties: { healthy: { type: boolean }, message: { type: string } } } } } } } } }
+  /formats:
+    get: { tags: [status], summary: Available repository formats, security: [], responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { type: string } } } } } } }
+  /session:
+    post:
+      tags: [session]
+      summary: Log in with username/password; sets the session cookie
+      security: []
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [username, password], properties: { username: { type: string }, password: { type: string } } } } } }
+      responses:
+        '200': { description: Logged in, content: { application/json: { schema: { type: object, properties: { username: { type: string }, roles: { type: array, items: { type: string } }, expiresAt: { type: string, format: date-time } } } } } }
+        '401': { $ref: '#/components/responses/Error' }
+        '429': { $ref: '#/components/responses/Error' }
+    get:
+      tags: [session]
+      summary: Current principal (anonymous when not logged in)
+      security: []
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: object, properties: { username: { type: string }, roles: { type: array, items: { type: string } }, anonymous: { type: boolean }, via: { type: string }, privileges: { type: array, items: { $ref: '#/components/schemas/Privilege' } } } } } } } }
+    delete: { tags: [session], summary: Log out, responses: { '204': { description: Logged out } } }
+  /repositories:
+    get: { tags: [repositories], summary: List repositories with stats, responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/RepositoryView' } } } } } } }
+    post:
+      tags: [repositories]
+      summary: Create a repository
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/RepositoryInput' } } } }
+      responses: { '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/Repository' } } } }, '400': { $ref: '#/components/responses/Error' }, '409': { $ref: '#/components/responses/Error' } }
+  /repositories/{name}:
+    parameters: [{ name: name, in: path, required: true, schema: { type: string } }]
+    get: { tags: [repositories], summary: Get a repository, responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/RepositoryView' } } } }, '404': { $ref: '#/components/responses/Error' } } }
+    put:
+      tags: [repositories]
+      summary: Update online flag and attributes (name/format/type are immutable)
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/RepositoryInput' } } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Repository' } } } } }
+    delete: { tags: [repositories], summary: Delete a repository and its content index, responses: { '204': { description: Deleted } } }
+  /repositories/{name}/invalidate-cache:
+    post: { tags: [repositories], summary: Expire every cached asset of a proxy repository, parameters: [{ name: name, in: path, required: true, schema: { type: string } }], responses: { '204': { description: Done } } }
+  /repositories/{name}/browse:
+    get:
+      tags: [repositories]
+      summary: Directory listing (groups are merged)
+      parameters: [{ name: name, in: path, required: true, schema: { type: string } }, { name: path, in: query, schema: { type: string } }]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: object, properties: { path: { type: string }, directories: { type: array, items: { type: string } }, files: { type: array, items: { $ref: '#/components/schemas/Asset' } } } } } } } }
+  /repositories/{name}/upload:
+    post:
+      tags: [repositories]
+      summary: Upload a file into a hosted repository (multipart)
+      parameters: [{ name: name, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { multipart/form-data: { schema: { type: object, properties: { file: { type: string, format: binary }, path: { type: string }, overwrite: { type: string, enum: ['true', 'false'] } } } } } }
+      responses: { '201': { description: Stored, content: { application/json: { schema: { $ref: '#/components/schemas/Asset' } } } } }
+  /repositories/{name}/packages:
+    get:
+      tags: [packages]
+      summary: List packages of a repository
+      parameters: [{ name: name, in: path, required: true, schema: { type: string } }, { name: q, in: query, schema: { type: string } }, { name: limit, in: query, schema: { type: integer } }, { name: offset, in: query, schema: { type: integer } }]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/SearchHit' } } } } } }
+  /storages:
+    get: { tags: [storages], summary: List blob storages, responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Storage' } } } } } } }
+    post:
+      tags: [storages]
+      summary: Create a blob storage (fs or s3)
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Storage' } } } }
+      responses: { '201': { description: Created }, '400': { $ref: '#/components/responses/Error' } }
+  /users:
+    get: { tags: [users], summary: List users, responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/User' } } } } } } }
+    post:
+      tags: [users]
+      summary: Create a user
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/UserInput' } } } }
+      responses: { '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/User' } } } } }
+  /users/{username}:
+    parameters: [{ name: username, in: path, required: true, schema: { type: string } }]
+    get: { tags: [users], summary: Get a user, responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/User' } } } } } }
+    put: { tags: [users], summary: Update a user, requestBody: { content: { application/json: { schema: { $ref: '#/components/schemas/UserInput' } } } }, responses: { '200': { description: OK } } }
+    delete: { tags: [users], summary: Delete a user, responses: { '204': { description: Deleted } } }
+  /users/{username}/password:
+    put: { tags: [users], summary: Set a user's password (admin), parameters: [{ name: username, in: path, required: true, schema: { type: string } }], requestBody: { content: { application/json: { schema: { type: object, properties: { password: { type: string } } } } } }, responses: { '204': { description: Done } } }
+  /users/{username}/tokens:
+    parameters: [{ name: username, in: path, required: true, schema: { type: string } }]
+    get: { tags: [tokens], summary: List a user's tokens, responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Token' } } } } } } }
+    post: { tags: [tokens], summary: Create a token for a user, requestBody: { content: { application/json: { schema: { type: object, properties: { name: { type: string }, expiresAt: { type: string, format: date-time } } } } } }, responses: { '201': { description: Created (secret shown once), content: { application/json: { schema: { type: object, properties: { token: { $ref: '#/components/schemas/Token' }, secret: { type: string } } } } } } } }
+  /users/{username}/tokens/{id}:
+    delete: { tags: [tokens], summary: Revoke a token, parameters: [{ name: username, in: path, required: true, schema: { type: string } }, { name: id, in: path, required: true, schema: { type: string } }], responses: { '204': { description: Revoked } } }
+  /me/password:
+    put: { tags: [users], summary: Change own password, requestBody: { content: { application/json: { schema: { type: object, properties: { current: { type: string }, password: { type: string } } } } } }, responses: { '204': { description: Done } } }
+  /me/tokens:
+    get: { tags: [tokens], summary: List own tokens, responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Token' } } } } } } }
+    post: { tags: [tokens], summary: Create own token, requestBody: { content: { application/json: { schema: { type: object, properties: { name: { type: string }, expiresAt: { type: string, format: date-time } } } } } }, responses: { '201': { description: Created } } }
+  /me/tokens/{id}:
+    delete: { tags: [tokens], summary: Revoke own token, parameters: [{ name: id, in: path, required: true, schema: { type: string } }], responses: { '204': { description: Revoked } } }
+  /roles:
+    get: { tags: [roles], summary: List roles, responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Role' } } } } } } }
+    post: { tags: [roles], summary: Create a role, requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Role' } } } }, responses: { '201': { description: Created } } }
+  /roles/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get: { tags: [roles], summary: Get a role, responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Role' } } } } } }
+    put: { tags: [roles], summary: Update a role, requestBody: { content: { application/json: { schema: { $ref: '#/components/schemas/Role' } } } }, responses: { '200': { description: OK } } }
+    delete: { tags: [roles], summary: Delete a role (built-ins protected), responses: { '204': { description: Deleted } } }
+  /search:
+    get:
+      tags: [search]
+      summary: Search packages across repositories the caller may read
+      parameters:
+        - { name: q, in: query, schema: { type: string }, description: Substring match on name/namespace }
+        - { name: format, in: query, schema: { type: string } }
+        - { name: repository, in: query, schema: { type: string } }
+        - { name: namespace, in: query, schema: { type: string } }
+        - { name: name, in: query, schema: { type: string } }
+        - { name: version, in: query, schema: { type: string } }
+        - { name: limit, in: query, schema: { type: integer, default: 50, maximum: 500 } }
+        - { name: offset, in: query, schema: { type: integer } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/SearchHit' } } } } } }
+  /packages/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+    get: { tags: [packages], summary: Package with its assets, responses: { '200': { description: OK, content: { application/json: { schema: { type: object, properties: { package: { $ref: '#/components/schemas/Package' }, repository: { type: string }, format: { type: string }, assets: { type: array, items: { $ref: '#/components/schemas/Asset' } } } } } } } } }
+    delete: { tags: [packages], summary: Delete a package and its assets (Maven metadata is rebuilt), responses: { '204': { description: Deleted } } }
+  /packages/{id}/assets:
+    get: { tags: [packages], summary: Assets of a package, parameters: [{ name: id, in: path, required: true, schema: { type: integer } }], responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Asset' } } } } } } }
+  /assets/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+    get: { tags: [packages], summary: Asset details and download URL, responses: { '200': { description: OK, content: { application/json: { schema: { type: object, properties: { asset: { $ref: '#/components/schemas/Asset' }, repository: { type: string }, downloadUrl: { type: string } } } } } } } }
+    delete: { tags: [packages], summary: Delete an asset, responses: { '204': { description: Deleted } } }
+  /tasks:
+    get: { tags: [tasks], summary: Registered maintenance tasks, responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Task' } } } } } } }
+  /tasks/{name}/run:
+    post: { tags: [tasks], summary: Run a task now, parameters: [{ name: name, in: path, required: true, schema: { type: string } }], responses: { '202': { description: Started } } }
+  /tasks/runs:
+    get: { tags: [tasks], summary: Recent task runs, parameters: [{ name: task, in: query, schema: { type: string } }], responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/TaskRun' } } } } } } }
+  /cleanup-policies:
+    get: { tags: [cleanup], summary: List cleanup policies, responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/CleanupPolicy' } } } } } } }
+    post: { tags: [cleanup], summary: Create a cleanup policy, requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/CleanupPolicy' } } } }, responses: { '201': { description: Created } } }
+  /cleanup-policies/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    put: { tags: [cleanup], summary: Update a policy, requestBody: { content: { application/json: { schema: { $ref: '#/components/schemas/CleanupPolicy' } } } }, responses: { '200': { description: OK } } }
+    delete: { tags: [cleanup], summary: Delete a policy, responses: { '204': { description: Deleted } } }
+  /cleanup-policies/{id}/repositories/{name}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }, { name: name, in: path, required: true, schema: { type: string } }]
+    put: { tags: [cleanup], summary: Assign the policy to a repository, responses: { '204': { description: Done } } }
+    delete: { tags: [cleanup], summary: Unassign, responses: { '204': { description: Done } } }
+  /audit:
+    get: { tags: [audit], summary: Recent audit log entries, parameters: [{ name: limit, in: query, schema: { type: integer, default: 100 } }], responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/AuditEntry' } } } } } } }

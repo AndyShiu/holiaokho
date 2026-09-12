@@ -18,7 +18,7 @@ Nexus 3.95 CE 支援的格式（從公司 DB 的 `<fmt>_component` 表確認）�
 | Docker | ✅ | ✅ P3 | 含 daemon registry-mirror 模式，dockerd 實測 |
 | OCI | ✅（3.9x 新增，與 Docker 分開） | **P3** | 與 Docker 同一 plugin，含 referrers、cosign |
 | NuGet（V2 + V3） | ✅ | **P6** | 公司有建 repo 但沒在用 |
-| PyPI | ✅ | **P6** | |
+| PyPI | ✅ | ✅ | hosted/proxy/group，pip 實測（PEP 503 HTML index） |
 | Raw | ✅ | ✅ | hosted/proxy/group |
 | Helm | ✅ | **P6** | |
 | Go | ✅ | **P6** | |

@@ -41,7 +41,10 @@ mk '{"name":"npm-group","format":"npm","type":"group","attributes":{"group":{"me
 mk '{"name":"docker-hub","format":"docker","type":"proxy","attributes":{"proxy":{"remoteUrl":"https://registry-1.docker.io"},"docker":{"httpPort":15000,"indexType":"HUB"}}}'
 mk '{"name":"docker-hosted","format":"docker","type":"hosted","attributes":{"docker":{"httpPort":15001}}}'
 mk '{"name":"docker-group","format":"docker","type":"group","attributes":{"group":{"members":["docker-hosted","docker-hub"]},"docker":{"httpPort":15002}}}'
-check test "$(api $H/api/v1/repositories | grep -o '"name"' | wc -l)" -eq 10
+mk '{"name":"pypi-proxy","format":"pypi","type":"proxy","attributes":{"proxy":{"remoteUrl":"https://pypi.org/"}}}'
+mk '{"name":"pypi-hosted","format":"pypi","type":"hosted","attributes":{"hosted":{"writePolicy":"allow_once"}}}'
+mk '{"name":"pypi-group","format":"pypi","type":"group","attributes":{"group":{"members":["pypi-hosted","pypi-proxy"]}}}'
+check test "$(api $H/api/v1/repositories | grep -o '"name"' | wc -l)" -eq 13
 
 echo "== maven"
 mkdir -p "$W/mvn/src/main/java/demo"; cd "$W/mvn"
@@ -93,6 +96,20 @@ check D push host.docker.internal:15001/e2e/alpine:t
 D rmi host.docker.internal:15001/e2e/alpine:t >/dev/null
 check D pull host.docker.internal:15002/e2e/alpine:t         # via group
 check curl -sf http://localhost:15001/v2/e2e/alpine/tags/list
+
+echo "== pypi"
+if command -v python3 >/dev/null; then
+  python3 -m venv "$W/venv" && check "$W/venv/bin/pip" install -q --index-url $H/repository/pypi-group/simple/ --no-cache-dir six
+  mkdir -p "$W/py" && cd "$W/py" && python3 - <<PY
+import zipfile
+with zipfile.ZipFile('e2epkg-0.1.0-py3-none-any.whl','w') as z:
+    z.writestr('e2epkg.py','X=1\n'); z.writestr('e2epkg-0.1.0.dist-info/METADATA','Metadata-Version: 2.1\nName: e2epkg\nVersion: 0.1.0\n')
+    z.writestr('e2epkg-0.1.0.dist-info/WHEEL','Wheel-Version: 1.0\nRoot-Is-Purelib: true\nTag: py3-none-any\n'); z.writestr('e2epkg-0.1.0.dist-info/RECORD','')
+PY
+  check curl -sf -u admin:admin123 -F ":action=file_upload" -F "name=e2epkg" -F "version=0.1.0" -F "content=@e2epkg-0.1.0-py3-none-any.whl" $H/repository/pypi-hosted/
+  check "$W/venv/bin/pip" install -q --index-url $H/repository/pypi-group/simple/ --no-cache-dir e2epkg
+  cd "$ROOT"
+fi
 
 echo "== cli"
 export HOLIAO_CONFIG="$W/holiao.yaml"

@@ -28,6 +28,7 @@ import (
 	"github.com/holiaokho/holiaokho/internal/format/docker"
 	"github.com/holiaokho/holiaokho/internal/format/maven"
 	"github.com/holiaokho/holiaokho/internal/format/npm"
+	"github.com/holiaokho/holiaokho/internal/format/pypi"
 	"github.com/holiaokho/holiaokho/internal/format/raw"
 	"github.com/holiaokho/holiaokho/internal/model"
 	"github.com/holiaokho/holiaokho/internal/repo"
@@ -96,6 +97,7 @@ func New(ctx context.Context, cfg config.Config, log *slog.Logger) (*Server, err
 	s.Formats.Register(maven.Format{})
 	s.Formats.Register(npm.Format{})
 	s.Formats.Register(raw.Format{})
+	s.Formats.Register(pypi.Format{})
 	s.Formats.Register(s.Docker)
 
 	s.Tasks = task.NewScheduler(d, log)

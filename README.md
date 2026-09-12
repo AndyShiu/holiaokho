@@ -16,12 +16,14 @@ Early backend (P0–P3 of `docs/holiaokho-architecture-draft.md` §14):
 | Maven 2 hosted / proxy / group (metadata merge, snapshots, write policies) | ✅ tested with `mvn` |
 | npm hosted / proxy / group (publish, login, dist-tags, audit pass-through) | ✅ tested with `npm` |
 | Docker / OCI hosted / proxy / group, port + path connectors, daemon `registry-mirrors` mode | ✅ tested with `dockerd` |
+| PyPI hosted / proxy / group (PEP 503), raw files | ✅ tested with `pip` |
+| S3-compatible blob storage (MinIO tested), OpenAPI at `/api/v1/openapi.yaml` | ✅ |
 | Users, roles (RBAC), user tokens, sessions, login rate limiting, Nexus (Shiro) password hashes | ✅ |
 | Management REST API `/api/v1`, `holiao` CLI (en / zh-TW; zh-CN, ja, ko pending) | ✅ |
 | Cleanup policies, blob GC, task scheduler, audit log, Prometheus `/metrics` | ✅ basic |
 | `holiaokho import-nexus` (PostgreSQL + blob store, hardlink, idempotent) | ✅ tested against Nexus 3.95.3 |
 | Web UI | ⏳ placeholder page; designed separately |
-| S3 storage, NuGet/PyPI/other formats, LDAP/OIDC, webhooks | ⏳ see `docs/nexus-feature-parity.md` |
+| NuGet/Helm/Go/other formats, LDAP/OIDC, webhooks, Nexus REST compat | ⏳ see `docs/nexus-feature-parity.md` |
 
 ## Run
 
