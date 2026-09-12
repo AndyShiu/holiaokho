@@ -104,7 +104,7 @@ func Default() Config {
 			AdminPassword:    "admin123",
 			AnonymousEnabled: true,
 			SessionTTL:       30 * time.Minute,
-			LoginMaxFailures: 5,
+			LoginMaxFailures: 10,
 			LoginWindow:      time.Minute,
 		},
 		Proxy: Proxy{

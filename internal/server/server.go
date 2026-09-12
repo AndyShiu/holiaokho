@@ -222,7 +222,7 @@ func (s *Server) repositoryHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	f, ok := s.Formats.Get(rp.Format)
 	if !ok {
-		format.WriteError(w, 500, "format.unknown", "format %q not available", rp.Format)
+		format.WriteError(w, 501, "format.unsupported", "format %q is not supported by this build", rp.Format)
 		return
 	}
 	prefix := "/repository/" + name

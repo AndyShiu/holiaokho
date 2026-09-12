@@ -466,6 +466,16 @@ func (s *Service) UpsertAsset(ctx context.Context, a *model.Asset) error {
 	if len(a.Attrs) == 0 {
 		a.Attrs = json.RawMessage(`{}`)
 	}
+	err := s.upsertAsset(ctx, a)
+	if isUnique(err) {
+		// Lost a race with a concurrent insert of the same path; the row now
+		// exists, so the update branch will be taken.
+		err = s.upsertAsset(ctx, a)
+	}
+	return err
+}
+
+func (s *Service) upsertAsset(ctx context.Context, a *model.Asset) error {
 	return s.DB.Tx(ctx, func(tx pgx.Tx) error {
 		var oldDigest *string
 		var id int64

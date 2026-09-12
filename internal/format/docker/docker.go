@@ -311,6 +311,9 @@ func (h *handler) fetch(ctx context.Context, name, sub string, kind repo.Kind, i
 	}
 	pol := h.policy(kind, immutable, "v2/"+h.upstreamName(name)+"/"+sub, "", pkg)
 	pol.Headers = hdr
+	if i := strings.LastIndexByte(sub, '/'); i >= 0 && isDigest(sub[i+1:]) {
+		pol.ExpectedDigest = storage.Digest(sub[i+1:])
+	}
 	return h.d.Engine.Fetch(ctx, h.repo, path, pol)
 }
 

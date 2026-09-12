@@ -18,6 +18,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"golang.org/x/sync/singleflight"
@@ -68,6 +69,10 @@ type Policy struct {
 	Package *model.Package
 	// Attrs are merged into the asset attributes.
 	Attrs map[string]any
+	// ExpectedDigest, when known (Docker blobs/manifests by digest), lets the
+	// engine reuse an already-stored blob without contacting upstream, and
+	// verifies downloaded content.
+	ExpectedDigest storage.Digest
 }
 
 // Result is a resolved asset with an open body.
@@ -102,7 +107,8 @@ type Engine struct {
 	sf      singleflight.Group
 	ua      string
 	// autoBlock tracks upstream failures per repo (name -> until).
-	blocked map[string]time.Time
+	blockedMu sync.Mutex
+	blocked   map[string]time.Time
 }
 
 func NewEngine(c *content.Service, log *slog.Logger, repos RepoResolver, pc config.Proxy) (*Engine, error) {
@@ -281,6 +287,19 @@ func (e *Engine) fetchProxy(ctx context.Context, repo *model.Repository, path st
 			return e.open(ctx, repo, a, false)
 		}
 	}
+	// Content-addressed shortcut: the bytes may already be here via another
+	// repository (Docker layers are shared across images and registries).
+	if pol.ExpectedDigest != "" && (!cached || a.BlobDigest == nil) {
+		if size, ok, _ := e.Content.BlobExists(ctx, pol.ExpectedDigest); ok {
+			d := string(pol.ExpectedDigest)
+			na := &model.Asset{RepoID: repo.ID, Path: path, Size: size, ContentType: pol.ContentType}
+			na.BlobDigest = &d
+			na.Attrs, _ = json.Marshal(map[string]any{"dedup": true})
+			if err := e.Content.UpsertAsset(ctx, na); err == nil {
+				return e.open(ctx, repo, na, false)
+			}
+		}
+	}
 	if repo.Proxy.Blocked || e.isAutoBlocked(repo) {
 		if cached && !a.Negative && a.BlobDigest != nil {
 			return e.open(ctx, repo, a, false) // stale but better than nothing
@@ -294,7 +313,11 @@ func (e *Engine) fetchProxy(ctx context.Context, repo *model.Repository, path st
 		if cached {
 			stale = a
 		}
-		return e.refresh(ctx, repo, path, pol, stale)
+		// Detach from the first caller's context: other requests may be
+		// waiting on this fetch and must not fail if the first one leaves.
+		fctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), e.client.Timeout)
+		defer cancel()
+		return e.refresh(fctx, repo, path, pol, stale)
 	})
 	if err != nil {
 		if cached && !a.Negative && a.BlobDigest != nil && errors.Is(err, ErrUpstream) {
@@ -413,7 +436,7 @@ func (e *Engine) refresh(ctx context.Context, repo *model.Repository, path strin
 		return nil, fmt.Errorf("%w: upstream %s returned %d", ErrUpstream, u, resp.StatusCode)
 	}
 
-	info, err := e.Content.PutBlob(ctx, repo.StorageID, resp.Body, "")
+	info, err := e.Content.PutBlob(ctx, repo.StorageID, resp.Body, pol.ExpectedDigest)
 	if err != nil {
 		return nil, fmt.Errorf("store upstream body: %w", err)
 	}
@@ -494,18 +517,26 @@ func (e *Engine) isAutoBlocked(repo *model.Repository) bool {
 	if !repo.Proxy.AutoBlock {
 		return false
 	}
+	e.blockedMu.Lock()
+	defer e.blockedMu.Unlock()
 	until, ok := e.blocked[repo.Name]
 	return ok && until.After(time.Now())
 }
 
 func (e *Engine) noteFailure(repo *model.Repository) {
 	if repo.Proxy.AutoBlock {
+		e.blockedMu.Lock()
 		e.blocked[repo.Name] = time.Now().Add(30 * time.Second)
+		e.blockedMu.Unlock()
 		e.Log.Warn("upstream auto-blocked", "repo", repo.Name, "for", "30s")
 	}
 }
 
-func (e *Engine) noteSuccess(repo *model.Repository) { delete(e.blocked, repo.Name) }
+func (e *Engine) noteSuccess(repo *model.Repository) {
+	e.blockedMu.Lock()
+	delete(e.blocked, repo.Name)
+	e.blockedMu.Unlock()
+}
 
 // --------------------------------------------------------------------- Put
 
