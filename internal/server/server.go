@@ -260,8 +260,7 @@ func (s *Server) dockerPathHandler(w http.ResponseWriter, r *http.Request) {
 	p = strings.TrimPrefix(p, "/")
 	w.Header().Set("Docker-Distribution-Api-Version", "registry/2.0")
 	if p == "" {
-		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte("{}"))
+		s.Docker.Ping(w, r, s.baseURL(r))
 		return
 	}
 	first := p

@@ -317,6 +317,26 @@ func (h *handler) fetch(ctx context.Context, name, sub string, kind repo.Kind, i
 	return h.d.Engine.Fetch(ctx, h.repo, path, pol)
 }
 
+// registryBase returns the external URL prefix under which this handler is
+// mounted (e.g. http://host:8081/v2/docker-s3 in path mode, http://host:5000/v2
+// on a port connector). http.StripPrefix leaves RequestURI untouched, so the
+// prefix is the original path minus the relative path we were handed.
+func (h *handler) registryBase(r *http.Request) string {
+	orig := r.RequestURI
+	if i := strings.IndexByte(orig, '?'); i >= 0 {
+		orig = orig[:i]
+	}
+	rel := r.URL.Path
+	prefix := orig
+	if strings.HasSuffix(orig, rel) {
+		prefix = strings.TrimSuffix(orig, rel)
+	}
+	if prefix == "" || prefix == "/" {
+		prefix = "/v2"
+	}
+	return h.d.BaseURL(r) + strings.TrimSuffix(prefix, "/")
+}
+
 // ------------------------------------------------------------- manifests
 
 func (h *handler) manifests(w http.ResponseWriter, r *http.Request, name, ref string) {
@@ -521,7 +541,7 @@ func (h *handler) putManifest(w http.ResponseWriter, r *http.Request, name, ref 
 			return
 		}
 	}
-	w.Header().Set("Location", fmt.Sprintf("%s/v2/%s/manifests/%s", h.d.BaseURL(r), name, digest))
+	w.Header().Set("Location", fmt.Sprintf("%s/%s/manifests/%s", h.registryBase(r), name, digest))
 	w.Header().Set("Docker-Content-Digest", digest)
 	w.WriteHeader(http.StatusCreated)
 }
@@ -618,7 +638,7 @@ func (h *handler) uploads(w http.ResponseWriter, r *http.Request, name, id strin
 		h.mapErr(w, err, "blob")
 		return
 	}
-	loc := func(id string) string { return fmt.Sprintf("%s/v2/%s/blobs/uploads/%s", h.d.BaseURL(r), name, id) }
+	loc := func(id string) string { return fmt.Sprintf("%s/%s/blobs/uploads/%s", h.registryBase(r), name, id) }
 	switch {
 	case r.Method == http.MethodPost && id == "":
 		q := r.URL.Query()
@@ -628,7 +648,7 @@ func (h *handler) uploads(w http.ResponseWriter, r *http.Request, name, id strin
 			if size, ok, _ := h.d.Content.BlobExists(ctx, storage.Digest(mount)); ok {
 				ds := mount
 				h.d.Content.UpsertAsset(ctx, &model.Asset{RepoID: h.repo.ID, Path: name + "/blobs/" + mount, BlobDigest: &ds, Size: size, ContentType: "application/octet-stream"})
-				w.Header().Set("Location", fmt.Sprintf("%s/v2/%s/blobs/%s", h.d.BaseURL(r), name, mount))
+				w.Header().Set("Location", fmt.Sprintf("%s/%s/blobs/%s", h.registryBase(r), name, mount))
 				w.Header().Set("Docker-Content-Digest", mount)
 				w.WriteHeader(http.StatusCreated)
 				return
@@ -739,7 +759,7 @@ func (h *handler) finish(w http.ResponseWriter, r *http.Request, name string, up
 		h.mapErr(w, err, "blob")
 		return
 	}
-	w.Header().Set("Location", fmt.Sprintf("%s/v2/%s/blobs/%s", h.d.BaseURL(r), name, ds))
+	w.Header().Set("Location", fmt.Sprintf("%s/%s/blobs/%s", h.registryBase(r), name, ds))
 	w.Header().Set("Docker-Content-Digest", ds)
 	w.WriteHeader(http.StatusCreated)
 }
@@ -839,4 +859,21 @@ func (h *handler) catalog(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]any{"repositories": names})
+}
+
+// Ping serves the bare /v2/ version check for the path-mode endpoint on the
+// main port: 401 + Bearer challenge until the client presents a token.
+func (f *Format) Ping(w http.ResponseWriter, r *http.Request, baseURL string) {
+	w.Header().Set("Docker-Distribution-Api-Version", "registry/2.0")
+	pr := f.Tokens.Principal(r.Context(), r)
+	if pr == nil {
+		pr = auth.PrincipalFrom(r.Context())
+	}
+	if pr == nil || pr.Anonymous {
+		w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Bearer realm="%s/v2/token",service="%s"`, baseURL, r.Host))
+		regErr(w, 401, "UNAUTHORIZED", "authentication required")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte("{}"))
 }
