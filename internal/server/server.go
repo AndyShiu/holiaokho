@@ -4,6 +4,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -27,6 +28,7 @@ import (
 	"github.com/holiaokho/holiaokho/internal/format/docker"
 	"github.com/holiaokho/holiaokho/internal/format/maven"
 	"github.com/holiaokho/holiaokho/internal/format/npm"
+	"github.com/holiaokho/holiaokho/internal/format/raw"
 	"github.com/holiaokho/holiaokho/internal/model"
 	"github.com/holiaokho/holiaokho/internal/repo"
 	"github.com/holiaokho/holiaokho/internal/task"
@@ -71,7 +73,7 @@ func New(ctx context.Context, cfg config.Config, log *slog.Logger) (*Server, err
 		return nil, fmt.Errorf("migrate: %w", err)
 	}
 	c := content.New(d, log)
-	if err := c.EnsureDefaultStorage(ctx, cfg.Storage.Type, cfg.Storage.Path); err != nil {
+	if err := c.EnsureDefaultStorage(ctx, cfg.Storage.Type, defaultStorageConfig(cfg.Storage)); err != nil {
 		return nil, err
 	}
 	if err := c.LoadStorages(ctx); err != nil {
@@ -93,6 +95,7 @@ func New(ctx context.Context, cfg config.Config, log *slog.Logger) (*Server, err
 	s.Docker = docker.New(s.Tokens)
 	s.Formats.Register(maven.Format{})
 	s.Formats.Register(npm.Format{})
+	s.Formats.Register(raw.Format{})
 	s.Formats.Register(s.Docker)
 
 	s.Tasks = task.NewScheduler(d, log)
@@ -105,6 +108,18 @@ func New(ctx context.Context, cfg config.Config, log *slog.Logger) (*Server, err
 	}
 	s.API = &api.API{Content: c, Engine: eng, Auth: a, Formats: s.Formats, Tasks: s.Tasks, Deps: s.Deps, Version: Version, Started: time.Now(), OnRepoChange: s.syncDockerListeners}
 	return s, nil
+}
+
+// defaultStorageConfig builds the JSON config of the "default" store from
+// the server configuration.
+func defaultStorageConfig(st config.Storage) string {
+	if st.Type == "s3" {
+		b, _ := json.Marshal(map[string]any{"endpoint": st.S3.Endpoint, "region": st.S3.Region, "bucket": st.S3.Bucket, "prefix": st.S3.Prefix,
+			"accessKey": st.S3.AccessKey, "secretKey": st.S3.SecretKey, "pathStyle": st.S3.PathStyle})
+		return string(b)
+	}
+	b, _ := json.Marshal(map[string]any{"path": st.Path})
+	return string(b)
 }
 
 // baseURL derives the external base URL for a request.

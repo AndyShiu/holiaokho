@@ -483,3 +483,15 @@ func (h *handler) listing(w http.ResponseWriter, r *http.Request, dir string) {
 }
 
 var _ io.Reader = (*bytes.Reader)(nil)
+
+// AfterDelete regenerates group/artifact metadata after a package is
+// removed through the management API, so clients stop seeing the version.
+func (Format) AfterDelete(r *http.Request, d format.Deps, rp *model.Repository, p *model.Package) {
+	if rp.Type != model.Hosted {
+		return
+	}
+	dir := strings.ReplaceAll(p.Namespace, ".", "/") + "/" + p.Name
+	if err := RebuildMetadata(context.WithoutCancel(r.Context()), d, rp, dir); err != nil {
+		d.Log.Warn("rebuild maven metadata", "repo", rp.Name, "dir", dir, "err", err)
+	}
+}

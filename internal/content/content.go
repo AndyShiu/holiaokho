@@ -21,6 +21,7 @@ import (
 	"github.com/holiaokho/holiaokho/internal/model"
 	"github.com/holiaokho/holiaokho/internal/storage"
 	fsstore "github.com/holiaokho/holiaokho/internal/storage/fs"
+	s3store "github.com/holiaokho/holiaokho/internal/storage/s3"
 )
 
 var (
@@ -80,13 +81,20 @@ func openStorage(st model.Storage) (storage.Storage, error) {
 			return nil, err
 		}
 		return fsstore.New(cfg.Path)
+	case "s3":
+		var cfg s3store.Config
+		if err := json.Unmarshal(st.Config, &cfg); err != nil {
+			return nil, err
+		}
+		return s3store.New(context.Background(), cfg)
 	default:
 		return nil, fmt.Errorf("unknown storage type %q", st.Type)
 	}
 }
 
 // EnsureDefaultStorage creates the "default" store if none exists.
-func (s *Service) EnsureDefaultStorage(ctx context.Context, typ, path string) error {
+// cfgJSON is the backend configuration object.
+func (s *Service) EnsureDefaultStorage(ctx context.Context, typ, cfgJSON string) error {
 	var n int
 	if err := s.DB.Pool.QueryRow(ctx, `SELECT count(*) FROM storages`).Scan(&n); err != nil {
 		return err
@@ -94,9 +102,8 @@ func (s *Service) EnsureDefaultStorage(ctx context.Context, typ, path string) er
 	if n > 0 {
 		return nil
 	}
-	cfg, _ := json.Marshal(map[string]string{"path": path})
 	_, err := s.DB.Pool.Exec(ctx, `INSERT INTO storages(id, name, type, config) VALUES ($1,'default',$2,$3)`,
-		uuid.New(), typ, cfg)
+		uuid.New(), typ, []byte(cfgJSON))
 	return err
 }
 
