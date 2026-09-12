@@ -103,7 +103,7 @@ func ActionFor(method string) string {
 // WWW-Authenticate value used for 401.
 func Authorize(w http.ResponseWriter, r *http.Request, repo *model.Repository, action, challenge string) bool {
 	p := auth.PrincipalFrom(r.Context())
-	if p != nil && p.CanRepo(repo.Name, repo.Format, action) {
+	if p != nil && p.CanContent(repo.Name, repo.Format, r.URL.Path, action) {
 		return true
 	}
 	if p == nil || p.Anonymous {
@@ -132,7 +132,7 @@ func WriteError(w http.ResponseWriter, status int, code, msg string, params ...a
 // MapError translates engine errors to HTTP responses.
 func MapError(w http.ResponseWriter, err error, log *slog.Logger) {
 	switch {
-	case errors.Is(err, repo.ErrNotFound), errors.Is(err, content.ErrNotFound):
+	case errors.Is(err, repo.ErrNotFound), errors.Is(err, content.ErrNotFound), errors.Is(err, repo.ErrRouted):
 		WriteError(w, http.StatusNotFound, "not_found", "not found")
 	case errors.Is(err, repo.ErrOffline):
 		WriteError(w, http.StatusServiceUnavailable, "repo.offline", "repository is offline")
@@ -140,6 +140,8 @@ func MapError(w http.ResponseWriter, err error, log *slog.Logger) {
 		WriteError(w, http.StatusBadRequest, "repo.redeploy_denied", "redeployment is not allowed by the repository write policy")
 	case errors.Is(err, repo.ErrWriteDenied), errors.Is(err, repo.ErrReadOnly):
 		WriteError(w, http.StatusForbidden, "repo.read_only", "deployment not allowed")
+	case errors.Is(err, content.ErrQuota):
+		WriteError(w, http.StatusInsufficientStorage, "storage.quota", "%s", err.Error())
 	case errors.Is(err, repo.ErrInvalidPath):
 		WriteError(w, http.StatusBadRequest, "path.invalid", "invalid path")
 	case errors.Is(err, repo.ErrUpstreamDenied):

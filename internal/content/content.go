@@ -108,7 +108,7 @@ func (s *Service) EnsureDefaultStorage(ctx context.Context, typ, cfgJSON string)
 }
 
 func (s *Service) ListStorages(ctx context.Context) ([]model.Storage, error) {
-	rows, err := s.DB.Pool.Query(ctx, `SELECT id, name, type, config, created_at FROM storages ORDER BY name`)
+	rows, err := s.DB.Pool.Query(ctx, `SELECT id, name, type, config, quota_bytes, created_at FROM storages ORDER BY name`)
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +116,7 @@ func (s *Service) ListStorages(ctx context.Context) ([]model.Storage, error) {
 	var out []model.Storage
 	for rows.Next() {
 		var st model.Storage
-		if err := rows.Scan(&st.ID, &st.Name, &st.Type, &st.Config, &st.CreatedAt); err != nil {
+		if err := rows.Scan(&st.ID, &st.Name, &st.Type, &st.Config, &st.QuotaBytes, &st.CreatedAt); err != nil {
 			return nil, err
 		}
 		out = append(out, st)
@@ -130,8 +130,8 @@ func (s *Service) CreateStorage(ctx context.Context, st *model.Storage) error {
 		return err
 	}
 	st.ID = uuid.New()
-	_, err = s.DB.Pool.Exec(ctx, `INSERT INTO storages(id, name, type, config) VALUES ($1,$2,$3,$4)`,
-		st.ID, st.Name, st.Type, st.Config)
+	_, err = s.DB.Pool.Exec(ctx, `INSERT INTO storages(id, name, type, config, quota_bytes) VALUES ($1,$2,$3,$4,$5)`,
+		st.ID, st.Name, st.Type, st.Config, st.QuotaBytes)
 	if err != nil {
 		if isUnique(err) {
 			return ErrConflict
@@ -146,8 +146,8 @@ func (s *Service) CreateStorage(ctx context.Context, st *model.Storage) error {
 
 func (s *Service) StorageByName(ctx context.Context, name string) (model.Storage, error) {
 	var st model.Storage
-	err := s.DB.Pool.QueryRow(ctx, `SELECT id, name, type, config, created_at FROM storages WHERE name=$1`, name).
-		Scan(&st.ID, &st.Name, &st.Type, &st.Config, &st.CreatedAt)
+	err := s.DB.Pool.QueryRow(ctx, `SELECT id, name, type, config, quota_bytes, created_at FROM storages WHERE name=$1`, name).
+		Scan(&st.ID, &st.Name, &st.Type, &st.Config, &st.QuotaBytes, &st.CreatedAt)
 	if db.IsNoRows(err) {
 		return st, ErrNotFound
 	}
@@ -204,11 +204,11 @@ func decodeRepo(r *model.Repository) error {
 	return nil
 }
 
-const repoCols = `id, name, format, type, storage_id, online, attributes, created_at, updated_at`
+const repoCols = `id, name, format, type, storage_id, online, attributes, routing_rule_id, created_at, updated_at`
 
 func scanRepo(row pgx.Row) (*model.Repository, error) {
 	var r model.Repository
-	if err := row.Scan(&r.ID, &r.Name, &r.Format, &r.Type, &r.StorageID, &r.Online, &r.Attributes, &r.CreatedAt, &r.UpdatedAt); err != nil {
+	if err := row.Scan(&r.ID, &r.Name, &r.Format, &r.Type, &r.StorageID, &r.Online, &r.Attributes, &r.RoutingRuleID, &r.CreatedAt, &r.UpdatedAt); err != nil {
 		return nil, err
 	}
 	if err := decodeRepo(&r); err != nil {
@@ -255,6 +255,9 @@ func (s *Service) Repo(ctx context.Context, name string) (*model.Repository, err
 	return r, nil
 }
 
+// Invalidate drops the repository cache (after changes made outside the service).
+func (s *Service) Invalidate() { s.invalidate() }
+
 func (s *Service) invalidate() {
 	s.mu.Lock()
 	s.repos = map[string]*model.Repository{}
@@ -286,8 +289,8 @@ func (s *Service) CreateRepo(ctx context.Context, r *model.Repository) error {
 		}
 		r.StorageID = st.ID
 	}
-	_, err := s.DB.Pool.Exec(ctx, `INSERT INTO repositories(id,name,format,type,storage_id,online,attributes)
-		VALUES ($1,$2,$3,$4,$5,$6,$7)`, r.ID, r.Name, r.Format, r.Type, r.StorageID, r.Online, r.Attributes)
+	_, err := s.DB.Pool.Exec(ctx, `INSERT INTO repositories(id,name,format,type,storage_id,online,attributes,routing_rule_id)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`, r.ID, r.Name, r.Format, r.Type, r.StorageID, r.Online, r.Attributes, r.RoutingRuleID)
 	if err != nil {
 		if isUnique(err) {
 			return ErrConflict
@@ -307,8 +310,8 @@ func (s *Service) UpdateRepo(ctx context.Context, r *model.Repository) error {
 			return err
 		}
 	}
-	tag, err := s.DB.Pool.Exec(ctx, `UPDATE repositories SET online=$2, attributes=$3, updated_at=now() WHERE name=$1`,
-		r.Name, r.Online, r.Attributes)
+	tag, err := s.DB.Pool.Exec(ctx, `UPDATE repositories SET online=$2, attributes=$3, routing_rule_id=$4, updated_at=now() WHERE name=$1`,
+		r.Name, r.Online, r.Attributes, r.RoutingRuleID)
 	if err != nil {
 		return err
 	}
@@ -377,6 +380,9 @@ func (s *Service) PutBlob(ctx context.Context, storageID uuid.UUID, r io.Reader,
 	if err != nil {
 		return storage.Info{}, err
 	}
+	if err := s.CheckQuota(ctx, storageID); err != nil {
+		return storage.Info{}, err
+	}
 	info, err := st.Put(ctx, r, expected)
 	if err != nil {
 		return storage.Info{}, err
@@ -384,11 +390,33 @@ func (s *Service) PutBlob(ctx context.Context, storageID uuid.UUID, r io.Reader,
 	return info, s.RecordBlob(ctx, storageID, info)
 }
 
-// RecordBlob upserts the blobs row (ref_count untouched).
+// RecordBlob upserts the blobs row (ref_count untouched) and revives a
+// soft-deleted row.
 func (s *Service) RecordBlob(ctx context.Context, storageID uuid.UUID, info storage.Info) error {
-	_, err := s.DB.Pool.Exec(ctx, `INSERT INTO blobs(digest,size,storage_id) VALUES ($1,$2,$3) ON CONFLICT (digest) DO NOTHING`,
+	_, err := s.DB.Pool.Exec(ctx, `INSERT INTO blobs(digest,size,storage_id) VALUES ($1,$2,$3) ON CONFLICT (digest) DO UPDATE SET deleted_at = NULL`,
 		string(info.Digest), info.Size, storageID)
 	return err
+}
+
+var ErrQuota = errors.New("storage quota exceeded")
+
+// CheckQuota returns ErrQuota when the storage's soft quota is already exceeded.
+func (s *Service) CheckQuota(ctx context.Context, storageID uuid.UUID) error {
+	var quota, used int64
+	err := s.DB.Pool.QueryRow(ctx, `SELECT s.quota_bytes, coalesce((SELECT sum(size) FROM blobs b WHERE b.storage_id = s.id AND b.deleted_at IS NULL),0) FROM storages s WHERE s.id=$1`, storageID).Scan(&quota, &used)
+	if err != nil {
+		return err
+	}
+	if quota > 0 && used >= quota {
+		return fmt.Errorf("%w: %d of %d bytes used", ErrQuota, used, quota)
+	}
+	return nil
+}
+
+// StorageUsage returns bytes used and blob count for a storage.
+func (s *Service) StorageUsage(ctx context.Context, storageID uuid.UUID) (used int64, count int64, err error) {
+	err = s.DB.Pool.QueryRow(ctx, `SELECT coalesce(sum(size),0), count(*) FROM blobs WHERE storage_id=$1 AND deleted_at IS NULL`, storageID).Scan(&used, &count)
+	return
 }
 
 func (s *Service) OpenBlob(ctx context.Context, d storage.Digest) (io.ReadCloser, int64, error) {

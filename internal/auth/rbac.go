@@ -45,6 +45,37 @@ func (p *Principal) CanRepo(repoName, format, action string) bool {
 	return p.Can("repo:"+repoName, action) || p.Can("format:"+format, action)
 }
 
+// SelectorLookup resolves content selectors by name; set by the server.
+var SelectorLookup func(name string) *ContentSelector
+
+// CanContent checks permission for a specific path inside a repository,
+// including content-selector privileges ("selector:<name>@<repo|*>").
+func (p *Principal) CanContent(repoName, format, path, action string) bool {
+	if p.CanRepo(repoName, format, action) {
+		return true
+	}
+	if p == nil || SelectorLookup == nil {
+		return false
+	}
+	for _, pr := range p.Privileges {
+		if !strings.HasPrefix(pr.Target, "selector:") || !matchAction(pr.Actions, action) {
+			continue
+		}
+		spec := strings.TrimPrefix(pr.Target, "selector:")
+		name, repoPat := spec, "*"
+		if i := strings.IndexByte(spec, '@'); i >= 0 {
+			name, repoPat = spec[:i], spec[i+1:]
+		}
+		if repoPat != "*" && repoPat != repoName {
+			continue
+		}
+		if sel := SelectorLookup(name); sel != nil && sel.Match(SelectorInput{Format: format, Path: path}) {
+			return true
+		}
+	}
+	return false
+}
+
 func matchTarget(granted, want string) bool {
 	if granted == "*" {
 		return true

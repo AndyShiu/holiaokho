@@ -37,8 +37,10 @@ type Repository struct {
 	StorageID  uuid.UUID       `json:"storageId"`
 	Online     bool            `json:"online"`
 	Attributes json.RawMessage `json:"attributes"`
-	CreatedAt  time.Time       `json:"createdAt"`
-	UpdatedAt  time.Time       `json:"updatedAt"`
+	// RoutingRuleID optionally restricts which paths this repository serves.
+	RoutingRuleID *uuid.UUID `json:"routingRuleId"`
+	CreatedAt     time.Time  `json:"createdAt"`
+	UpdatedAt     time.Time  `json:"updatedAt"`
 
 	// Decoded common attribute blocks (populated by RepositoryService).
 	Proxy   *ProxyAttrs  `json:"-"`
@@ -81,11 +83,12 @@ type GroupAttrs struct {
 }
 
 type Storage struct {
-	ID        uuid.UUID       `json:"id"`
-	Name      string          `json:"name"`
-	Type      string          `json:"type"`
-	Config    json.RawMessage `json:"config"`
-	CreatedAt time.Time       `json:"createdAt"`
+	ID         uuid.UUID       `json:"id"`
+	Name       string          `json:"name"`
+	Type       string          `json:"type"`
+	Config     json.RawMessage `json:"config"`
+	QuotaBytes int64           `json:"quotaBytes"`
+	CreatedAt  time.Time       `json:"createdAt"`
 }
 
 type Blob struct {

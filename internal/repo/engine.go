@@ -38,6 +38,7 @@ var (
 	ErrUpstream       = errors.New("upstream error")
 	ErrInvalidPath    = errors.New("invalid path")
 	ErrUpstreamDenied = errors.New("upstream denied")
+	ErrRouted         = errors.New("path blocked by routing rule")
 )
 
 // Kind tells the engine which TTL applies to a proxied path.
@@ -109,6 +110,22 @@ type Engine struct {
 	// autoBlock tracks upstream failures per repo (name -> until).
 	blockedMu sync.Mutex
 	blocked   map[string]time.Time
+	routing   routing
+	// OnEvent, when set, receives content events (asset.created, asset.deleted).
+	OnEvent func(Event)
+}
+
+// Event describes a content change for webhooks.
+type Event struct {
+	Name       string
+	Repository string
+	Data       map[string]any
+}
+
+func (e *Engine) emit(name string, repo *model.Repository, data map[string]any) {
+	if e.OnEvent != nil {
+		e.OnEvent(Event{Name: name, Repository: repo.Name, Data: data})
+	}
 }
 
 func NewEngine(c *content.Service, log *slog.Logger, repos RepoResolver, pc config.Proxy) (*Engine, error) {
@@ -179,6 +196,9 @@ func (e *Engine) Fetch(ctx context.Context, repo *model.Repository, path string,
 	if !repo.Online {
 		return nil, ErrOffline
 	}
+	if rule := e.RuleFor(ctx, repo); rule != nil && !rule.Allows(path) {
+		return nil, ErrRouted
+	}
 	switch repo.Type {
 	case model.Hosted:
 		return e.fetchLocal(ctx, repo, path)
@@ -215,9 +235,9 @@ func (e *Engine) fetchGroup(ctx context.Context, group *model.Repository, path s
 		if err == nil {
 			return res, nil
 		}
-		// A member that cannot serve the path (missing, offline, or the
-		// upstream refused it) must not mask other members.
-		if !errors.Is(err, ErrNotFound) && !errors.Is(err, ErrOffline) && !errors.Is(err, ErrUpstreamDenied) {
+		// A member that cannot serve the path (missing, offline, routed away,
+		// or the upstream refused it) must not mask other members.
+		if !errors.Is(err, ErrNotFound) && !errors.Is(err, ErrOffline) && !errors.Is(err, ErrUpstreamDenied) && !errors.Is(err, ErrRouted) {
 			lastErr = err
 		}
 	}
@@ -592,6 +612,11 @@ func (e *Engine) Put(ctx context.Context, repo *model.Repository, path string, b
 	if err := e.Content.UpsertAsset(ctx, a); err != nil {
 		return nil, err
 	}
+	ev := map[string]any{"path": path, "size": info.Size, "digest": d}
+	if opt.Package != nil {
+		ev["package"] = map[string]any{"namespace": opt.Package.Namespace, "name": opt.Package.Name, "version": opt.Package.Version}
+	}
+	e.emit("asset.created", repo, ev)
 	return a, nil
 }
 
@@ -603,6 +628,9 @@ func (e *Engine) Delete(ctx context.Context, repo *model.Repository, path string
 	err := e.Content.DeleteAsset(ctx, repo.ID, path)
 	if errors.Is(err, content.ErrNotFound) {
 		return ErrNotFound
+	}
+	if err == nil {
+		e.emit("asset.deleted", repo, map[string]any{"path": path})
 	}
 	return err
 }

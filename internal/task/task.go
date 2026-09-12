@@ -30,15 +30,24 @@ type Task struct {
 	Description string        `json:"description"`
 	Interval    time.Duration `json:"-"`
 	IntervalStr string        `json:"interval"`
-	LastRun     *time.Time    `json:"lastRun"`
-	NextRun     *time.Time    `json:"nextRun"`
-	Running     bool          `json:"running"`
-	fn          Func
+	// Cron, when set, replaces the interval (persisted in task_schedules).
+	Cron       string     `json:"cron,omitempty"`
+	Enabled    bool       `json:"enabled"`
+	LastRun    *time.Time `json:"lastRun"`
+	NextRun    *time.Time `json:"nextRun"`
+	Running    bool       `json:"running"`
+	LastStatus string     `json:"lastStatus,omitempty"`
+	fn         Func
+	sched      *Schedule
 }
 
+// Notifier is called when a task run fails (email/webhook); set by the server.
+type Notifier func(taskName string, err error, log string)
+
 type Scheduler struct {
-	DB  *db.DB
-	Log *slog.Logger
+	DB     *db.DB
+	Log    *slog.Logger
+	Notify Notifier
 
 	mu     sync.Mutex
 	tasks  map[string]*Task
@@ -56,7 +65,50 @@ func (s *Scheduler) Register(name, desc string, every time.Duration, fn Func) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	next := time.Now().Add(every)
-	s.tasks[name] = &Task{Name: name, Description: desc, Interval: every, IntervalStr: every.String(), NextRun: &next, fn: fn}
+	t := &Task{Name: name, Description: desc, Interval: every, IntervalStr: every.String(), Enabled: true, NextRun: &next, fn: fn}
+	s.tasks[name] = t
+	// Restore a persisted cron schedule, if any.
+	var cron string
+	var enabled bool
+	if err := s.DB.Pool.QueryRow(context.Background(), `SELECT cron, enabled FROM task_schedules WHERE task_name=$1`, name).Scan(&cron, &enabled); err == nil {
+		s.applySchedule(t, cron, enabled)
+	}
+}
+
+func (s *Scheduler) applySchedule(t *Task, cron string, enabled bool) error {
+	t.Enabled = enabled
+	if cron == "" {
+		t.Cron, t.sched = "", nil
+		next := time.Now().Add(t.Interval)
+		t.NextRun = &next
+		return nil
+	}
+	sc, err := ParseCron(cron)
+	if err != nil {
+		return err
+	}
+	t.Cron, t.sched = cron, sc
+	next := sc.Next(time.Now())
+	t.NextRun = &next
+	return nil
+}
+
+// SetSchedule sets (cron != "") or clears a task's cron schedule and persists it.
+func (s *Scheduler) SetSchedule(ctx context.Context, name, cron string, enabled bool) error {
+	s.mu.Lock()
+	t := s.tasks[name]
+	if t == nil {
+		s.mu.Unlock()
+		return fmt.Errorf("unknown task %q", name)
+	}
+	err := s.applySchedule(t, cron, enabled)
+	s.mu.Unlock()
+	if err != nil {
+		return err
+	}
+	_, err = s.DB.Pool.Exec(ctx, `INSERT INTO task_schedules(task_name, cron, enabled) VALUES ($1,$2,$3)
+		ON CONFLICT (task_name) DO UPDATE SET cron=EXCLUDED.cron, enabled=EXCLUDED.enabled`, name, cron, enabled)
+	return err
 }
 
 func (s *Scheduler) List() []Task {
@@ -105,7 +157,7 @@ func (s *Scheduler) loop() {
 			var due []string
 			s.mu.Lock()
 			for _, t := range s.tasks {
-				if t.NextRun != nil && !t.NextRun.After(now) && !t.Running {
+				if t.Enabled && t.NextRun != nil && !t.NextRun.After(now) && !t.Running {
 					due = append(due, t.Name)
 				}
 			}
@@ -144,14 +196,21 @@ func (s *Scheduler) run(name string) {
 		if err != nil {
 			status = "failed"
 			logf("error: %v", err)
+			if s.Notify != nil {
+				s.Notify(name, err, logBuf.String())
+			}
 		}
 		s.DB.Pool.Exec(ctx, `UPDATE task_runs SET finished_at=now(), status=$2, log=$3 WHERE id=$1`, runID, status, logBuf.String())
 		now := time.Now()
 		next := now.Add(t.Interval)
 		s.mu.Lock()
+		if t.sched != nil {
+			next = t.sched.Next(now)
+		}
 		t.Running = false
 		t.LastRun = &now
 		t.NextRun = &next
+		t.LastStatus = status
 		s.mu.Unlock()
 	}()
 }
@@ -184,8 +243,11 @@ func (s *Scheduler) Runs(ctx context.Context, name string, limit int) ([]model.T
 
 // RegisterBuiltins wires the standard maintenance tasks.
 func RegisterBuiltins(s *Scheduler, c *content.Service) {
-	s.Register("blob-gc", "Delete blobs no longer referenced by any asset (after a 1h grace period)", time.Hour, func(ctx context.Context, logf func(string, ...any)) error {
+	s.Register("blob-gc", "Soft-delete blobs no longer referenced by any asset (after a 1h grace period)", time.Hour, func(ctx context.Context, logf func(string, ...any)) error {
 		return BlobGC(ctx, c, time.Hour, logf)
+	})
+	s.Register("compact-blobs", "Permanently remove soft-deleted blobs from storage (Nexus 'Compact blob store')", 24*time.Hour, func(ctx context.Context, logf func(string, ...any)) error {
+		return CompactBlobs(ctx, c, 24*time.Hour, logf)
 	})
 	s.Register("cleanup-policies", "Apply cleanup policies to their repositories", 24*time.Hour, func(ctx context.Context, logf func(string, ...any)) error {
 		return RunCleanupPolicies(ctx, c, logf)
@@ -199,9 +261,24 @@ func RegisterBuiltins(s *Scheduler, c *content.Service) {
 	})
 }
 
-// BlobGC removes unreferenced blobs older than grace from storage and DB.
+// BlobGC soft-deletes unreferenced blobs older than grace. Bytes stay on
+// disk until CompactBlobs runs, so an accidental deletion can be undone by
+// re-referencing the blob (the row is revived automatically).
 func BlobGC(ctx context.Context, c *content.Service, grace time.Duration, logf func(string, ...any)) error {
-	rows, err := c.DB.Pool.Query(ctx, `SELECT digest, storage_id, size FROM blobs WHERE ref_count <= 0 AND created_at < now() - $1::interval LIMIT 10000`, grace.String())
+	tag, err := c.DB.Pool.Exec(ctx, `UPDATE blobs SET deleted_at = now() WHERE deleted_at IS NULL AND ref_count <= 0
+		AND created_at < now() - $1::interval AND NOT EXISTS (SELECT 1 FROM assets a WHERE a.blob_digest = blobs.digest)`, grace.String())
+	if err != nil {
+		return err
+	}
+	// Revive blobs that were referenced again after being soft-deleted.
+	rev, _ := c.DB.Pool.Exec(ctx, `UPDATE blobs SET deleted_at = NULL WHERE deleted_at IS NOT NULL AND ref_count > 0`)
+	logf("soft-deleted %d blobs, revived %d", tag.RowsAffected(), rev.RowsAffected())
+	return nil
+}
+
+// CompactBlobs permanently deletes blobs soft-deleted longer than retention ago.
+func CompactBlobs(ctx context.Context, c *content.Service, retention time.Duration, logf func(string, ...any)) error {
+	rows, err := c.DB.Pool.Query(ctx, `SELECT digest, storage_id, size FROM blobs WHERE deleted_at IS NOT NULL AND deleted_at < now() - $1::interval AND ref_count <= 0 LIMIT 20000`, retention.String())
 	if err != nil {
 		return err
 	}
@@ -223,8 +300,7 @@ func BlobGC(ctx context.Context, c *content.Service, grace time.Duration, logf f
 	var n int
 	var bytes int64
 	for _, x := range cands {
-		// Re-check inside a transaction to avoid racing a new reference.
-		tag, err := c.DB.Pool.Exec(ctx, `DELETE FROM blobs WHERE digest=$1 AND ref_count <= 0 AND NOT EXISTS (SELECT 1 FROM assets WHERE blob_digest=$1)`, x.d)
+		tag, err := c.DB.Pool.Exec(ctx, `DELETE FROM blobs WHERE digest=$1 AND ref_count <= 0 AND deleted_at IS NOT NULL AND NOT EXISTS (SELECT 1 FROM assets WHERE blob_digest=$1)`, x.d)
 		if err != nil || tag.RowsAffected() == 0 {
 			continue
 		}
@@ -239,7 +315,7 @@ func BlobGC(ctx context.Context, c *content.Service, grace time.Duration, logf f
 		n++
 		bytes += x.size
 	}
-	logf("removed %d blobs, %d bytes", n, bytes)
+	logf("removed %d blobs, %d bytes reclaimed", n, bytes)
 	return nil
 }
 
@@ -304,6 +380,25 @@ func SaveCleanupPolicy(ctx context.Context, d *db.DB, p *model.CleanupPolicy, cr
 // format without importing the format packages here.
 var VersionLess = func(format, a, b string) bool { return a < b }
 
+// PreviewCleanupPolicy lists the packages a policy would delete on a repo
+// without deleting anything (Nexus "cleanup preview").
+func PreviewCleanupPolicy(ctx context.Context, c *content.Service, rp *model.Repository, p *model.CleanupPolicy, limit int) ([]model.Package, error) {
+	ids, err := matchPolicy(ctx, c, rp, p)
+	if err != nil {
+		return nil, err
+	}
+	var out []model.Package
+	for i, id := range ids {
+		if limit > 0 && i >= limit {
+			break
+		}
+		if pk, err := c.PackageByID(ctx, id); err == nil {
+			out = append(out, *pk)
+		}
+	}
+	return out, nil
+}
+
 // RunCleanupPolicies deletes packages matching each policy assigned to a repo.
 func RunCleanupPolicies(ctx context.Context, c *content.Service, logf func(string, ...any)) error {
 	policies, err := ListCleanupPolicies(ctx, c.DB)
@@ -336,6 +431,21 @@ func RunCleanupPolicies(ctx context.Context, c *content.Service, logf func(strin
 }
 
 func applyPolicy(ctx context.Context, c *content.Service, rp *model.Repository, p *model.CleanupPolicy) (int, error) {
+	ids, err := matchPolicy(ctx, c, rp, p)
+	if err != nil {
+		return 0, err
+	}
+	n := 0
+	for _, id := range ids {
+		if err := c.DeletePackage(ctx, id); err == nil {
+			n++
+		}
+	}
+	return n, nil
+}
+
+// matchPolicy returns the package IDs a policy selects in a repository.
+func matchPolicy(ctx context.Context, c *content.Service, rp *model.Repository, p *model.CleanupPolicy) ([]int64, error) {
 	cr := p.Criteria
 	var where []string
 	var args []any
@@ -364,7 +474,7 @@ func applyPolicy(ctx context.Context, c *content.Service, rp *model.Repository, 
 	}
 	rows, err := c.DB.Pool.Query(ctx, `SELECT id, namespace, name, version FROM packages WHERE `+strings.Join(where, " AND "), args...)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 	type pk struct {
 		id      int64
@@ -376,7 +486,7 @@ func applyPolicy(ctx context.Context, c *content.Service, rp *model.Repository, 
 		var x pk
 		if err := rows.Scan(&x.id, &x.ns, &x.nm, &x.version); err != nil {
 			rows.Close()
-			return 0, err
+			return nil, err
 		}
 		cands = append(cands, x)
 	}
@@ -395,11 +505,9 @@ func applyPolicy(ctx context.Context, c *content.Service, rp *model.Repository, 
 			}
 		}
 	}
-	n := 0
+	ids := make([]int64, 0, len(cands))
 	for _, x := range cands {
-		if err := c.DeletePackage(ctx, x.id); err == nil {
-			n++
-		}
+		ids = append(ids, x.id)
 	}
-	return n, nil
+	return ids, nil
 }

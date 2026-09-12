@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
@@ -19,9 +20,11 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/holiaokho/holiaokho/internal/auth"
+	"github.com/holiaokho/holiaokho/internal/config"
 	"github.com/holiaokho/holiaokho/internal/content"
 	"github.com/holiaokho/holiaokho/internal/format"
 	"github.com/holiaokho/holiaokho/internal/model"
+	"github.com/holiaokho/holiaokho/internal/notify"
 	"github.com/holiaokho/holiaokho/internal/repo"
 	"github.com/holiaokho/holiaokho/internal/task"
 )
@@ -41,6 +44,10 @@ type API struct {
 	// OnRepoChange is called after repositories are created/updated/deleted
 	// (the server uses it to (re)start Docker port listeners).
 	OnRepoChange func()
+	Notify       *notify.Service
+	Logs         LogSource
+	LogLevel     *slog.LevelVar
+	Config       config.Config
 }
 
 func (a *API) Router() http.Handler {
@@ -120,6 +127,7 @@ func (a *API) Router() http.Handler {
 		r.Delete("/{id}/repositories/{name}", a.need("app:repositories", auth.Write, a.unassignCleanup))
 	})
 	r.Get("/audit", a.need("app:system", auth.Read, a.audit))
+	a.adminRoutes(r)
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) { writeErr(w, 404, "not_found", "not found") })
 	return r
 }
@@ -221,6 +229,13 @@ func (a *API) audit_(r *http.Request, action, targetType, targetID string, detai
 		d = []byte("{}")
 	}
 	a.Content.DB.Pool.Exec(r.Context(), `INSERT INTO audit_log(actor,action,target_type,target_id,detail) VALUES ($1,$2,$3,$4,$5)`, actor, action, targetType, targetID, d)
+	if a.Notify != nil {
+		repoName := ""
+		if targetType == "repository" {
+			repoName = targetID
+		}
+		a.Notify.Emit(notify.Event{Event: action, Repository: repoName, Actor: actor, Data: map[string]any{"targetType": targetType, "targetId": targetID, "detail": json.RawMessage(d)}})
+	}
 }
 
 // ------------------------------------------------------------------ status
@@ -247,9 +262,20 @@ func (a *API) statusCheck(w http.ResponseWriter, r *http.Request) {
 			if _, err := a.Content.Store(st.ID); err != nil {
 				checks["storage:"+st.Name] = map[string]any{"healthy": false, "message": err.Error()}
 				ok = false
-			} else {
-				checks["storage:"+st.Name] = map[string]any{"healthy": true, "type": st.Type}
+				continue
 			}
+			used, _, _ := a.Content.StorageUsage(r.Context(), st.ID)
+			c := map[string]any{"healthy": true, "type": st.Type, "usedBytes": used}
+			if st.QuotaBytes > 0 {
+				c["quotaBytes"] = st.QuotaBytes
+				if used >= st.QuotaBytes {
+					c["healthy"], c["message"] = false, "quota exceeded"
+					ok = false
+				} else if used*10 >= st.QuotaBytes*9 {
+					c["message"] = "above 90% of quota"
+				}
+			}
+			checks["storage:"+st.Name] = c
 		}
 	}
 	if u, err := a.Auth.User(r.Context(), "admin"); err == nil {
@@ -349,6 +375,8 @@ type repoInput struct {
 	Storage    string                     `json:"storage"`
 	Online     *bool                      `json:"online"`
 	Attributes map[string]json.RawMessage `json:"attributes"`
+	// RoutingRule is the rule name ("" = none). Pointer distinguishes "unset" from "clear".
+	RoutingRule *string `json:"routingRule"`
 }
 
 func (a *API) validateRepo(rp *model.Repository, attrs map[string]json.RawMessage) error {
@@ -421,6 +449,19 @@ func (a *API) validateRepo(rp *model.Repository, attrs map[string]json.RawMessag
 	return nil
 }
 
+func (a *API) resolveRoutingRule(r *http.Request, rp *model.Repository, name string) error {
+	if name == "" {
+		rp.RoutingRuleID = nil
+		return nil
+	}
+	var id uuid.UUID
+	if err := a.Content.DB.Pool.QueryRow(r.Context(), `SELECT id FROM routing_rules WHERE name=$1`, name).Scan(&id); err != nil {
+		return invalid("routing rule %q not found", name)
+	}
+	rp.RoutingRuleID = &id
+	return nil
+}
+
 func probeDecode(r *model.Repository) error {
 	var a struct {
 		Proxy  *model.ProxyAttrs  `json:"proxy"`
@@ -454,6 +495,12 @@ func (a *API) createRepo(w http.ResponseWriter, r *http.Request) {
 	if err := a.validateRepo(rp, in.Attributes); err != nil {
 		a.fail(w, err)
 		return
+	}
+	if in.RoutingRule != nil {
+		if err := a.resolveRoutingRule(r, rp, *in.RoutingRule); err != nil {
+			a.fail(w, err)
+			return
+		}
 	}
 	if err := a.Content.CreateRepo(r.Context(), rp); err != nil {
 		if errors.Is(err, content.ErrConflict) {
@@ -492,6 +539,12 @@ func (a *API) updateRepo(w http.ResponseWriter, r *http.Request) {
 	if err := a.validateRepo(&upd, attrs); err != nil {
 		a.fail(w, err)
 		return
+	}
+	if in.RoutingRule != nil {
+		if err := a.resolveRoutingRule(r, &upd, *in.RoutingRule); err != nil {
+			a.fail(w, err)
+			return
+		}
 	}
 	if err := a.Content.UpdateRepo(r.Context(), &upd); err != nil {
 		writeErr(w, 400, "repo.invalid", "%v", err.Error())
@@ -647,7 +700,34 @@ func (a *API) listStorages(w http.ResponseWriter, r *http.Request) {
 		a.fail(w, err)
 		return
 	}
-	writeJSON(w, 200, st)
+	type view struct {
+		model.Storage
+		UsedBytes int64 `json:"usedBytes"`
+		Blobs     int64 `json:"blobs"`
+		Available bool  `json:"available"`
+	}
+	out := make([]view, 0, len(st))
+	for _, s := range st {
+		used, n, _ := a.Content.StorageUsage(r.Context(), s.ID)
+		_, err := a.Content.Store(s.ID)
+		if s.Type == "s3" {
+			s.Config = redactS3(s.Config)
+		}
+		out = append(out, view{s, used, n, err == nil})
+	}
+	writeJSON(w, 200, out)
+}
+
+func redactS3(raw json.RawMessage) json.RawMessage {
+	var m map[string]any
+	if json.Unmarshal(raw, &m) != nil {
+		return raw
+	}
+	if _, ok := m["secretKey"]; ok {
+		m["secretKey"] = "***"
+	}
+	b, _ := json.Marshal(m)
+	return b
 }
 
 func (a *API) createStorage(w http.ResponseWriter, r *http.Request) {

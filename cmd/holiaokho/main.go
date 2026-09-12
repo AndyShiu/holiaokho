@@ -39,7 +39,7 @@ func main() {
 	}
 }
 
-func setup(fs *flag.FlagSet, args []string) (config.Config, *slog.Logger) {
+func setup(fs *flag.FlagSet, args []string) (config.Config, *slog.Logger, *server.System) {
 	cfgPath := fs.String("config", os.Getenv("HOLIAOKHO_CONFIG"), "path to config.yaml")
 	fs.Parse(args)
 	cfg, err := config.Load(*cfgPath)
@@ -47,24 +47,15 @@ func setup(fs *flag.FlagSet, args []string) (config.Config, *slog.Logger) {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-	var level slog.Level
-	if err := level.UnmarshalText([]byte(cfg.Log.Level)); err != nil {
-		level = slog.LevelInfo
-	}
-	var h slog.Handler
-	if cfg.Log.Format == "json" {
-		h = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: level})
-	} else {
-		h = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: level})
-	}
-	return cfg, slog.New(h)
+	log, sys := server.NewSystemLogger(cfg.Log.Level, cfg.Log.Format)
+	return cfg, log, sys
 }
 
 func runServe(args []string) {
-	cfg, log := setup(flag.NewFlagSet("serve", flag.ExitOnError), args)
+	cfg, log, sys := setup(flag.NewFlagSet("serve", flag.ExitOnError), args)
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
-	srv, err := server.New(ctx, cfg, log)
+	srv, err := server.New(ctx, cfg, log, sys)
 	if err != nil {
 		log.Error("startup failed", "err", err)
 		os.Exit(1)
@@ -86,7 +77,7 @@ func runImport(args []string) {
 	fs.BoolVar(&opt.NoContent, "no-content", false, "import configuration, users and policies only")
 	fs.BoolVar(&opt.NoUsers, "no-users", false, "skip users and roles")
 	fs.StringVar(&formats, "formats", "maven2,npm,docker", "comma-separated Nexus formats to import content for")
-	cfg, log := setup(fs, args)
+	cfg, log, sys := setup(fs, args)
 	if opt.NexusDB == "" {
 		fmt.Fprintln(os.Stderr, "--nexus-db is required")
 		os.Exit(2)
@@ -101,7 +92,7 @@ func runImport(args []string) {
 		}
 	}
 	ctx := context.Background()
-	srv, err := server.New(ctx, cfg, log)
+	srv, err := server.New(ctx, cfg, log, sys)
 	if err != nil {
 		log.Error("startup failed", "err", err)
 		os.Exit(1)

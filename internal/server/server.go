@@ -31,6 +31,7 @@ import (
 	"github.com/holiaokho/holiaokho/internal/format/pypi"
 	"github.com/holiaokho/holiaokho/internal/format/raw"
 	"github.com/holiaokho/holiaokho/internal/model"
+	"github.com/holiaokho/holiaokho/internal/notify"
 	"github.com/holiaokho/holiaokho/internal/repo"
 	"github.com/holiaokho/holiaokho/internal/task"
 	"github.com/holiaokho/holiaokho/web"
@@ -51,12 +52,15 @@ type Server struct {
 	Deps    format.Deps
 	Docker  *docker.Format
 	Tokens  *docker.TokenIssuer
+	Notify  *notify.Service
+	Sys     *System
 
 	main    *http.Server
 	metrics metrics
 
-	mu        sync.Mutex
-	listeners map[int]*http.Server // docker port connectors
+	mu         sync.Mutex
+	listeners  map[int]*http.Server // docker port connectors
+	subdomains map[string]string    // docker subdomain label -> repo name
 }
 
 type metrics struct {
@@ -65,7 +69,10 @@ type metrics struct {
 	started  time.Time
 }
 
-func New(ctx context.Context, cfg config.Config, log *slog.Logger) (*Server, error) {
+func New(ctx context.Context, cfg config.Config, log *slog.Logger, sys *System) (*Server, error) {
+	if sys == nil {
+		_, sys = NewSystemLogger(cfg.Log.Level, cfg.Log.Format)
+	}
 	d, err := db.Open(ctx, cfg.Database.URL, cfg.Database.MaxConns)
 	if err != nil {
 		return nil, err
@@ -85,12 +92,17 @@ func New(ctx context.Context, cfg config.Config, log *slog.Logger) (*Server, err
 	if err := a.Bootstrap(ctx, cfg.Auth.AdminPassword); err != nil {
 		return nil, fmt.Errorf("bootstrap auth: %w", err)
 	}
+	auth.SelectorLookup = a.Selector
 	eng, err := repo.NewEngine(c, log, c.Repo, cfg.Proxy)
 	if err != nil {
 		return nil, err
 	}
-	s := &Server{Cfg: cfg, Log: log, DB: d, Content: c, Auth: a, Engine: eng, Formats: format.NewRegistry(), listeners: map[int]*http.Server{}}
+	s := &Server{Cfg: cfg, Log: log, DB: d, Content: c, Auth: a, Engine: eng, Formats: format.NewRegistry(), listeners: map[int]*http.Server{}, Sys: sys}
 	s.metrics.started = time.Now()
+	s.Notify = notify.New(d.Pool, log)
+	eng.OnEvent = func(ev repo.Event) {
+		s.Notify.Emit(notify.Event{Event: ev.Name, Repository: ev.Repository, Data: ev.Data})
+	}
 	s.Deps = format.Deps{Content: c, Engine: eng, Auth: a, Log: log, BaseURL: s.baseURL}
 	s.Tokens = docker.NewTokenIssuer(a)
 	s.Docker = docker.New(s.Tokens)
@@ -101,6 +113,12 @@ func New(ctx context.Context, cfg config.Config, log *slog.Logger) (*Server, err
 	s.Formats.Register(s.Docker)
 
 	s.Tasks = task.NewScheduler(d, log)
+	s.Tasks.Notify = func(name string, err error, logText string) {
+		s.Notify.Emit(notify.Event{Event: "task.failed", Data: map[string]any{"task": name, "error": err.Error()}})
+		if mailErr := s.Notify.SendMail(context.Background(), nil, "[Holiaokho] task "+name+" failed", err.Error()+"\n\n"+logText); mailErr != nil {
+			log.Debug("task failure mail not sent", "err", mailErr)
+		}
+	}
 	task.RegisterBuiltins(s.Tasks, c)
 	task.VersionLess = func(f, x, y string) bool {
 		if fm, ok := s.Formats.Get(f); ok {
@@ -108,7 +126,8 @@ func New(ctx context.Context, cfg config.Config, log *slog.Logger) (*Server, err
 		}
 		return x < y
 	}
-	s.API = &api.API{Content: c, Engine: eng, Auth: a, Formats: s.Formats, Tasks: s.Tasks, Deps: s.Deps, Version: Version, Started: time.Now(), OnRepoChange: s.syncDockerListeners}
+	s.API = &api.API{Content: c, Engine: eng, Auth: a, Formats: s.Formats, Tasks: s.Tasks, Deps: s.Deps, Version: Version, Started: time.Now(), OnRepoChange: s.syncDockerListeners,
+		Notify: s.Notify, Logs: sys.Buffer, LogLevel: sys.Level, Config: cfg}
 	return s, nil
 }
 
@@ -227,7 +246,25 @@ func (s *Server) Router() http.Handler {
 	r.HandleFunc("/v2", s.dockerPathHandler)
 	r.HandleFunc("/v2/*", s.dockerPathHandler)
 	r.Handle("/*", s.uiHandler())
-	return r
+	// Subdomain connectors: "<label>.<host>" serves that Docker repository.
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		if label, ok := strings.CutPrefix(req.Host, ""); ok {
+			if i := strings.IndexByte(label, '.'); i > 0 {
+				s.mu.Lock()
+				name, hit := s.subdomains[label[:i]]
+				s.mu.Unlock()
+				if hit && (strings.HasPrefix(req.URL.Path, "/v2/") || req.URL.Path == "/v2") {
+					if req.URL.Path == "/v2/token" {
+						s.middleware(s.Tokens).ServeHTTP(w, req)
+						return
+					}
+					s.middleware(s.dockerPortHandler(name)).ServeHTTP(w, req)
+					return
+				}
+			}
+		}
+		r.ServeHTTP(w, req)
+	})
 }
 
 func (s *Server) repositoryHandler(w http.ResponseWriter, r *http.Request) {
@@ -335,20 +372,33 @@ func (s *Server) syncDockerListeners() {
 		return
 	}
 	want := map[int]*model.Repository{}
+	tlsPorts := map[int]docker.Attrs{}
+	subs := map[string]string{}
 	for _, rp := range repos {
 		if rp.Format != docker.Name {
 			continue
 		}
-		if port := docker.AttrsOf(rp).HTTPPort; port > 0 {
+		a := docker.AttrsOf(rp)
+		for _, port := range []int{a.HTTPPort, a.HTTPSPort} {
+			if port <= 0 {
+				continue
+			}
 			if other, dup := want[port]; dup {
 				s.Log.Warn("docker port used by two repositories", "port", port, "a", other.Name, "b", rp.Name)
 				continue
 			}
 			want[port] = rp
+			if port == a.HTTPSPort {
+				tlsPorts[port] = a
+			}
+		}
+		if a.Subdomain != "" {
+			subs[a.Subdomain] = rp.Name
 		}
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	s.subdomains = subs
 	for port, srv := range s.listeners {
 		if _, ok := want[port]; !ok {
 			s.Log.Info("stopping docker connector", "port", port)
@@ -373,6 +423,16 @@ func (s *Server) syncDockerListeners() {
 		ln, err := net.Listen("tcp", srv.Addr)
 		if err != nil {
 			s.Log.Error("docker connector listen", "port", port, "repo", name, "err", err)
+			continue
+		}
+		if a, tls := tlsPorts[port]; tls {
+			s.listeners[port] = srv
+			s.Log.Info("docker connector listening (TLS)", "port", port, "repo", name)
+			go func() {
+				if err := srv.ServeTLS(ln, a.TLSCert, a.TLSKey); err != nil && !errors.Is(err, http.ErrServerClosed) {
+					s.Log.Error("docker TLS connector", "port", port, "err", err)
+				}
+			}()
 			continue
 		}
 		s.listeners[port] = srv

@@ -32,8 +32,15 @@ const Name = "docker"
 
 // Attrs is the "docker" block of repository attributes.
 type Attrs struct {
-	HTTPPort       int  `json:"httpPort"`
-	ForceBasicAuth bool `json:"forceBasicAuth"`
+	HTTPPort int `json:"httpPort"`
+	// HTTPSPort serves the registry over TLS using TLSCert/TLSKey (PEM paths).
+	HTTPSPort int    `json:"httpsPort"`
+	TLSCert   string `json:"tlsCert"`
+	TLSKey    string `json:"tlsKey"`
+	// Subdomain routes requests whose Host starts with "<subdomain>." to this
+	// repository on the main port (Nexus subdomain connector).
+	Subdomain      string `json:"subdomain"`
+	ForceBasicAuth bool   `json:"forceBasicAuth"`
 	// IndexType: HUB (add library/ for single-segment names), REGISTRY, CUSTOM.
 	IndexType string `json:"indexType"`
 	// PathEnabled allows /v2/<repo>/<image> addressing on the main port.
@@ -102,8 +109,14 @@ func (f *Format) ValidateAttributes(r *model.Repository, attrs map[string]json.R
 			return fmt.Errorf("docker attributes: %w", err)
 		}
 	}
-	if a.HTTPPort < 0 || a.HTTPPort > 65535 {
-		return errors.New("docker.httpPort out of range")
+	if a.HTTPPort < 0 || a.HTTPPort > 65535 || a.HTTPSPort < 0 || a.HTTPSPort > 65535 {
+		return errors.New("docker port out of range")
+	}
+	if a.HTTPSPort > 0 && (a.TLSCert == "" || a.TLSKey == "") {
+		return errors.New("docker.httpsPort requires tlsCert and tlsKey")
+	}
+	if a.Subdomain != "" && !regexp.MustCompile(`^[a-z0-9]([a-z0-9-]*[a-z0-9])?$`).MatchString(a.Subdomain) {
+		return errors.New("docker.subdomain must be a DNS label")
 	}
 	a.IndexType = strings.ToUpper(a.IndexType)
 	if a.IndexType == "" {
@@ -197,7 +210,7 @@ func (h *handler) challenge(r *http.Request, name, action string) string {
 
 func (h *handler) authorize(w http.ResponseWriter, r *http.Request, name, action string) bool {
 	p := h.principal(r)
-	if p != nil && p.CanRepo(h.repo.Name, h.repo.Format, action) {
+	if p != nil && p.CanContent(h.repo.Name, h.repo.Format, r.URL.Path, action) {
 		return true
 	}
 	if p == nil || p.Anonymous {
