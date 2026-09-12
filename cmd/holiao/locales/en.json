@@ -1,0 +1,14 @@
+{
+  "login.ok": "Logged in to %s as %s",
+  "login.prompt.user": "Username: ",
+  "login.prompt.pass": "Password: ",
+  "error.no_server": "no server configured; run `holiao login <url>` first",
+  "error.http": "server returned %d: %s",
+  "repo.created": "repository %s created",
+  "repo.deleted": "repository %s deleted",
+  "push.ok": "uploaded %s to %s (%d bytes)",
+  "pull.ok": "downloaded %s (%d bytes)",
+  "token.created": "token created (store it now, it is shown once):\n%s",
+  "task.started": "task %s started",
+  "user.created": "user %s created"
+}

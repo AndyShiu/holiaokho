@@ -1,0 +1,27 @@
+# Holiaokho configuration. Every key can be overridden by HOLIAOKHO_<KEY> env vars
+# (e.g. HOLIAOKHO_DATABASE_URL, HOLIAOKHO_LISTEN, HOLIAOKHO_ADMIN_PASSWORD).
+server:
+  listen: ":8081"
+  # base_url: "https://repo.example.com"   # set when behind a reverse proxy with a different public host
+  trust_forwarded: true
+database:
+  url: "postgres://holiaokho:holiaokho@localhost:5432/holiaokho?sslmode=disable"
+  max_conns: 20
+storage:
+  type: fs
+  path: ./data/blobs
+auth:
+  admin_password: admin123       # only used to create the admin user on first start
+  anonymous_enabled: true        # anonymous read on all repositories (Nexus "anonymous access")
+  session_ttl: 30m
+  login_max_failures: 5
+  login_window: 1m
+proxy:
+  user_agent: "Holiaokho/0.1"
+  connect_timeout: 20s
+  timeout: 10m
+  # http_proxy: "http://proxy.corp:3128"
+  # ca_cert_file: /etc/ssl/corp-ca.pem
+log:
+  level: info    # debug|info|warn|error
+  format: text   # text|json

@@ -1,0 +1,14 @@
+{
+  "login.ok": "已登入 %s，使用者 %s",
+  "login.prompt.user": "使用者名稱：",
+  "login.prompt.pass": "密碼：",
+  "error.no_server": "尚未設定伺服器，請先執行 `holiao login <url>`",
+  "error.http": "伺服器回應 %d：%s",
+  "repo.created": "已建立 repository %s",
+  "repo.deleted": "已刪除 repository %s",
+  "push.ok": "已上傳 %s 到 %s（%d bytes）",
+  "pull.ok": "已下載 %s（%d bytes）",
+  "token.created": "已建立 token（只顯示這一次，請立即保存）：\n%s",
+  "task.started": "已啟動任務 %s",
+  "user.created": "已建立使用者 %s"
+}

@@ -1,0 +1,36 @@
+# Single-node Holiaokho with PostgreSQL. `docker compose up -d` then open http://localhost:8081
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: holiaokho
+      POSTGRES_PASSWORD: holiaokho
+      POSTGRES_DB: holiaokho
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U holiaokho"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  holiaokho:
+    build: ..
+    image: holiaokho/holiaokho:dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      HOLIAOKHO_DATABASE_URL: postgres://holiaokho:holiaokho@postgres:5432/holiaokho?sslmode=disable
+      HOLIAOKHO_ADMIN_PASSWORD: admin123
+      HOLIAOKHO_LOG_FORMAT: json
+    ports:
+      - "8081:8081"
+      # Docker port connectors: expose every httpPort you configure on docker repositories.
+      - "8082:8082"
+    volumes:
+      - blobs:/data
+
+volumes:
+  pgdata:
+  blobs:
