@@ -128,6 +128,7 @@ func (a *API) Router() http.Handler {
 	})
 	r.Get("/audit", a.need("app:system", auth.Read, a.audit))
 	a.adminRoutes(r)
+	a.authRoutes(r)
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) { writeErr(w, 404, "not_found", "not found") })
 	return r
 }

@@ -12,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net"
 	"net/http"
 	"strings"
 	"sync"
@@ -50,6 +51,8 @@ type Service struct {
 	DB  *db.DB
 	Log *slog.Logger
 	Cfg Config
+
+	oidcState
 
 	mu       sync.Mutex
 	failures map[string][]time.Time // ip -> failure timestamps
@@ -346,7 +349,14 @@ func (s *Service) principalFor(ctx context.Context, u *model.User, via string) (
 		return nil, err
 	}
 	p := &Principal{Username: u.Username, Roles: u.Roles, Via: via, Anonymous: u.Username == UserAnonymous}
-	for _, rid := range u.Roles {
+	ids := u.Roles
+	if !p.Anonymous {
+		// "Default Role" realm: every authenticated user gets these too.
+		for _, d := range s.Settings(ctx).DefaultRoles {
+			ids = append(ids, d)
+		}
+	}
+	for _, rid := range ids {
 		if r, ok := roles[rid]; ok {
 			p.Privileges = append(p.Privileges, r.Privileges...)
 		}
@@ -498,6 +508,37 @@ func (s *Service) authenticate(ctx context.Context, username, password string) (
 		}
 		return s.principalFor(ctx, u, "token")
 	}
+	if username == UserAnonymous {
+		return nil, ErrInvalidCreds
+	}
+	settings := s.Settings(ctx)
+	for _, realm := range settings.Realms {
+		switch realm {
+		case "local":
+			p, err := s.localLogin(ctx, username, password)
+			if err == nil {
+				return p, nil
+			}
+			if !errors.Is(err, ErrInvalidCreds) {
+				return nil, err
+			}
+		case "ldap":
+			if !settings.LDAP.Enabled {
+				continue
+			}
+			u, err := s.ldapLogin(ctx, settings.LDAP, username, password)
+			if err == nil {
+				return s.principalFor(ctx, u, "ldap")
+			}
+			if !errors.Is(err, ErrInvalidCreds) {
+				s.Log.Warn("ldap login error", "user", username, "err", err)
+			}
+		}
+	}
+	return nil, ErrInvalidCreds
+}
+
+func (s *Service) localLogin(ctx context.Context, username, password string) (*Principal, error) {
 	u, err := s.User(ctx, username)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
@@ -507,7 +548,7 @@ func (s *Service) authenticate(ctx context.Context, username, password string) (
 		}
 		return nil, err
 	}
-	if !u.Active || u.Username == UserAnonymous {
+	if !u.Active || u.Source != "local" {
 		return nil, ErrInvalidCreds
 	}
 	ok, rehash, err := VerifyPassword(u.PasswordHash, password)
@@ -574,6 +615,9 @@ func (s *Service) FromRequest(r *http.Request) (*Principal, bool, error) {
 			return s.Anonymous(ctx), false, nil
 		}
 	}
+	if p, ok := s.rutAuth(r); ok {
+		return p, true, nil
+	}
 	if c, err := r.Cookie(SessionCookie); err == nil && c.Value != "" {
 		u, err := s.userBySession(ctx, c.Value)
 		if err == nil {
@@ -584,6 +628,56 @@ func (s *Service) FromRequest(r *http.Request) (*Principal, bool, error) {
 		}
 	}
 	return s.Anonymous(ctx), false, nil
+}
+
+// rutAuth trusts a username header set by a reverse proxy (Nexus "Rut Auth").
+func (s *Service) rutAuth(r *http.Request) (*Principal, bool) {
+	cfg := s.Settings(r.Context()).Rut
+	if !cfg.Enabled || cfg.Header == "" {
+		return nil, false
+	}
+	username := strings.TrimSpace(r.Header.Get(cfg.Header))
+	if username == "" || username == UserAnonymous {
+		return nil, false
+	}
+	if len(cfg.TrustedProxies) > 0 {
+		host := r.RemoteAddr
+		if i := strings.LastIndexByte(host, ':'); i > 0 {
+			host = host[:i]
+		}
+		ip := net.ParseIP(strings.Trim(host, "[]"))
+		trusted := false
+		for _, c := range cfg.TrustedProxies {
+			if _, n, err := net.ParseCIDR(c); err == nil && ip != nil && n.Contains(ip) {
+				trusted = true
+				break
+			} else if c == host {
+				trusted = true
+				break
+			}
+		}
+		if !trusted {
+			s.Log.Warn("rut auth header from untrusted address", "remote", r.RemoteAddr)
+			return nil, false
+		}
+	}
+	u, err := s.User(r.Context(), username)
+	if errors.Is(err, ErrNotFound) {
+		if !cfg.AutoCreate {
+			return nil, false
+		}
+		nu := &model.User{Username: username, Source: "rut", Active: true, Roles: cfg.DefaultRoles}
+		if u, err = s.syncExternalUser(r.Context(), nu); err != nil {
+			return nil, false
+		}
+	} else if err != nil || !u.Active {
+		return nil, false
+	}
+	p, err := s.principalFor(r.Context(), u, "rut")
+	if err != nil {
+		return nil, false
+	}
+	return p, true
 }
 
 // ClientIP honours X-Forwarded-For (first hop) when present.
