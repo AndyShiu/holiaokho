@@ -25,6 +25,7 @@ import (
 	"github.com/holiaokho/holiaokho/internal/content"
 	"github.com/holiaokho/holiaokho/internal/db"
 	"github.com/holiaokho/holiaokho/internal/format"
+	"github.com/holiaokho/holiaokho/internal/format/alpine"
 	"github.com/holiaokho/holiaokho/internal/format/apt"
 	"github.com/holiaokho/holiaokho/internal/format/docker"
 	"github.com/holiaokho/holiaokho/internal/format/goproxy"
@@ -120,6 +121,7 @@ func New(ctx context.Context, cfg config.Config, log *slog.Logger, sys *System) 
 	s.Formats.Register(goproxy.Format{})
 	s.Formats.Register(apt.Format{})
 	s.Formats.Register(yum.Format{})
+	s.Formats.Register(alpine.Format{})
 	s.Formats.Register(s.Docker)
 
 	s.Tasks = task.NewScheduler(d, log)

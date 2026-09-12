@@ -19,6 +19,7 @@ import (
 
 	"github.com/holiaokho/holiaokho/internal/auth"
 	"github.com/holiaokho/holiaokho/internal/config"
+	"github.com/holiaokho/holiaokho/internal/format/alpine"
 	"github.com/holiaokho/holiaokho/internal/model"
 	"github.com/holiaokho/holiaokho/internal/notify"
 	"github.com/holiaokho/holiaokho/internal/pkgsign"
@@ -71,6 +72,7 @@ func (a *API) adminRoutes(r chi.Router) {
 		r.Get("/support-zip", a.need("app:system", auth.Read, a.supportZip))
 		r.Get("/config", a.need("app:system", auth.Read, a.systemConfig))
 		r.Post("/pgp-key", a.need("app:system", auth.Write, a.generatePGPKey))
+		r.Post("/rsa-key", a.need("app:system", auth.Write, a.generateRSAKey))
 	})
 }
 
@@ -574,6 +576,17 @@ func (a *API) generatePGPKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	a.audit_(r, "system.pgp_key", "system", in.Email, nil)
+	writeJSON(w, 201, map[string]any{"privateKey": priv, "publicKey": pub})
+}
+
+// generateRSAKey creates an RSA key pair for Alpine APKINDEX signing.
+func (a *API) generateRSAKey(w http.ResponseWriter, r *http.Request) {
+	priv, pub, err := alpine.GenerateKey()
+	if err != nil {
+		a.fail(w, err)
+		return
+	}
+	a.audit_(r, "system.rsa_key", "system", "", nil)
 	writeJSON(w, 201, map[string]any{"privateKey": priv, "publicKey": pub})
 }
 
