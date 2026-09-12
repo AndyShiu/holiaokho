@@ -26,6 +26,8 @@ import (
 	"github.com/holiaokho/holiaokho/internal/db"
 	"github.com/holiaokho/holiaokho/internal/format"
 	"github.com/holiaokho/holiaokho/internal/format/docker"
+	"github.com/holiaokho/holiaokho/internal/format/goproxy"
+	"github.com/holiaokho/holiaokho/internal/format/helm"
 	"github.com/holiaokho/holiaokho/internal/format/maven"
 	"github.com/holiaokho/holiaokho/internal/format/npm"
 	"github.com/holiaokho/holiaokho/internal/format/nuget"
@@ -112,6 +114,8 @@ func New(ctx context.Context, cfg config.Config, log *slog.Logger, sys *System) 
 	s.Formats.Register(raw.Format{})
 	s.Formats.Register(pypi.Format{})
 	s.Formats.Register(nuget.Format{})
+	s.Formats.Register(helm.Format{})
+	s.Formats.Register(goproxy.Format{})
 	s.Formats.Register(s.Docker)
 
 	s.Tasks = task.NewScheduler(d, log)
