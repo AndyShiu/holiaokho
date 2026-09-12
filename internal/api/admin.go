@@ -21,6 +21,7 @@ import (
 	"github.com/holiaokho/holiaokho/internal/config"
 	"github.com/holiaokho/holiaokho/internal/model"
 	"github.com/holiaokho/holiaokho/internal/notify"
+	"github.com/holiaokho/holiaokho/internal/pkgsign"
 	"github.com/holiaokho/holiaokho/internal/repo"
 	"github.com/holiaokho/holiaokho/internal/task"
 )
@@ -69,6 +70,7 @@ func (a *API) adminRoutes(r chi.Router) {
 		r.Get("/info", a.need("app:system", auth.Read, a.systemInfo))
 		r.Get("/support-zip", a.need("app:system", auth.Read, a.supportZip))
 		r.Get("/config", a.need("app:system", auth.Read, a.systemConfig))
+		r.Post("/pgp-key", a.need("app:system", auth.Write, a.generatePGPKey))
 	})
 }
 
@@ -551,6 +553,28 @@ func (a *API) systemConfig(w http.ResponseWriter, r *http.Request) {
 	c.Storage.S3.SecretKey = redact(c.Storage.S3.SecretKey)
 	c.Auth.AdminPassword = redact(c.Auth.AdminPassword)
 	writeJSON(w, 200, c)
+}
+
+// generatePGPKey creates a signing key pair for APT/YUM hosted repositories.
+func (a *API) generatePGPKey(w http.ResponseWriter, r *http.Request) {
+	var in struct {
+		Name  string `json:"name"`
+		Email string `json:"email"`
+	}
+	readJSON(r, &in)
+	if in.Name == "" {
+		in.Name = "Holiaokho"
+	}
+	if in.Email == "" {
+		in.Email = "repo@holiaokho.local"
+	}
+	priv, pub, err := pkgsign.GenerateKey(in.Name, in.Email)
+	if err != nil {
+		a.fail(w, err)
+		return
+	}
+	a.audit_(r, "system.pgp_key", "system", in.Email, nil)
+	writeJSON(w, 201, map[string]any{"privateKey": priv, "publicKey": pub})
 }
 
 func redact(s string) string {
