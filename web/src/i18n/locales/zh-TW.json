@@ -425,6 +425,8 @@
     "version": "版本"
   },
   "login": {
+    "aboutSub": "它能做什麼,還有名字的由來",
+    "aboutTitle": "第一次來?認識一下好料庫",
     "badCredentials": "帳號或密碼錯誤",
     "browseAnon": "不登入，先瀏覽套件 →",
     "forgot": "忘記密碼？請聯絡管理員重設。",

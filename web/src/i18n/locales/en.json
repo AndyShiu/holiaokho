@@ -425,6 +425,8 @@
     "version": "Version"
   },
   "login": {
+    "aboutSub": "What it does, and where the name comes from",
+    "aboutTitle": "New here? Meet Holiaokho",
     "badCredentials": "Incorrect username or password",
     "browseAnon": "Browse packages without logging in →",
     "forgot": "Forgot your password? Ask an administrator to reset it.",

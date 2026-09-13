@@ -425,6 +425,8 @@
     "version": "版本"
   },
   "login": {
+    "aboutSub": "它能做什么,还有名字的由来",
+    "aboutTitle": "第一次来?认识一下好料库",
     "badCredentials": "账号或密码错误",
     "browseAnon": "不登录，先浏览包 →",
     "forgot": "忘记密码？请联系管理员重置。",

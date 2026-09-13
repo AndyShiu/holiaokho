@@ -425,6 +425,8 @@
     "version": "バージョン"
   },
   "login": {
+    "aboutSub": "できること、そして名前の由来",
+    "aboutTitle": "はじめての方へ — Holiaokho とは",
     "badCredentials": "ユーザー名またはパスワードが違います",
     "browseAnon": "ログインせずにパッケージを見る →",
     "forgot": "パスワードをお忘れですか？管理者にリセットを依頼してください。",

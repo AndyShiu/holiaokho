@@ -425,6 +425,8 @@
     "version": "버전"
   },
   "login": {
+    "aboutSub": "무엇을 하는지, 그리고 이름의 유래",
+    "aboutTitle": "처음이신가요? Holiaokho 소개",
     "badCredentials": "아이디 또는 비밀번호가 올바르지 않습니다",
     "browseAnon": "로그인 없이 패키지 둘러보기 →",
     "forgot": "비밀번호를 잊으셨나요? 관리자에게 재설정을 요청하세요.",

@@ -189,6 +189,10 @@ export default function Login() {
               </div>
             )}
             <div style={{ marginTop: 20, fontSize: 12, color: '#8A94A3' }}>{t('login.forgot', 'Forgot your password? Ask an administrator to reset it.')}</div>
+            <Link to="/about" className="hlk-login-about">
+              <span className="hlk-login-about-title">{t('login.aboutTitle', 'New here? Meet Holiaokho')}</span>
+              <span className="hlk-login-about-sub">{t('login.aboutSub', 'What it does, and where the name comes from')}</span>
+            </Link>
           </div>
           <div className="hlk-login-foot">
             <span className="hlk-mono" style={{ fontSize: 12, color: '#8A94A3' }}>{version}</span>

@@ -204,3 +204,15 @@ a { color: inherit; }
 }
 .hlk-versionlink { cursor: pointer; }
 .hlk-versionlink:hover { color: var(--hlk-text-secondary) !important; text-decoration: underline; }
+/* Login: a way into the About page that reads as an invitation, not a
+   footnote. Amber left rule is the accent's sanctioned use (design README);
+   the login form's own palette is light regardless of theme. */
+.hlk-login-about {
+  display: block; margin-top: 28px; padding: 12px 14px;
+  border-left: 3px solid #E8963A; background: #FBFAF7;
+  border-radius: 0 6px 6px 0; text-decoration: none;
+  transition: background 150ms ease, transform 150ms ease;
+}
+.hlk-login-about:hover { background: #F1EFEA; transform: translateX(2px); }
+.hlk-login-about-title { display: block; font-size: 13px; font-weight: 500; color: #1E2A3B; }
+.hlk-login-about-sub { display: block; font-size: 12px; color: #5B6676; margin-top: 2px; }
