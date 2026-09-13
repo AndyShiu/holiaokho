@@ -1,0 +1,50 @@
+# Gitleaks configuration.
+#
+# The point of an allowlist is to keep the signal usable: a scan that always
+# reports the same 17 known-benign findings is a scan nobody reads, and the
+# day a real credential lands it will be lost in the noise. Everything
+# excluded here is justified below — nothing is silenced for tidiness.
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "curl-auth-user"
+description = "curl -u user:password"
+regex = '''curl\s+(?:-[a-zA-Z]+\s+)*-u\s+([\w.-]+:[^\s'"]+)'''
+[rules.allowlist]
+regexes = [
+  # Placeholders shown to the user in the UI's usage snippets. Upper-case on
+  # purpose so it is obvious they must be replaced; angle brackets were
+  # avoided because a shell would try to redirect them.
+  '''USERNAME:USER_TOKEN''',
+  # The end-to-end tests bootstrap a throwaway server in a container and log
+  # in to it. This password never leaves a developer's machine, and the test
+  # immediately replaces it — scripts/e2e.sh asserts that the account is
+  # locked out until it does.
+  '''admin:admin123''',
+]
+
+[[rules]]
+id = "curl-auth-header"
+description = "Basic auth header"
+regex = '''(?i)Authorization:\s*Basic\s+([A-Za-z0-9+/=]{16,})'''
+[rules.allowlist]
+regexes = [
+  # base64("admin:admin123") — the e2e Helm test, since fixed to derive the
+  # header from a token at run time. This match is in history only, and it is
+  # the throwaway bootstrap password of a container the test creates and
+  # destroys. Rewriting history to erase a fake password would cost a
+  # force-push over both remotes and change every commit hash; that budget
+  # belongs to real secrets.
+  '''YWRtaW46YWRtaW4xMjM=''',
+]
+
+[allowlist]
+description = "Global exclusions"
+paths = [
+  # Build output. It is committed so `go build` works straight after clone
+  # (the binary embeds it), but it only ever mirrors what is already in
+  # web/src, so scanning it reports every finding twice.
+  '''web/dist/''',
+]

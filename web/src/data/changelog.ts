@@ -15,6 +15,42 @@ export interface Release {
 
 export const releases: Release[] = [
   {
+    version: '1.0.4',
+    date: '2026-09-14',
+    changes: [
+      {
+        kind: 'changed',
+        text: {
+          en: 'The Kubernetes manifests now run both containers as a non-root user with a read-only root filesystem and no Linux capabilities. Verified by running them that way, not just by passing a scanner.',
+          'zh-TW': 'Kubernetes manifest 現在讓兩個容器都以非 root 身分、唯讀根檔案系統、且不保留任何 Linux capability 執行。這是實際跑起來驗證過的,不只是讓掃描器過關。',
+          'zh-CN': 'Kubernetes manifest 现在让两个容器都以非 root 身份、只读根文件系统、且不保留任何 Linux capability 运行。这是实际运行验证过的,不只是让扫描器通过。',
+          ja: 'Kubernetes マニフェストで、両方のコンテナが非 root ユーザー・読み取り専用ルートファイルシステム・Linux ケーパビリティなしで動作するようになりました。スキャナを通すためではなく、実際にその構成で動かして確認しています。',
+          ko: 'Kubernetes 매니페스트에서 두 컨테이너 모두 비 root 사용자, 읽기 전용 루트 파일시스템, Linux capability 없이 실행됩니다. 스캐너를 통과시키려는 것이 아니라 실제로 그 구성으로 동작을 확인했습니다.',
+        },
+      },
+      {
+        kind: 'added',
+        text: {
+          en: 'Every push is scanned: Gitleaks over the full history, Trivy for dependencies, configuration and the image, plus go vet, govulncheck and staticcheck.',
+          'zh-TW': '每次推送都會掃描:Gitleaks 掃完整 git 歷史,Trivy 掃相依套件、設定與映像檔,另有 go vet、govulncheck 與 staticcheck。',
+          'zh-CN': '每次推送都会扫描:Gitleaks 扫完整 git 历史,Trivy 扫依赖、配置与镜像,另有 go vet、govulncheck 与 staticcheck。',
+          ja: 'プッシュのたびにスキャンします: 全履歴に対する Gitleaks、依存関係・設定・イメージに対する Trivy、さらに go vet・govulncheck・staticcheck。',
+          ko: '푸시할 때마다 검사합니다: 전체 히스토리에 대한 Gitleaks, 의존성·설정·이미지에 대한 Trivy, 그리고 go vet·govulncheck·staticcheck.',
+        },
+      },
+      {
+        kind: 'fixed',
+        text: {
+          en: 'The per-format test scripts could not run against a fresh server, because the forced password change introduced in 1.0.0 locked them out.',
+          'zh-TW': '各格式的測試腳本無法對全新的伺服器執行——1.0.0 加入的強制改密碼把它們擋在門外。',
+          'zh-CN': '各格式的测试脚本无法对全新的服务器执行——1.0.0 加入的强制改密码把它们挡在门外。',
+          ja: 'フォーマット別のテストスクリプトが新規サーバーに対して実行できませんでした。1.0.0 で入れた強制パスワード変更に阻まれていたためです。',
+          ko: '포맷별 테스트 스크립트가 새 서버에서 실행되지 않았습니다. 1.0.0에서 도입한 강제 비밀번호 변경에 막혀 있었습니다.',
+        },
+      },
+    ],
+  },
+  {
     version: '1.0.3',
     date: '2026-09-13',
     changes: [

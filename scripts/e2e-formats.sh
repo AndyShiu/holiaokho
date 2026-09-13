@@ -8,7 +8,18 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 H=http://localhost:18081
-api() { curl -sf -u admin:admin123 -H 'Content-Type: application/json' "$@"; }
+
+# A freshly bootstrapped admin owes a password change and the API refuses
+# everything until it happens, so do that first. Idempotent: on a server that
+# has already been through this, the first request simply succeeds.
+BOOT_PW=admin123
+ADMIN_PW='E2e-Formats-2026'
+if ! curl -sf -u "admin:$ADMIN_PW" "$H/api/v1/repositories" >/dev/null 2>&1; then
+  curl -sf -u "admin:$BOOT_PW" -X PUT "$H/api/v1/me/password" \
+    -H 'Content-Type: application/json' \
+    -d "{\"current\":\"$BOOT_PW\",\"password\":\"$ADMIN_PW\"}" >/dev/null 2>&1 || true
+fi
+api() { curl -sf -u "admin:$ADMIN_PW" -H 'Content-Type: application/json' "$@"; }
 mk()  { api -X POST $H/api/v1/repositories -d "$1" >/dev/null 2>&1 || true; }
 run() { echo; echo "===== $1"; shift; "$@"; }
 export HL_TOKEN=$(api -X POST $H/api/v1/me/tokens -d '{"name":"e2e-formats"}' | python3 -c "import sys,json; print(json.load(sys.stdin)['secret'])")
@@ -43,14 +54,14 @@ json.dump({"name":"yum-hosted","format":"yum","type":"hosted","attributes":{"yum
 open(t+'/hl.pub','w').write(k['publicKey'])
 PY
   mk "$(cat $T/apt.json)"; mk '{"name":"debian","format":"apt","type":"proxy","attributes":{"proxy":{"remoteUrl":"https://deb.debian.org/debian"}}}'
-  curl -sf -o $T/hello.deb $H/repository/debian/pool/main/h/hello/hello_2.10-3_arm64.deb && curl -sf -u admin:admin123 -X POST --data-binary @$T/hello.deb -o /dev/null $H/repository/apt-hosted/
+  curl -sf -o $T/hello.deb $H/repository/debian/pool/main/h/hello/hello_2.10-3_arm64.deb && curl -sf -u "admin:$ADMIN_PW" -X POST --data-binary @$T/hello.deb -o /dev/null $H/repository/apt-hosted/
   mkdir -p $T/apt && cp $D/apt.sh $T/apt/run.sh && cp $T/hl.pub $T/apt/
   run apt docker run --rm --platform linux/arm64 -v $T/apt:/work debian:bookworm-slim bash /work/run.sh ;;
 yum)
   [ -f $T/yum.json ] || { api -X POST $H/api/v1/system/pgp-key -d '{}' > $T/pgp.json; python3 -c "
 import json; k=json.load(open('$T/pgp.json')); json.dump({'name':'yum-hosted','format':'yum','type':'hosted','attributes':{'yum':{'signingKey':k['privateKey']}}}, open('$T/yum.json','w')); open('$T/hl.pub','w').write(k['publicKey'])"; }
   mk "$(cat $T/yum.json)"; mk '{"name":"rocky","format":"yum","type":"proxy","attributes":{"proxy":{"remoteUrl":"https://dl.rockylinux.org/pub/rocky"}}}'
-  curl -sf -o $T/pkg.rpm "$H/repository/rocky/9/BaseOS/aarch64/os/Packages/z/zlib-1.2.11-40.el9.aarch64.rpm" && curl -sf -u admin:admin123 -X POST --data-binary @$T/pkg.rpm -o /dev/null $H/repository/yum-hosted/
+  curl -sf -o $T/pkg.rpm "$H/repository/rocky/9/BaseOS/aarch64/os/Packages/z/zlib-1.2.11-40.el9.aarch64.rpm" && curl -sf -u "admin:$ADMIN_PW" -X POST --data-binary @$T/pkg.rpm -o /dev/null $H/repository/yum-hosted/
   mkdir -p $T/yum && cp $D/yum.sh $T/yum/run.sh && cp $T/hl.pub $T/yum/
   run yum docker run --rm --platform linux/arm64 -v $T/yum:/work rockylinux:9 bash /work/run.sh ;;
 alpine)
@@ -58,7 +69,7 @@ alpine)
   python3 -c "
 import json; k=json.load(open('$T/rsa.json')); json.dump({'name':'apk-hosted','format':'alpine','type':'hosted','attributes':{'alpine':{'signingKey':k['privateKey'],'keyName':'hl.rsa.pub'}}}, open('$T/apk.json','w')); open('$T/hl.rsa.pub','w').write(k['publicKey'])"
   mk "$(cat $T/apk.json)"; mk '{"name":"alpine","format":"alpine","type":"proxy","attributes":{"proxy":{"remoteUrl":"https://dl-cdn.alpinelinux.org/alpine"}}}'
-  curl -sf -o $T/pkg.apk "$H/repository/alpine/v3.20/main/aarch64/tree-2.1.1-r0.apk" && curl -sf -u admin:admin123 -X PUT --data-binary @$T/pkg.apk -o /dev/null "$H/repository/apk-hosted/aarch64/tree-2.1.1-r0.apk"
+  curl -sf -o $T/pkg.apk "$H/repository/alpine/v3.20/main/aarch64/tree-2.1.1-r0.apk" && curl -sf -u "admin:$ADMIN_PW" -X PUT --data-binary @$T/pkg.apk -o /dev/null "$H/repository/apk-hosted/aarch64/tree-2.1.1-r0.apk"
   mkdir -p $T/apk && cp $D/alpine.sh $T/apk/run.sh && cp $T/hl.rsa.pub $T/apk/
   run alpine docker run --rm --platform linux/arm64 -v $T/apk:/work alpine:3.20 sh /work/run.sh ;;
 rubygems)
@@ -95,7 +106,7 @@ terraform)
   mk '{"name":"tf-hosted","format":"terraform","type":"hosted"}'
   mk '{"name":"tf-group","format":"terraform","type":"group","attributes":{"group":{"members":["tf-hosted","tf-registry"]}}}'
   mkdir -p $T/tf/mod && printf 'output "hello" { value = "hi from hosted module" }\n' > $T/tf/mod/main.tf && (cd $T/tf/mod && COPYFILE_DISABLE=1 tar czf ../mod.tgz main.tf)
-  curl -sf -u admin:admin123 -X PUT --data-binary @$T/tf/mod.tgz -o /dev/null $H/repository/tf-hosted/modules/hl/hello/null/1.0.0.tgz || true
+  curl -sf -u "admin:$ADMIN_PW" -X PUT --data-binary @$T/tf/mod.tgz -o /dev/null $H/repository/tf-hosted/modules/hl/hello/null/1.0.0.tgz || true
   cp $D/terraform-main.tf $T/tf/main.tf; cp $D/terraformrc $T/tf/terraformrc; cp "${TLS_DIR:-/private/tmp/claude-501/-Users-andyshiu-work-05-private-holiao/56d79738-2b23-42e7-afa5-8b3d145456ed/scratchpad/tls}/ca.crt" $T/tf/ca.crt 2>/dev/null || echo "(no TLS CA; terraform test needs HTTPS)"
   run terraform docker run --rm -v $T/tf:/work -w /work -e TF_CLI_CONFIG_FILE=/work/terraformrc --entrypoint sh hashicorp/terraform:1.9 -c "cp /work/ca.crt /usr/local/share/ca-certificates/hl.crt && update-ca-certificates >/dev/null 2>&1; terraform init -no-color | grep -E 'Installed|Error'; terraform apply -auto-approve -no-color | grep -E 'hello =|Error'" ;;
 pub)

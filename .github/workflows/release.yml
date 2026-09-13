@@ -8,7 +8,8 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  # write, not read: the last step creates the GitHub release for this tag.
+  contents: write
   packages: write
 
 jobs:
@@ -18,7 +19,7 @@ jobs:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Derive version from the tag
         id: version
@@ -26,11 +27,11 @@ jobs:
 
       # arm64 matters: a large share of the people who will try this are on
       # Apple Silicon, and an amd64-only image fails for them at `docker run`.
-      - uses: docker/setup-qemu-action@v3
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -44,7 +45,7 @@ jobs:
       - name: Log in to Docker Hub
         id: dockerhub
         if: env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != ''
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: ${{ env.DOCKERHUB_USERNAME }}
           password: ${{ env.DOCKERHUB_TOKEN }}
@@ -62,7 +63,8 @@ jobs:
           echo "tags=${tags}" >> "$GITHUB_OUTPUT"
 
       - name: Build and push
-        uses: docker/build-push-action@v6
+        id: build
+        uses: docker/build-push-action@v7
         with:
           context: .
           platforms: linux/amd64,linux/arm64
@@ -74,3 +76,29 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: false
+
+      # A tag on its own leaves the Releases page empty, which is where people
+      # look to find out what changed and how to pull it.
+      - name: Publish the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          repo="${GITHUB_REPOSITORY,,}"
+          {
+            echo "## Pull it"
+            echo
+            echo '```sh'
+            echo "docker pull ghcr.io/${repo}:${VERSION}"
+            if [ "${{ steps.dockerhub.outcome }}" = "success" ]; then
+              echo "docker pull ${DOCKERHUB_USERNAME}/holiaokho:${VERSION}"
+            fi
+            echo '```'
+            echo
+            echo "Built for \`linux/amd64\` and \`linux/arm64\`."
+            echo
+          } > notes.md
+          gh release create "$GITHUB_REF_NAME" \
+            --title "Holiaokho ${VERSION}" \
+            --notes-file notes.md \
+            --generate-notes

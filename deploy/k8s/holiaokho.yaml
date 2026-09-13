@@ -57,9 +57,23 @@ spec:
   template:
     metadata: { labels: { app: holiaokho-postgres } }
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 70
+        runAsGroup: 70
+        fsGroup: 70
       containers:
         - name: postgres
           image: postgres:16-alpine
+          # A read-only root works here too, provided the two directories
+          # PostgreSQL genuinely writes to outside its data volume are given
+          # somewhere real: the unix socket and scratch space for sorts.
+          # Verified by running the image this way and writing a table.
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
           envFrom:
             - secretRef: { name: holiaokho-db }
           env:
@@ -69,6 +83,8 @@ spec:
           ports: [{ containerPort: 5432 }]
           volumeMounts:
             - { name: pgdata, mountPath: /var/lib/postgresql/data }
+            - { name: run, mountPath: /var/run/postgresql }
+            - { name: tmp, mountPath: /tmp }
           readinessProbe:
             exec: { command: ["pg_isready", "-U", "holiaokho", "-d", "holiaokho"] }
             initialDelaySeconds: 5
@@ -79,6 +95,10 @@ spec:
       volumes:
         - name: pgdata
           persistentVolumeClaim: { claimName: holiaokho-pgdata }
+        - name: run
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -107,12 +127,15 @@ spec:
         app.kubernetes.io/name: holiaokho
     spec:
       # The image runs as uid 10001, which cannot write to a freshly
-      # provisioned volume without this.
+      # provisioned volume without fsGroup.
       securityContext:
         fsGroup: 10001
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
       containers:
         - name: holiaokho
-          image: holiaokho:0.1.8-dev
+          image: holiaokho:1.0.3
           # k3s runs the docker runtime on this node, so images built with
           # `docker build` on the host are already present; there is nothing
           # to pull and no registry involved.
@@ -140,8 +163,19 @@ spec:
           ports:
             - { name: http, containerPort: 8081 }
             - { name: docker-hub, containerPort: 8082 }
+          # The process only ever writes to /data. Everything else can be
+          # read-only, which removes a whole class of "write a binary then
+          # execute it" moves if the server is ever compromised.
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
           volumeMounts:
             - { name: data, mountPath: /data }
+            # Go writes temporary files here during large uploads; with a
+            # read-only root it needs somewhere real to put them.
+            - { name: tmp, mountPath: /tmp }
           readinessProbe:
             httpGet: { path: /readyz, port: 8081 }
             initialDelaySeconds: 3
@@ -161,6 +195,8 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim: { claimName: holiaokho-data }
+        - name: tmp
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service

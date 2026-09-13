@@ -3,7 +3,7 @@ pip install -q conan 2>&1 | grep -v notice | tail -1
 conan profile detect -f >/dev/null 2>&1
 conan remote remove '*' >/dev/null 2>&1 || true
 conan remote add hl http://host.docker.internal:18081/repository/conan-group --insecure >/dev/null
-conan remote login hl admin -p admin123 2>&1 | tail -1
+conan remote login hl admin -p "$HL_TOKEN" 2>&1 | tail -1
 echo "== install zlib via group (recipe from conancenter proxy)"
 conan install --requires=zlib/1.3.1 -r hl --build=missing 2>&1 | grep -E "zlib/1.3.1.*(Cache|Download|Build)|ERROR" | head -3
 echo "== create own package and upload to hosted (via group forwarding → hosted)"

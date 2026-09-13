@@ -1,0 +1,91 @@
+name: Security
+
+# Runs on every push and pull request. A scan that only happens when someone
+# remembers to run it is a scan that stops happening; this way the result is
+# public, current, and tied to a specific commit rather than a claim in a
+# README.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Dependencies do not change when you stop looking at them, but the list
+    # of known vulnerabilities does. Weekly catches a CVE published against a
+    # dependency that has not been touched in months.
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  secrets:
+    name: Secrets in history
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Gitleaks scans commits, so it needs all of them — a shallow
+          # clone would silently scan almost nothing.
+          fetch-depth: 0
+      - name: Gitleaks
+        run: |
+          docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:latest \
+            detect --source /repo --config /repo/.gitleaks.toml --redact --verbose
+
+  dependencies:
+    name: Dependencies and configuration
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Trivy — vulnerabilities, secrets, misconfiguration
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          scanners: vuln,secret,misconfig
+          skip-dirs: web/dist,web/node_modules
+          exit-code: "1"
+
+  go:
+    name: Go analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      # The frontend is embedded with go:embed, so the package will not build
+      # without it. web/dist is committed, but keep this honest if that
+      # changes.
+      - run: go vet ./...
+
+      # Google's own scanner, and the only one that knows which CVEs actually
+      # reach code this binary calls — far fewer false positives than a
+      # version-range match.
+      - name: govulncheck
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
+
+      - name: staticcheck
+        run: |
+          go install honnef.co/go/tools/cmd/staticcheck@latest
+          staticcheck ./...
+
+  image:
+    name: Container image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build
+        run: docker build -t holiaokho:scan --build-arg VERSION=scan .
+      - name: Trivy — image
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          image-ref: holiaokho:scan
+          severity: HIGH,CRITICAL
+          exit-code: "1"

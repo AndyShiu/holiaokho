@@ -1,6 +1,6 @@
 set -e; cd /work
 git config --global user.email t@t; git config --global user.name t; git config --global init.defaultBranch main
-git config --global lfs.url http://admin:admin123@host.docker.internal:18081/repository/lfs
+git config --global lfs.url "http://admin:${HL_TOKEN}@host.docker.internal:18081/repository/lfs"
 git init -q bare.git --bare; git init -q repo && cd repo && git remote add origin /work/bare.git
 git lfs install --local >/dev/null; git lfs track "*.bin" >/dev/null
 head -c 300000 /dev/urandom > big.bin; git add .gitattributes big.bin && git commit -qm "lfs"
