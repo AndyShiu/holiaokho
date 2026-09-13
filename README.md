@@ -16,7 +16,7 @@ Backend feature-complete against Nexus Repository 3 CE (see `docs/nexus-feature-
 - Auth: local users (argon2; Nexus Shiro hashes accepted on import), LDAP, OIDC, reverse-proxy header (Rut), RBAC with content selectors, user tokens, login rate limiting.
 - Ops: routing rules, cleanup policies (+ preview), soft-delete + compact GC, storage quotas, cron-scheduled tasks, webhooks (HMAC), e-mail, audit log, backup/restore (DB + blobs), rebuild-indexes, system info / logs / support zip, Prometheus metrics.
 - Storage: local filesystem or any S3-compatible service. TLS on the main listener; Docker port / TLS / subdomain connectors.
-- Migration: `holiaokho import-nexus` (PostgreSQL-backed Nexus 3.7x+, hardlinks blobs). `/service/rest/v1` compatibility subset for CI scripts.
+- Nexus-compatible URLs, Docker ports and credentials, so existing CI keeps working. `/service/rest/v1` compatibility subset for CI scripts.
 - Web UI: not started (placeholder page); the management API and CLI cover everything.
 
 ## Run
@@ -46,16 +46,6 @@ holiao repo ls
 Clients point at `http://host:8081/repository/<name>/` exactly as with Nexus.
 Docker repositories get a dedicated port via `docker.httpPort` (Nexus style) and
 are also reachable as `host:8081/<repo>/<image>` (path mode).
-
-## Migrate from Nexus
-
-```sh
-holiaokho import-nexus \
-  --nexus-db postgres://nexus:***@nexus-postgres:5432/nexus \
-  --nexus-blobs /nexus-data/blobs --link
-```
-
-Reads Nexus read-only; can be re-run until cut-over. See architecture doc §16.
 
 ## Develop
 

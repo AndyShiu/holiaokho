@@ -176,7 +176,7 @@ Nexus 內建的 scheduled tasks：
 | Capabilities 系統（功能開關） | ✅ | 用設定檔取代 |
 | Scripting API（Groovy） | ✅（預設關） | 不做（用 REST + CLI 取代） |
 | Backup / restore | ✅（H2 export） | ✅ 含 blobs 的 tar.gz，CLI 與 API |
-| Nexus 升級／migration 工具 | ✅ | ✅ `holiaokho import-nexus`（PostgreSQL + blob store、hardlink、idempotent） |
+| Nexus 升級／migration 工具 | ✅ | ⏸ 已實作（`import-nexus`）但預設關閉，需 `HOLIAOKHO_ENABLE_NEXUS_IMPORT=1`；暫不對外 |
 | Branding、Outreach、Analytics 上傳 | ✅ | 不做 |
 | Malware remediation / Repository Firewall / RHC | IQ / Pro | 不做（可外掛整合 Trivy／Grype，後） |
 

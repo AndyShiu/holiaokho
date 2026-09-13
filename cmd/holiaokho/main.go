@@ -35,6 +35,11 @@ func main() {
 	case "", "serve":
 		runServe(args)
 	case "import-nexus":
+		// Kept in the tree but disabled until the migration path is finalised.
+		if os.Getenv("HOLIAOKHO_ENABLE_NEXUS_IMPORT") != "1" {
+			fmt.Fprintln(os.Stderr, "import-nexus is disabled in this build; set HOLIAOKHO_ENABLE_NEXUS_IMPORT=1 to use it")
+			os.Exit(2)
+		}
 		runImport(args)
 	case "backup":
 		runBackup(args)

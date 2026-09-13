@@ -86,14 +86,13 @@
 ├── Integrations
 │   ├── Webhooks
 │   └── Email
-├── System
-│   ├── Health / Status
-│   ├── System Information
-│   ├── Logs（即時 tail + log level）
-│   ├── Configuration（唯讀、遮蔽密碼）
-│   ├── Support ZIP
-│   └── Audit Log
-└── Migrate from Nexus（說明頁 + CLI 指令；匯入本身走 CLI）
+└── System
+    ├── Health / Status
+    ├── System Information
+    ├── Logs（即時 tail + log level）
+    ├── Configuration（唯讀、遮蔽密碼）
+    ├── Support ZIP
+    └── Audit Log
 ```
 
 左側固定導覽（可收合成 icon）、頂部：全域搜尋、語言切換、主題切換、通知（任務失敗／配額警告）、個人選單（Tokens、改密碼、登出）。
@@ -198,7 +197,7 @@
 1. 第一列 **健康卡片群**：每個 check 一張小卡（icon＋名稱＋狀態色）：`database`、`storage:<name>`（顯示 usedBytes/quotaBytes 進度條，>90% 黃、超過紅）、`scheduler`、`default_admin_password`（不健康時整張紅並有「立即更改」按鈕）。頂端一顆總狀態 Badge：`healthy` 綠／有問題紅。
 2. 第二列 **統計數字卡**：Repositories 數（依 type 拆 hosted/proxy/group）、Packages 總數、Assets 總數、總大小（sum of repo `stats.size`）。
 3. 第三列左 **最近活動**（audit 最新 10 筆：相對時間、actor、動作翻譯、target 連結）；右 **任務**（`lastStatus === "failed"` 的任務列在最上、標紅；其餘顯示 nextRun；每列「立即執行」）。
-4. 頂部右側 **快速動作**：「建立 Repository」「從 Nexus 搬家」。
+4. 頂部右側 **快速動作**：「建立 Repository」。
 
 **資料來源**：`GET /status/check`（30s 輪詢）、`GET /repositories`（含 stats）、`GET /audit?limit=10`、`GET /tasks`。
 
@@ -459,22 +458,12 @@ Tabs：
 - **Support ZIP** `/support`：一顆下載按鈕（`GET /system/support-zip`）＋內容物清單（system info、config（遮蔽）、最近 logs、health、repo 清單）＋「不含使用者資料與 blobs」。
 - **Audit Log** `/audit`（`GET /audit?limit=`）：時間、actor（username；`anonymous`／token 前綴／`system`）、action（翻譯，例 `repository.create` → 「建立 repository」）、target 型別＋名稱（可點跳轉）、detail（JSON，展開列）；篩選 action／actor（前端）、limit Select；「載入更多」。
 
-### 6.21 Migrate from Nexus `/ui/admin/migrate`
-
-靜態說明頁（無 API），三個 Steps 卡片：
-1. **匯入**（Nexus 還在跑時）：可複製的指令  
-   `holiaokho import-nexus --nexus-db postgres://nexus:***@host:5432/nexus --nexus-blobs /nexus-data/blobs/default --link`  
-   附參數說明（`--link` 用 hardlink 不複製檔案、`--dry-run`）、匯入內容清單（repos、users（密碼雜湊可沿用，首次登入自動升級）、roles、內容索引、blobs）。
-2. **切換**：停 Nexus → Holiaokho 改監聽同一 port（K3s：改 Deployment image、沿用 Service／PVC 的 manifest 範例可複製）→ Docker port connector 對照表。
-3. **驗證**：checklist（`mvn dependency:resolve`、`npm install`、`docker pull` 各一行）、「在 Repositories 列表確認匯入的 repo」連結。
-底部「CI 不用改設定」對照表：URL 相同／Docker port 相同／帳密相同／REST `/service/rest/v1` 相容子集。
-
-### 6.22 個人選單（頂欄右上）
+### 6.21 個人選單（頂欄右上）
 - 顯示 username＋`via` Tag（session／token／ldap／oidc）。
 - 項目：我的 Tokens、改密碼（local 使用者才顯示；`via` 為 ldap／oidc 隱藏）、語言、主題、登出。
 - 匿名時此處是「登入」按鈕。
 
-### 6.23 通知中心（頂欄鈴鐺）
+### 6.22 通知中心（頂欄鈴鐺）
 純前端彙整，無專用 API：每 60s 拉 `/status/check` 與 `/tasks`，把「不健康的 check」與「lastStatus failed 的任務」列成通知；點擊跳對應頁；已讀狀態存 localStorage。沒有權限（非 Admin）則不顯示鈴鐺。
 
 ---
@@ -486,7 +475,6 @@ Tabs：
 3. **CI token**：Developer 登入 → 我的 Tokens → 建立 → 複製 secret → 說明放進 CI secret。
 4. **Admin 設 LDAP**：Auth Settings → 填 LDAP → 測試登入成功 → 設 roleMapping → 把 ldap 加進 realm 順序。
 5. **空間不夠**：Dashboard 配額警告 → Cleanup Policies 建規則 → 預覽 → 指派 → 執行 → Tasks 看結果 → compact-blobs 回收。
-6. **從 Nexus 搬家**：Migrate 頁照做 → Repositories 列表看到匯入的 repo → 驗證。
 
 ---
 
@@ -536,7 +524,7 @@ Tabs：
 
 1. **設計系統**：色彩（含 light/dark）、字級、間距、圓角、陰影、狀態色；對應到 Ant Design token 名稱。
 2. **Logo / wordmark** 提案 2–3 款與 favicon。
-3. **頁面 layout**：第 6 節每一頁的桌面版（重點頁另附平板版）；第 7 節六個流程的逐頁 mockup。
+3. **頁面 layout**：第 6 節每一頁的桌面版（重點頁另附平板版）；第 7 節五個流程的逐頁 mockup。
 4. **元件規範**：format icon 集（26 個）、type 標籤（hosted/proxy/group）、可複製文字、健康狀態卡片、privilege 編輯器、cron 編輯器、一次性 secret Modal、預覽刪除清單。
 5. **空狀態／錯誤／loading** 的通用樣式。
 6. 一份「設計說明」讓前端工程師照做（含 i18n 與 dark mode 注意事項）。
