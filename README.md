@@ -8,7 +8,8 @@
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Security](https://github.com/AndyShiu/holiaokho/actions/workflows/security.yml/badge.svg)](https://github.com/AndyShiu/holiaokho/actions/workflows/security.yml)
-[![Release](https://github.com/AndyShiu/holiaokho/actions/workflows/release.yml/badge.svg)](https://github.com/AndyShiu/holiaokho/actions/workflows/release.yml)
+[![Release](https://img.shields.io/github/v/release/AndyShiu/holiaokho?label=release)](https://github.com/AndyShiu/holiaokho/releases)
+[![Image](https://img.shields.io/badge/ghcr.io-holiaokho-blue?logo=docker&logoColor=white)](https://github.com/AndyShiu/holiaokho/pkgs/container/holiaokho)
 
 Holiaokho stores the packages your builds depend on and the artefacts they
 produce — Maven, npm, Docker/OCI, PyPI, NuGet and twenty more — behind one

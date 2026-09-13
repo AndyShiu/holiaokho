@@ -7,7 +7,8 @@
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Security](https://github.com/AndyShiu/holiaokho/actions/workflows/security.yml/badge.svg)](https://github.com/AndyShiu/holiaokho/actions/workflows/security.yml)
-[![Release](https://github.com/AndyShiu/holiaokho/actions/workflows/release.yml/badge.svg)](https://github.com/AndyShiu/holiaokho/actions/workflows/release.yml)
+[![Release](https://img.shields.io/github/v/release/AndyShiu/holiaokho?label=release)](https://github.com/AndyShiu/holiaokho/releases)
+[![Image](https://img.shields.io/badge/ghcr.io-holiaokho-blue?logo=docker&logoColor=white)](https://github.com/AndyShiu/holiaokho/pkgs/container/holiaokho)
 
 好料庫存放你們建置時依賴的套件,以及每次建置產出的成果 —— Maven、npm、
 Docker/OCI、PyPI、NuGet 等 25 種格式,全部在同一個位址、同一個執行檔、
