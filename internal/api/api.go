@@ -536,7 +536,7 @@ func (a *API) validateRepo(rp *model.Repository, attrs map[string]json.RawMessag
 	// Let the core decode first so format validators see Proxy/Hosted.
 	tmp, _ := json.Marshal(attrs)
 	rp.Attributes = tmp
-	var probe model.Repository = *rp
+	probe := *rp
 	if err := probeDecode(&probe); err != nil {
 		return invalid("%v", err)
 	}

@@ -15,6 +15,22 @@ export interface Release {
 
 export const releases: Release[] = [
   {
+    version: '1.0.5',
+    date: '2026-09-14',
+    changes: [
+      {
+        kind: 'fixed',
+        text: {
+          en: 'A vulnerability in an indirect dependency used by package signing (cloudflare/circl, GO-2026-4550). Found by the vulnerability scanner on its first run in CI.',
+          'zh-TW': '套件簽章所用的間接相依套件有漏洞(cloudflare/circl,GO-2026-4550)。由 CI 上第一次執行的漏洞掃描找到。',
+          'zh-CN': '软件包签名所用的间接依赖存在漏洞(cloudflare/circl,GO-2026-4550)。由 CI 上第一次执行的漏洞扫描发现。',
+          ja: 'パッケージ署名が使う間接依存の脆弱性 (cloudflare/circl, GO-2026-4550)。CI で初めて実行した脆弱性スキャンが検出しました。',
+          ko: '패키지 서명이 사용하는 간접 의존성의 취약점 (cloudflare/circl, GO-2026-4550). CI에서 처음 실행한 취약점 검사가 찾아냈습니다.',
+        },
+      },
+    ],
+  },
+  {
     version: '1.0.4',
     date: '2026-09-14',
     changes: [

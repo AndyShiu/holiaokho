@@ -150,12 +150,6 @@ func table(header []string, rows [][]string) {
 	tw.Flush()
 }
 
-func die(err error) {
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "error:", err)
-		os.Exit(1)
-	}
-}
 
 // ---------------------------------------------------------------- commands
 

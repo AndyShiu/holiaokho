@@ -63,7 +63,7 @@ import (
 // Version is the build's version string. Releases override it at link time
 // with -ldflags "-X .../internal/server.Version=..." so the running binary can
 // say which build it is; the fallback below only applies to local builds.
-var Version = "1.0.4"
+var Version = "1.0.5"
 
 type Server struct {
 	Cfg     config.Config
@@ -92,7 +92,6 @@ type Server struct {
 
 type metrics struct {
 	requests [6]atomic.Int64 // by status class 0..5 (1xx..5xx)
-	upstream atomic.Int64
 	started  time.Time
 }
 
@@ -337,7 +336,7 @@ func (s *Server) Router() http.Handler {
 	r.Get("/healthz", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("ok")) })
 	r.Get("/readyz", func(w http.ResponseWriter, r *http.Request) {
 		if err := s.DB.Pool.Ping(r.Context()); err != nil {
-			http.Error(w, "database: "+err.Error(), 503)
+			http.Error(w, "database: "+err.Error(), http.StatusServiceUnavailable)
 			return
 		}
 		w.Write([]byte("ready"))

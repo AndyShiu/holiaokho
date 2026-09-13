@@ -7,6 +7,8 @@
 > asking anyone to change how they work.
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![Security](https://github.com/AndyShiu/holiaokho/actions/workflows/security.yml/badge.svg)](https://github.com/AndyShiu/holiaokho/actions/workflows/security.yml)
+[![Release](https://github.com/AndyShiu/holiaokho/actions/workflows/release.yml/badge.svg)](https://github.com/AndyShiu/holiaokho/actions/workflows/release.yml)
 
 Holiaokho stores the packages your builds depend on and the artefacts they
 produce — Maven, npm, Docker/OCI, PyPI, NuGet and twenty more — behind one
@@ -96,6 +98,27 @@ Every key in [`config.example.yaml`](config.example.yaml) can be set as a
   protected, and what is knowingly not
 - [`docs/holiaokho-ui-brief.md`](docs/holiaokho-ui-brief.md) — the interface
   specification, if you are working on the UI
+
+## Security
+
+Every push is scanned, and the results are public — the badge above links to
+them rather than asking you to take this section's word for it.
+
+| | |
+|---|---|
+| **Gitleaks** | Credentials, across the full commit history rather than the current tree |
+| **Trivy** | Dependency vulnerabilities, secrets, and Kubernetes/Dockerfile misconfiguration |
+| **Trivy** | The published container image |
+| **govulncheck** | Go vulnerabilities that this code actually reaches, not just version matches |
+| **staticcheck**, **go vet** | Static analysis |
+
+Containers run as a non-root user with a read-only root filesystem and every
+Linux capability dropped — verified by running them that way, not only by
+passing a scanner.
+
+A clean scan is not the same as being secure.
+[`docs/security.md`](docs/security.md) describes the trust boundaries, what is
+protected, and what is knowingly not.
 
 ## Contributing
 

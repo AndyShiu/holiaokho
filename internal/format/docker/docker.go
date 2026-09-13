@@ -309,7 +309,7 @@ func (h *handler) fetch(ctx context.Context, name, sub string, kind repo.Kind, i
 	path := name + "/" + sub
 	if h.repo.Type == model.Group {
 		members, _ := h.d.Engine.Members(ctx, h.repo)
-		var lastErr error = repo.ErrNotFound
+		lastErr := repo.ErrNotFound
 		for _, m := range members {
 			mh := &handler{f: h.f, repo: m, d: h.d, a: AttrsOf(m)}
 			res, err := mh.fetch(ctx, name, sub, kind, immutable, hdr, pkg)

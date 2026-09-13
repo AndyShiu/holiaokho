@@ -66,7 +66,6 @@ var (
 	depRe      = regexp.MustCompile(`(?ms)- !ruby/object:Gem::Dependency\n\s+name:\s*(\S+)\n\s+requirement:.*?requirements:\n(.*?)\n\s+type:\s*(\S+)`)
 	reqRe      = regexp.MustCompile(`- - "?([^"\n]+?)"?\n\s+- !ruby/object:Gem::Version\n\s+version:\s*['"]?([^'"\n]+)`)
 	rubyReqRe  = regexp.MustCompile(`(?ms)^required_ruby_version:.*?requirements:\n\s+- - "?([^"\n]+?)"?\n\s+- !ruby/object:Gem::Version\n\s+version:\s*['"]?([^'"\n]+)`)
-	listRe     = regexp.MustCompile(`(?ms)^%s:\n((?:\s*- .+\n)+)`)
 )
 
 func yamlStr(s string) string {

@@ -6,6 +6,8 @@
 > 自架的套件倉庫,設計目標是取代 Sonatype Nexus,而且不要求任何人改變原本的工作方式。
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![Security](https://github.com/AndyShiu/holiaokho/actions/workflows/security.yml/badge.svg)](https://github.com/AndyShiu/holiaokho/actions/workflows/security.yml)
+[![Release](https://github.com/AndyShiu/holiaokho/actions/workflows/release.yml/badge.svg)](https://github.com/AndyShiu/holiaokho/actions/workflows/release.yml)
 
 好料庫存放你們建置時依賴的套件,以及每次建置產出的成果 —— Maven、npm、
 Docker/OCI、PyPI、NuGet 等 25 種格式,全部在同一個位址、同一個執行檔、
@@ -87,6 +89,26 @@ cron 排程任務、含 HMAC 簽章的 webhook、電子郵件、稽核紀錄、
   信任邊界、已經防護的部分,以及明知還沒做的部分
 - [`docs/holiaokho-ui-brief.md`](docs/holiaokho-ui-brief.md) ——
   介面規格,要改 UI 時看這份
+
+## 安全
+
+每次推送都會掃描,結果是公開的——上面的 badge 直接連到那些結果,
+不需要相信這一節說了什麼。
+
+| | |
+|---|---|
+| **Gitleaks** | 憑證,掃的是完整 commit 歷史而非當前檔案 |
+| **Trivy** | 相依套件漏洞、憑證,以及 Kubernetes / Dockerfile 設定 |
+| **Trivy** | 發布的容器映像 |
+| **govulncheck** | 這份程式碼實際會呼叫到的 Go 漏洞,而不只是版本比對 |
+| **staticcheck**、**go vet** | 靜態分析 |
+
+容器以非 root 使用者、唯讀根檔案系統、且不保留任何 Linux capability 執行——
+這是實際那樣跑起來驗證的,不只是讓掃描器過關。
+
+**掃描全過不等於安全。**
+[`docs/security.md`](docs/security.md) 寫明信任邊界、已經防護的部分,
+以及明知還沒做的部分。
 
 ## 參與
 

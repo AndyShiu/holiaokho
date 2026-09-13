@@ -391,9 +391,7 @@ func (s *Service) principalFor(ctx context.Context, u *model.User, via string) (
 	ids := u.Roles
 	if !p.Anonymous {
 		// "Default Role" realm: every authenticated user gets these too.
-		for _, d := range s.Settings(ctx).DefaultRoles {
-			ids = append(ids, d)
-		}
+		ids = append(ids, s.Settings(ctx).DefaultRoles...)
 	}
 	for _, rid := range ids {
 		if r, ok := roles[rid]; ok {

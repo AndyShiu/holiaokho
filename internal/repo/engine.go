@@ -240,7 +240,7 @@ func (e *Engine) fetchGroup(ctx context.Context, group *model.Repository, path s
 	if err != nil {
 		return nil, err
 	}
-	var lastErr error = ErrNotFound
+	lastErr := ErrNotFound
 	for _, m := range members {
 		res, err := e.Fetch(ctx, m, path, pol)
 		if err == nil {
