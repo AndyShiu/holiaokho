@@ -5,6 +5,7 @@
 package api
 
 import (
+	"context"
 	_ "embed"
 	"encoding/json"
 	"errors"
@@ -79,6 +80,7 @@ func (a *API) Router() http.Handler {
 	r.Route("/storages", func(r chi.Router) {
 		r.Get("/", a.need("app:storages", auth.Read, a.listStorages))
 		r.Post("/", a.need("app:storages", auth.Write, a.createStorage))
+		r.Post("/test", a.need("app:storages", auth.Write, a.testStorage))
 	})
 	r.Route("/users", func(r chi.Router) {
 		r.Get("/", a.need("app:users", auth.Read, a.listUsers))
@@ -775,6 +777,29 @@ func redactS3(raw json.RawMessage) json.RawMessage {
 	}
 	b, _ := json.Marshal(m)
 	return b
+}
+
+// testStorage validates a storage definition (saved or not) by writing,
+// reading and deleting a probe blob. "***" secrets are taken from the saved
+// storage with the same name.
+func (a *API) testStorage(w http.ResponseWriter, r *http.Request) {
+	var st model.Storage
+	if err := readJSON(r, &st); err != nil {
+		writeErr(w, 400, "body.invalid", "invalid body")
+		return
+	}
+	if st.Type == "" {
+		writeErr(w, 400, "validation", "type required")
+		return
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), 20*time.Second)
+	defer cancel()
+	res, err := a.Content.TestStorage(ctx, st)
+	if err != nil {
+		writeJSON(w, 200, map[string]any{"ok": false, "type": st.Type, "message": err.Error()})
+		return
+	}
+	writeJSON(w, 200, res)
 }
 
 func (a *API) createStorage(w http.ResponseWriter, r *http.Request) {

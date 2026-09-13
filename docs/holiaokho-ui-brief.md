@@ -320,9 +320,9 @@ Tabs：
 
 **版面**：卡片或表格：name、type Tag（fs／s3）、位置（fs 顯示 path；s3 顯示 `bucket/prefix @ endpoint`）、使用量進度條（`/status/check` 的 `storage:<name>` usedBytes／quotaBytes）、blobs 數（若有）、狀態（健康／錯誤訊息）。「建立 Storage」按鈕。
 
-**建立 Drawer**（`POST /storages`）：name、type Radio；fs：path（伺服器端絕對路徑，提示「容器內路徑」）；s3：endpoint、region、bucket、prefix、accessKey、secretKey、pathStyle（MinIO／自架必開）。「測試連線」按鈕（目前沒有專用 API：前端先送建立，失敗即顯示錯誤；設計上保留按鈕位置，未來補 API）。
+**建立 Drawer**（`POST /storages`）：name、type Radio；fs：path（伺服器端絕對路徑，提示「容器內路徑」）；s3：endpoint、region、bucket、prefix、accessKey、secretKey、pathStyle（MinIO／自架必開）。「測試連線」按鈕：`POST /storages/test`（送目前表單內容，不需先儲存；後端會寫入、讀回、刪除一個探測 blob）→ `{ok, type, latencyMs}` 顯示綠勾＋延遲；`{ok:false, message}` 在按鈕旁顯示紅字原因。建立按鈕不強制先測試。
 
-**編輯 Drawer**（`PUT /storages/{name}`）：只能改 quota（GB 輸入，0 = 無限制）與 s3 憑證；path／bucket 不可改（說明「改位置請建立新 storage」）。
+**編輯 Drawer**（`PUT /storages/{name}`）：只能改 quota（GB 輸入，0 = 無限制）與 s3 憑證（同樣有「測試連線」，`secretKey` 維持 `***` 時後端用已存的值測）；path／bucket 不可改（說明「改位置請建立新 storage」）。
 
 **業務邏輯**
 - `default` storage 不能刪（後端無刪除 API；UI 不提供刪除）。

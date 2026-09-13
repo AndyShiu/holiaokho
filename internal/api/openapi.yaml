@@ -346,6 +346,12 @@ paths:
       summary: Create a blob storage (fs or s3)
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Storage' } } } }
       responses: { '201': { description: Created }, '400': { $ref: '#/components/responses/Error' } }
+  /storages/test:
+    post:
+      tags: [storages]
+      summary: Test a storage definition (write/read/delete a probe blob) without saving it; "***" secrets are taken from the saved storage of the same name
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Storage' } } } }
+      responses: { '200': { description: Result, content: { application/json: { schema: { type: object, properties: { ok: { type: boolean }, type: { type: string }, latencyMs: { type: integer }, message: { type: string, description: Failure reason when ok is false } } } } } } }
   /auth/methods:
     get: { tags: [auth], summary: Login methods and password policy (public, for login/UI hints), security: [], responses: { '200': { description: OK, content: { application/json: { schema: { type: object, properties: { local: { type: boolean }, ldap: { type: boolean }, oidc: { type: boolean }, oidcLoginUrl: { type: string }, anonymous: { type: boolean }, passwordPolicy: { $ref: '#/components/schemas/PasswordPolicy' } } } } } } } }
   /auth/settings:

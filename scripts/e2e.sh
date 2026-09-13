@@ -117,6 +117,9 @@ check "$ROOT/bin/holiao" login $H -u admin -p admin123
 check "$ROOT/bin/holiao" repo ls
 check "$ROOT/bin/holiao" search lib
 check "$ROOT/bin/holiao" task run blob-gc
+storage_test() { api -X POST $H/api/v1/storages/test -d "$1" | grep -q "\"ok\":$2"; }
+check storage_test "{\"type\":\"fs\",\"config\":{\"path\":\"$W/probe\"}}" true
+check storage_test '{"type":"s3","config":{"endpoint":"http://127.0.0.1:1","bucket":"b"}}' false
 
 echo
 echo "passed: $pass  failed: $fail  (server log: $W/server.log)"

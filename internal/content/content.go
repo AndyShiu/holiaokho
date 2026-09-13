@@ -4,7 +4,10 @@
 package content
 
 import (
+	"bytes"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -96,6 +99,50 @@ func openStorage(st model.Storage) (storage.Storage, error) {
 	default:
 		return nil, fmt.Errorf("unknown storage type %q", st.Type)
 	}
+}
+
+// TestStorage opens a storage from its (unsaved) definition and performs a
+// write/read/delete round trip with a probe blob. Secrets given as "***"
+// are taken from the stored definition of the same name, if any.
+func (s *Service) TestStorage(ctx context.Context, st model.Storage) (map[string]any, error) {
+	if st.Name != "" {
+		if cur, err := s.StorageByName(ctx, st.Name); err == nil {
+			var in, old map[string]any
+			if json.Unmarshal(st.Config, &in) == nil && json.Unmarshal(cur.Config, &old) == nil {
+				for _, k := range secrets.StorageConfigPaths {
+					if v, _ := in[k].(string); v == secrets.Redacted {
+						in[k] = old[k] // still encrypted; openStorage decrypts
+					}
+				}
+				st.Config, _ = json.Marshal(in)
+			}
+		}
+	}
+	start := time.Now()
+	store, err := openStorage(st)
+	if err != nil {
+		return nil, err
+	}
+	probe := []byte("holiaokho storage probe " + uuid.NewString())
+	sum := sha256.Sum256(probe)
+	d := storage.DigestFromHex(hex.EncodeToString(sum[:]))
+	if _, err := store.Put(ctx, bytes.NewReader(probe), d); err != nil {
+		return nil, fmt.Errorf("write: %w", err)
+	}
+	defer store.Delete(ctx, d)
+	rc, err := store.Get(ctx, d)
+	if err != nil {
+		return nil, fmt.Errorf("read: %w", err)
+	}
+	got, err := io.ReadAll(rc)
+	rc.Close()
+	if err != nil || !bytes.Equal(got, probe) {
+		return nil, errors.New("read: probe content mismatch")
+	}
+	if err := store.Delete(ctx, d); err != nil {
+		return nil, fmt.Errorf("delete: %w", err)
+	}
+	return map[string]any{"ok": true, "type": store.Type(), "latencyMs": time.Since(start).Milliseconds()}, nil
 }
 
 // EnsureDefaultStorage creates the "default" store if none exists.
