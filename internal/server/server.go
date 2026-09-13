@@ -282,6 +282,9 @@ func (s *Server) middleware(next http.Handler) http.Handler {
 			sw.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
 			if strings.HasPrefix(r.URL.Path, "/api/") || strings.HasPrefix(r.URL.Path, "/service/") {
 				sw.Header().Set("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'")
+			} else if r.URL.Path == "/ui" || strings.HasPrefix(r.URL.Path, "/ui/") {
+				// Ant Design injects <style> tags (CSS-in-JS); web fonts come from Google Fonts.
+				sw.Header().Set("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'")
 			}
 		}
 		p, presented, err := s.Auth.FromRequest(r)
@@ -428,18 +431,33 @@ func (s *Server) uiHandler() http.Handler {
 	}
 	fileServer := http.FileServer(http.FS(root))
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		p := strings.TrimPrefix(r.URL.Path, "/")
+		// The SPA lives under /ui/ (Vite base). "/" redirects there; anything
+		// else outside /ui/ is not a UI route.
+		if r.URL.Path == "/" {
+			http.Redirect(w, r, "/ui/", http.StatusFound)
+			return
+		}
+		if r.URL.Path != "/ui" && !strings.HasPrefix(r.URL.Path, "/ui/") {
+			http.NotFound(w, r)
+			return
+		}
+		p := strings.TrimPrefix(strings.TrimPrefix(r.URL.Path, "/ui"), "/")
 		if p == "" {
 			p = "index.html"
 		}
-		if _, err := fs.Stat(root, p); err != nil {
-			// SPA fallback.
-			r2 := r.Clone(r.Context())
+		r2 := r.Clone(r.Context())
+		if st, err := fs.Stat(root, p); p == "index.html" || err != nil || st.IsDir() {
+			// SPA fallback: client-side routes get index.html (FileServer
+			// serves it for "/" and would redirect an explicit /index.html).
 			r2.URL.Path = "/"
-			fileServer.ServeHTTP(w, r2)
-			return
+			w.Header().Set("Cache-Control", "no-cache")
+		} else {
+			r2.URL.Path = "/" + p
+			if strings.HasPrefix(p, "assets/") {
+				w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+			}
 		}
-		fileServer.ServeHTTP(w, r)
+		fileServer.ServeHTTP(w, r2)
 	})
 }
 
