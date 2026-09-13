@@ -124,6 +124,51 @@ D rmi host.docker.internal:15001/e2e/alpine:t >/dev/null
 check D pull host.docker.internal:15002/e2e/alpine:t         # via group
 check curl -sf http://localhost:15001/v2/e2e/alpine/tags/list
 
+echo "== oci referrers"
+# Signatures, SBOMs and attestations are separate manifests that name the image
+# they describe. Exercised with the API directly rather than cosign so the test
+# has no network dependency beyond the server itself.
+OCI=oci-e2e/img
+api -X POST $H/api/v1/repositories -d '{"name":"oci-e2e","format":"docker","type":"hosted","online":true,"attributes":{"hosted":{"writePolicy":"allow"},"docker":{"indexType":"REGISTRY","pathEnabled":true}}}' >/dev/null 2>&1 || true
+push_blob() {
+  local loc up sep dig
+  loc=$(curl -s -u "admin:$ADMIN_PW" -D- -o /dev/null -X POST "$H/v2/$OCI/blobs/uploads/" | awk '/^[Ll]ocation:/{print $2}' | tr -d '\r')
+  case "$loc" in http*) up="$loc" ;; *) up="$H$loc" ;; esac
+  case "$up" in *\?*) sep='&' ;; *) sep='?' ;; esac
+  dig="sha256:$(printf '%s' "$1" | shasum -a 256 | cut -d' ' -f1)"
+  curl -s -o /dev/null -u "admin:$ADMIN_PW" -X PUT "${up}${sep}digest=$dig" -H 'Content-Type: application/octet-stream' --data-binary "$1"
+  echo "$dig"
+}
+OCFG='{"architecture":"amd64","os":"linux","rootfs":{"type":"layers","diff_ids":[]}}'
+OCFG_DIG=$(push_blob "$OCFG")
+OIMG=$(printf '{"schemaVersion":2,"mediaType":"application/vnd.oci.image.manifest.v1+json","config":{"mediaType":"application/vnd.oci.image.config.v1+json","digest":"%s","size":%d},"layers":[]}' "$OCFG_DIG" "${#OCFG}")
+OIMG_DIG="sha256:$(printf '%s' "$OIMG" | shasum -a 256 | cut -d' ' -f1)"
+check curl -sf -u "admin:$ADMIN_PW" -X PUT "$H/v2/$OCI/manifests/v1" -H 'Content-Type: application/vnd.oci.image.manifest.v1+json' --data-binary "$OIMG"
+
+# An unreferenced digest is an empty index with 200 — a 404 would tell clients
+# the endpoint is unsupported.
+if [ "$(curl -s -o /dev/null -w '%{http_code}' -u "admin:$ADMIN_PW" "$H/v2/$OCI/referrers/$OIMG_DIG")" = "200" ]; then
+  ok "referrers of an unreferenced digest is 200"
+else bad "referrers of an unreferenced digest is 200"; fi
+
+OE='{}'
+OE_DIG=$(push_blob "$OE")
+OSIG=$(printf '{"schemaVersion":2,"mediaType":"application/vnd.oci.image.manifest.v1+json","artifactType":"application/vnd.dev.cosign.simplesigning.v1+json","config":{"mediaType":"application/vnd.oci.empty.v1+json","digest":"%s","size":%d},"layers":[],"subject":{"mediaType":"application/vnd.oci.image.manifest.v1+json","digest":"%s","size":%d}}' "$OE_DIG" "${#OE}" "$OIMG_DIG" "${#OIMG}")
+OSIG_DIG="sha256:$(printf '%s' "$OSIG" | shasum -a 256 | cut -d' ' -f1)"
+if curl -s -D "$W/ocihdr.txt" -o /dev/null -u "admin:$ADMIN_PW" -X PUT "$H/v2/$OCI/manifests/$OSIG_DIG" -H 'Content-Type: application/vnd.oci.image.manifest.v1+json' --data-binary "$OSIG" && grep -qi "^oci-subject:" "$W/ocihdr.txt"; then
+  ok "pushing a manifest with a subject returns OCI-Subject"
+else bad "pushing a manifest with a subject returns OCI-Subject"; fi
+
+n=$(curl -s -u "admin:$ADMIN_PW" "$H/v2/$OCI/referrers/$OIMG_DIG" | python3 -c "import sys,json; print(len(json.load(sys.stdin)['manifests']))")
+check test "$n" -eq 1
+n=$(curl -s -u "admin:$ADMIN_PW" "$H/v2/$OCI/referrers/$OIMG_DIG?artifactType=application/spdx%2Bjson" | python3 -c "import sys,json; print(len(json.load(sys.stdin)['manifests']))")
+check test "$n" -eq 0
+
+# Deleting the referrer has to clear the index, or it keeps being advertised.
+curl -s -o /dev/null -u "admin:$ADMIN_PW" -X DELETE "$H/v2/$OCI/manifests/$OSIG_DIG"
+n=$(curl -s -u "admin:$ADMIN_PW" "$H/v2/$OCI/referrers/$OIMG_DIG" | python3 -c "import sys,json; print(len(json.load(sys.stdin)['manifests']))")
+check test "$n" -eq 0
+
 echo "== pypi"
 if command -v python3 >/dev/null; then
   python3 -m venv "$W/venv" && check "$W/venv/bin/pip" install -q --index-url $H/repository/pypi-group/simple/ --no-cache-dir six

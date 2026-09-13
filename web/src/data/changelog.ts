@@ -15,6 +15,29 @@ export interface Release {
 
 export const releases: Release[] = [
   {
+    version: '1.1.0',
+    date: '2026-09-14',
+    headline: {
+      en: 'Docker and OCI repositories can now hold signatures, SBOMs and attestations alongside the images they describe.',
+      'zh-TW': 'Docker 與 OCI repository 現在可以把簽章、SBOM 與建置證明,和它們描述的 image 放在一起。',
+      'zh-CN': 'Docker 与 OCI repository 现在可以把签名、SBOM 与构建证明,和它们描述的镜像放在一起。',
+      ja: 'Docker / OCI リポジトリで、署名・SBOM・ビルド証明をそれが説明するイメージと一緒に保持できるようになりました。',
+      ko: 'Docker/OCI 리포지터리에서 서명·SBOM·빌드 증명을 대상 이미지와 함께 보관할 수 있습니다.',
+    },
+    changes: [
+      {
+        kind: 'added',
+        text: {
+          en: 'The OCI referrers API. Tools like cosign and syft attach their output to an image as a separate manifest; this is the endpoint that finds them again. Works on proxy repositories too, where the upstream is asked and the answer cached.',
+          'zh-TW': 'OCI referrers API。cosign、syft 這類工具會把產出的簽章或 SBOM 以獨立 manifest 掛在 image 上,這個端點負責把它們找回來。proxy repository 也支援,會詢問上游並快取結果。',
+          'zh-CN': 'OCI referrers API。cosign、syft 这类工具会把产出的签名或 SBOM 以独立 manifest 挂在镜像上,这个端点负责把它们找回来。proxy repository 也支持,会询问上游并缓存结果。',
+          ja: 'OCI referrers API。cosign や syft は署名や SBOM を別のマニフェストとしてイメージに紐付けます。このエンドポイントがそれらを見つけ出します。プロキシでも動作し、上流に問い合わせた結果をキャッシュします。',
+          ko: 'OCI referrers API. cosign이나 syft는 서명과 SBOM을 별도 매니페스트로 이미지에 붙입니다. 이 엔드포인트가 그것들을 다시 찾아줍니다. 프록시에서도 동작하며 업스트림 응답을 캐시합니다.',
+        },
+      },
+    ],
+  },
+  {
     version: '1.0.5',
     date: '2026-09-14',
     changes: [

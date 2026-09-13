@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"regexp"
 	"sort"
 	"strconv"
@@ -256,7 +257,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	// <name>/(manifests|blobs|tags)/...
 	var name, kind, rest string
-	for _, marker := range []string{"/manifests/", "/blobs/", "/tags/"} {
+	for _, marker := range []string{"/manifests/", "/blobs/", "/tags/", "/referrers/"} {
 		if i := strings.Index(p, marker); i > 0 {
 			name, kind, rest = p[:i], strings.Trim(marker, "/"), p[i+len(marker):]
 			break
@@ -284,6 +285,11 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.tagsList(w, r, name)
+	case "referrers":
+		if !h.authorize(w, r, name, auth.Read) {
+			return
+		}
+		h.referrers(w, r, name, rest)
 	}
 }
 
@@ -475,8 +481,12 @@ func (h *handler) indexDigest(ctx context.Context, rp *model.Repository, name, d
 type manifestDoc struct {
 	SchemaVersion int    `json:"schemaVersion"`
 	MediaType     string `json:"mediaType"`
-	Config        *struct {
-		Digest string `json:"digest"`
+	// ArtifactType says what kind of thing this is when it is not an image —
+	// a signature, an SBOM, an attestation. Clients filter referrers by it.
+	ArtifactType string `json:"artifactType"`
+	Config       *struct {
+		Digest    string `json:"digest"`
+		MediaType string `json:"mediaType"`
 	} `json:"config"`
 	Layers []struct {
 		Digest string `json:"digest"`
@@ -484,6 +494,27 @@ type manifestDoc struct {
 	Manifests []struct {
 		Digest string `json:"digest"`
 	} `json:"manifests"`
+	// Subject points at the manifest this one describes. Its presence is what
+	// makes this artifact a referrer of something else.
+	Subject *struct {
+		Digest    string `json:"digest"`
+		MediaType string `json:"mediaType"`
+	} `json:"subject"`
+	Annotations map[string]string `json:"annotations"`
+}
+
+// artifactTypeOf resolves what a referrer should be listed as. The spec says
+// artifactType wins; falling back to the config media type is what lets
+// cosign signatures and older SBOM tooling be filtered correctly, since they
+// predate the field.
+func (m manifestDoc) artifactTypeOf() string {
+	if m.ArtifactType != "" {
+		return m.ArtifactType
+	}
+	if m.Config != nil {
+		return m.Config.MediaType
+	}
+	return ""
 }
 
 func (h *handler) putManifest(w http.ResponseWriter, r *http.Request, name, ref string) {
@@ -537,6 +568,24 @@ func (h *handler) putManifest(w http.ResponseWriter, r *http.Request, name, ref 
 	if ct == "" {
 		ct = detectManifestType(body)
 	}
+	// Index the subject relationship, if there is one. Most manifests have no
+	// subject and never get here, so the referrers table only grows with
+	// artifacts that are actually about something else.
+	if m.Subject != nil && m.Subject.Digest != "" {
+		if err := h.d.Content.PutReferrer(ctx, h.repo.ID, name, m.Subject.Digest, digest, content.Referrer{
+			MediaType:    ct,
+			ArtifactType: m.artifactTypeOf(),
+			Size:         int64(len(body)),
+			Annotations:  m.Annotations,
+		}); err != nil {
+			// The manifest itself is still valid and worth storing; a missing
+			// index entry degrades discovery, it does not corrupt anything.
+			h.d.Log.Warn("index oci referrer", "repo", h.repo.Name, "subject", m.Subject.Digest, "err", err)
+		}
+		// Tells the client the registry understood the subject field. Without
+		// it, cosign falls back to its own tag-based scheme.
+		w.Header().Set("OCI-Subject", m.Subject.Digest)
+	}
 	// Always store by digest; also by tag.
 	if _, err := h.d.Engine.Put(ctx, h.repo, name+"/manifests/"+digest, strings.NewReader(string(body)), repo.PutOptions{ContentType: ct, AllowRedeploy: true, Attrs: map[string]any{"digest": digest}}); err != nil {
 		h.mapErr(w, err, "manifest")
@@ -578,6 +627,13 @@ func (h *handler) deleteManifest(w http.ResponseWriter, r *http.Request, name, r
 					h.d.Content.DeletePackage(ctx, *a.PackageID)
 				}
 				found = true
+			}
+		}
+		if found {
+			// Drop the index rows in both directions, or a deleted signature
+			// keeps being listed and a deleted image keeps claiming referrers.
+			if err := h.d.Content.DeleteReferrersOf(ctx, h.repo.ID, name, ref); err != nil {
+				h.d.Log.Warn("clear oci referrers", "repo", h.repo.Name, "digest", ref, "err", err)
 			}
 		}
 		if !found {
@@ -895,4 +951,135 @@ func (f *Format) Ping(w http.ResponseWriter, r *http.Request, baseURL string) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte("{}"))
+}
+
+// referrers answers GET /v2/<name>/referrers/<digest> with an image index of
+// everything declaring that digest as its subject: signatures, SBOMs,
+// attestations.
+//
+// The spec is particular about two things. An unknown subject is an empty
+// index with 200, not a 404 — "nothing refers to this" is a valid answer, and
+// a 404 would make clients think the endpoint is unsupported. And when a
+// filter is applied the response has to say so, because a client that asked
+// for one artifact type must be able to tell a filtered list from a registry
+// that ignored the parameter.
+func (h *handler) referrers(w http.ResponseWriter, r *http.Request, name, digest string) {
+	if r.Method != http.MethodGet {
+		regErr(w, 405, "UNSUPPORTED", "method not allowed")
+		return
+	}
+	if !isDigest(digest) {
+		regErr(w, 400, "DIGEST_INVALID", "invalid digest")
+		return
+	}
+	ctx := r.Context()
+	artifactType := r.URL.Query().Get("artifactType")
+
+	list, err := h.d.Content.Referrers(ctx, h.repo.ID, name, digest, artifactType)
+	if err != nil {
+		h.d.Log.Error("list oci referrers", "repo", h.repo.Name, "subject", digest, "err", err)
+		regErr(w, 500, "UNKNOWN", "could not list referrers")
+		return
+	}
+
+	// A proxy also asks upstream, because the signature for an image we have
+	// cached may only exist there. Failures are not fatal: whatever is local
+	// is still a useful answer, and a registry that does not implement
+	// referrers at all should not turn into an error here.
+	if h.repo.Type == model.Proxy {
+		if up, err := h.upstreamReferrers(ctx, name, digest, artifactType); err != nil {
+			h.d.Log.Debug("upstream referrers", "repo", h.repo.Name, "err", err)
+		} else {
+			seen := make(map[string]bool, len(list))
+			for _, l := range list {
+				seen[l.Digest] = true
+			}
+			for _, u := range up {
+				if !seen[u.Digest] {
+					list = append(list, u)
+				}
+			}
+		}
+	}
+
+	type descriptor struct {
+		MediaType    string            `json:"mediaType"`
+		Digest       string            `json:"digest"`
+		Size         int64             `json:"size"`
+		ArtifactType string            `json:"artifactType,omitempty"`
+		Annotations  map[string]string `json:"annotations,omitempty"`
+	}
+	out := struct {
+		SchemaVersion int          `json:"schemaVersion"`
+		MediaType     string       `json:"mediaType"`
+		Manifests     []descriptor `json:"manifests"`
+	}{
+		SchemaVersion: 2,
+		MediaType:     "application/vnd.oci.image.index.v1+json",
+		Manifests:     make([]descriptor, 0, len(list)),
+	}
+	for _, l := range list {
+		out.Manifests = append(out.Manifests, descriptor{
+			MediaType:    l.MediaType,
+			Digest:       l.Digest,
+			Size:         l.Size,
+			ArtifactType: l.ArtifactType,
+			Annotations:  l.Annotations,
+		})
+	}
+
+	w.Header().Set("Content-Type", "application/vnd.oci.image.index.v1+json")
+	if artifactType != "" {
+		w.Header().Set("OCI-Filters-Applied", "artifactType")
+	}
+	w.WriteHeader(200)
+	json.NewEncoder(w).Encode(out)
+}
+
+// upstreamReferrers asks the proxied registry what it knows about a subject.
+//
+// It goes through the engine rather than calling out directly, which means the
+// answer is cached on the metadata TTL and survives the upstream being down —
+// the same treatment tag listings get. Without that, every referrers query on
+// a proxy would be a round trip to the internet.
+func (h *handler) upstreamReferrers(ctx context.Context, name, digest, artifactType string) ([]content.Referrer, error) {
+	upstreamPath := "v2/" + h.upstreamName(name) + "/referrers/" + digest
+	cachePath := name + "/referrers/" + digest
+	if artifactType != "" {
+		upstreamPath += "?artifactType=" + url.QueryEscape(artifactType)
+		cachePath += "?artifactType=" + url.QueryEscape(artifactType)
+	}
+	pol := h.policy(repo.Metadata, false, upstreamPath, "application/vnd.oci.image.index.v1+json", nil)
+	b, _, err := h.d.Engine.ReadAll(ctx, h.repo, cachePath, pol, 8<<20)
+	if err != nil {
+		// A registry that predates the referrers API answers 404. That is not
+		// a failure worth surfacing — it just has nothing to add.
+		if errors.Is(err, repo.ErrNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	var doc struct {
+		Manifests []struct {
+			MediaType    string            `json:"mediaType"`
+			Digest       string            `json:"digest"`
+			Size         int64             `json:"size"`
+			ArtifactType string            `json:"artifactType"`
+			Annotations  map[string]string `json:"annotations"`
+		} `json:"manifests"`
+	}
+	if err := json.Unmarshal(b, &doc); err != nil {
+		return nil, err
+	}
+	out := make([]content.Referrer, 0, len(doc.Manifests))
+	for _, m := range doc.Manifests {
+		out = append(out, content.Referrer{
+			Digest:       m.Digest,
+			MediaType:    m.MediaType,
+			ArtifactType: m.ArtifactType,
+			Size:         m.Size,
+			Annotations:  m.Annotations,
+		})
+	}
+	return out, nil
 }

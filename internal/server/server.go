@@ -63,7 +63,7 @@ import (
 // Version is the build's version string. Releases override it at link time
 // with -ldflags "-X .../internal/server.Version=..." so the running binary can
 // say which build it is; the fallback below only applies to local builds.
-var Version = "1.0.5"
+var Version = "1.1.0"
 
 type Server struct {
 	Cfg     config.Config
