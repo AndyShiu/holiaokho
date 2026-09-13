@@ -1,0 +1,70 @@
+name: Release
+
+# Tagging is the release. Pushing v1.2.3 builds the images and publishes them;
+# nothing else does, so a green main branch never accidentally ships.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  images:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Derive version from the tag
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      # arm64 matters: a large share of the people who will try this are on
+      # Apple Silicon, and an amd64-only image fails for them at `docker run`.
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Optional: only runs when the two secrets exist, so a fork or a
+      # repository without a Docker Hub account still publishes to ghcr.
+      - name: Log in to Docker Hub
+        id: dockerhub
+        if: ${{ secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != '' }}
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Tags
+        id: tags
+        run: |
+          v="${{ steps.version.outputs.version }}"
+          repo="${GITHUB_REPOSITORY,,}"
+          tags="ghcr.io/${repo}:${v},ghcr.io/${repo}:latest"
+          if [ "${{ steps.dockerhub.outcome }}" = "success" ]; then
+            tags="${tags},docker.io/${{ secrets.DOCKERHUB_USERNAME }}/holiaokho:${v}"
+            tags="${tags},docker.io/${{ secrets.DOCKERHUB_USERNAME }}/holiaokho:latest"
+          fi
+          echo "tags=${tags}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.tags.outputs.tags }}
+          # The server reports this in the UI, the API and its logs, so a
+          # published image has to carry the version it was tagged with.
+          build-args: VERSION=${{ steps.version.outputs.version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
