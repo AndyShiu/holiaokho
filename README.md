@@ -9,21 +9,15 @@ the swap. Single Go binary, PostgreSQL, local or S3-compatible blob storage.
 
 ## Status
 
-Early backend (P0–P3 of `docs/holiaokho-architecture-draft.md` §14):
+Backend feature-complete against Nexus Repository 3 CE (see `docs/nexus-feature-parity.md`):
 
-| Area | State |
-|---|---|
-| Maven 2 hosted / proxy / group (metadata merge, snapshots, write policies) | ✅ tested with `mvn` |
-| npm hosted / proxy / group (publish, login, dist-tags, audit pass-through) | ✅ tested with `npm` |
-| Docker / OCI hosted / proxy / group, port + path connectors, daemon `registry-mirrors` mode | ✅ tested with `dockerd` |
-| PyPI hosted / proxy / group (PEP 503), raw files | ✅ tested with `pip` |
-| S3-compatible blob storage (MinIO tested), OpenAPI at `/api/v1/openapi.yaml` | ✅ |
-| Users, roles (RBAC), user tokens, sessions, login rate limiting, Nexus (Shiro) password hashes | ✅ |
-| Management REST API `/api/v1`, `holiao` CLI (en / zh-TW; zh-CN, ja, ko pending) | ✅ |
-| Cleanup policies, blob GC, task scheduler, audit log, Prometheus `/metrics` | ✅ basic |
-| `holiaokho import-nexus` (PostgreSQL + blob store, hardlink, idempotent) | ✅ tested against Nexus 3.95.3 |
-| Web UI | ⏳ placeholder page; designed separately |
-| NuGet/Helm/Go/other formats, LDAP/OIDC, webhooks, Nexus REST compat | ⏳ see `docs/nexus-feature-parity.md` |
+- **26 formats**, each verified with its official client in Docker (`scripts/e2e-formats.sh`): Maven, npm, Docker/OCI, PyPI, raw, NuGet, Helm, Go, APT, YUM, Alpine, RubyGems, Cargo, Composer, Conda, R/CRAN, p2, CocoaPods, Terraform, pub, Git LFS, Hugging Face, Ansible Galaxy, Conan, Swift.
+- hosted / proxy / group for every format (groups forward publishes to their first hosted member where the client can only target one URL).
+- Auth: local users (argon2; Nexus Shiro hashes accepted on import), LDAP, OIDC, reverse-proxy header (Rut), RBAC with content selectors, user tokens, login rate limiting.
+- Ops: routing rules, cleanup policies (+ preview), soft-delete + compact GC, storage quotas, cron-scheduled tasks, webhooks (HMAC), e-mail, audit log, backup/restore (DB + blobs), rebuild-indexes, system info / logs / support zip, Prometheus metrics.
+- Storage: local filesystem or any S3-compatible service. TLS on the main listener; Docker port / TLS / subdomain connectors.
+- Migration: `holiaokho import-nexus` (PostgreSQL-backed Nexus 3.7x+, hardlinks blobs). `/service/rest/v1` compatibility subset for CI scripts.
+- Web UI: not started (placeholder page); the management API and CLI cover everything.
 
 ## Run
 
