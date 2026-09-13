@@ -52,8 +52,45 @@ type API struct {
 	Config       config.Config
 }
 
+// passwordChangeOnly blocks an account whose password somebody else chose.
+//
+// This lives in middleware, not in the UI, because a check the client
+// performs is a check an attacker skips: the whole point is that the
+// bootstrap password may already be known to more people than it should be.
+// Only the handful of endpoints needed to see who you are, change the
+// password and log out stay reachable.
+//
+// Package endpoints (/repository, /v2) are deliberately not covered — they
+// are mounted elsewhere, and locking them would break CI for everyone the
+// moment an administrator resets one developer's password.
+func (a *API) passwordChangeOnly(next http.Handler) http.Handler {
+	allowed := map[string]string{
+		"/session":      "", // whoami, login and logout (any method)
+		"/me/password":  http.MethodPut,
+		"/auth/methods": http.MethodGet,
+		"/status":       http.MethodGet,
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		p := auth.PrincipalFrom(r.Context())
+		if p == nil || !p.MustChangePassword {
+			next.ServeHTTP(w, r)
+			return
+		}
+		path := r.URL.Path
+		if rc := chi.RouteContext(r.Context()); rc != nil && rc.RoutePath != "" {
+			path = rc.RoutePath
+		}
+		if m, ok := allowed[strings.TrimSuffix(path, "/")]; ok && (m == "" || m == r.Method) {
+			next.ServeHTTP(w, r)
+			return
+		}
+		writeErr(w, 403, "auth.password_change_required", "the password must be changed before this account can be used")
+	})
+}
+
 func (a *API) Router() http.Handler {
 	r := chi.NewRouter()
+	r.Use(a.passwordChangeOnly)
 	r.Get("/status", a.status)
 	r.Get("/status/check", a.need("app:status", auth.Read, a.statusCheck))
 	r.Get("/formats", a.formats)
@@ -335,12 +372,14 @@ func (a *API) login(w http.ResponseWriter, r *http.Request) {
 	}
 	http.SetCookie(w, &http.Cookie{Name: auth.SessionCookie, Value: id, Path: "/", HttpOnly: true, SameSite: http.SameSiteLaxMode, Expires: exp, Secure: isHTTPS(r)})
 	a.audit_(r, "login", "user", p.Username, nil)
-	writeJSON(w, 200, map[string]any{"username": p.Username, "roles": p.Roles, "expiresAt": exp})
+	writeJSON(w, 200, map[string]any{"username": p.Username, "roles": p.Roles, "expiresAt": exp,
+		"mustChangePassword": p.MustChangePassword})
 }
 
 func (a *API) whoami(w http.ResponseWriter, r *http.Request) {
 	p := auth.PrincipalFrom(r.Context())
-	writeJSON(w, 200, map[string]any{"username": p.Username, "roles": p.Roles, "anonymous": p.Anonymous, "via": p.Via, "privileges": p.Privileges})
+	writeJSON(w, 200, map[string]any{"username": p.Username, "roles": p.Roles, "anonymous": p.Anonymous, "via": p.Via, "privileges": p.Privileges,
+		"mustChangePassword": p.MustChangePassword})
 }
 
 func (a *API) logout(w http.ResponseWriter, r *http.Request) {
@@ -950,7 +989,7 @@ func (a *API) updateUser(w http.ResponseWriter, r *http.Request) {
 			a.fail(w, err)
 			return
 		}
-		if err := a.Auth.SetPassword(r.Context(), u.Username, in.Password); err != nil {
+		if err := a.Auth.SetPassword(r.Context(), u.Username, in.Password, auth.PasswordByAdmin); err != nil {
 			a.fail(w, err)
 			return
 		}
@@ -981,7 +1020,7 @@ func (a *API) setPassword(w http.ResponseWriter, r *http.Request) {
 		a.fail(w, err)
 		return
 	}
-	if err := a.Auth.SetPassword(r.Context(), chi.URLParam(r, "username"), in.Password); err != nil {
+	if err := a.Auth.SetPassword(r.Context(), chi.URLParam(r, "username"), in.Password, auth.PasswordByAdmin); err != nil {
 		a.fail(w, err)
 		return
 	}
@@ -1003,11 +1042,18 @@ func (a *API) changeMyPassword(w http.ResponseWriter, r *http.Request) {
 		a.fail(w, err)
 		return
 	}
+	// Otherwise an account that owes a password change can satisfy the
+	// requirement by typing the same password back, clearing the flag while
+	// leaving everyone who already knows it able to log in.
+	if in.Password == in.Current {
+		writeErr(w, 400, "auth.password_reused", "the new password must be different from the current one")
+		return
+	}
 	if err := a.Auth.CheckPassword(r.Context(), p.Username, in.Password); err != nil {
 		a.fail(w, err)
 		return
 	}
-	if err := a.Auth.SetPassword(r.Context(), p.Username, in.Password); err != nil {
+	if err := a.Auth.SetPassword(r.Context(), p.Username, in.Password, auth.PasswordByOwner); err != nil {
 		a.fail(w, err)
 		return
 	}

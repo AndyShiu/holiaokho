@@ -313,6 +313,8 @@
       "rate_limited": "Too many failed login attempts, try again later",
       "required": "Please log in to continue"
     },
+    "auth.password_change_required": "The password must be changed before this account can be used",
+    "auth.password_reused": "The new password must be different from the current one",
     "body": {
       "invalid": "The request body could not be read"
     },
@@ -471,8 +473,8 @@
     "current": "Current password",
     "currentRequired": "Enter your current password",
     "currentWrong": "Current password is incorrect",
-    "forcedHint": "The admin account still uses the default password. Set a new one before continuing.",
-    "forcedTitle": "Please change the default password first",
+    "forcedHint": "This password was set for you by someone else, so it is not yours alone to rely on. Choose a new one before using the account.",
+    "forcedTitle": "Set your own password first",
     "hint": "Choose a new password for {{user}}.",
     "mismatch": "Passwords do not match",
     "new": "New password",

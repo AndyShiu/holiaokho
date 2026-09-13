@@ -139,6 +139,10 @@ type User struct {
 	Active       bool      `json:"active"`
 	Roles        []string  `json:"roles"`
 	CreatedAt    time.Time `json:"createdAt"`
+	// MustChangePassword marks a password somebody else chose — the bootstrap
+	// admin password, or an administrator's reset. The API refuses everything
+	// but changing it until the owner does.
+	MustChangePassword bool `json:"mustChangePassword"`
 }
 
 type Role struct {

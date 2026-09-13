@@ -109,11 +109,14 @@ func (s *Service) Bootstrap(ctx context.Context, adminPassword string) error {
 		if err != nil {
 			return err
 		}
-		u := &model.User{Username: "admin", DisplayName: "Administrator", PasswordHash: hash, Source: "local", Active: true, Roles: []string{RoleAdmin}}
+		u := &model.User{Username: "admin", DisplayName: "Administrator", PasswordHash: hash, Source: "local", Active: true, Roles: []string{RoleAdmin},
+			// This password came from the environment, which on Kubernetes
+			// means a Secret that several people and every operator can read.
+			MustChangePassword: true}
 		if err := s.CreateUser(ctx, u); err != nil && !errors.Is(err, ErrConflict) {
 			return err
 		}
-		s.Log.Warn("created default admin user; change the password", "username", "admin")
+		s.Log.Warn("created default admin user; it must change its password at first login", "username", "admin")
 	}
 	return nil
 }
@@ -121,11 +124,12 @@ func (s *Service) Bootstrap(ctx context.Context, adminPassword string) error {
 // ------------------------------------------------------------------- users
 
 const userCols = `u.id, u.username, u.email, u.display_name, u.password_hash, u.source, u.active, u.created_at,
+	u.must_change_password,
 	coalesce((SELECT array_agg(role_id ORDER BY role_id) FROM user_roles ur WHERE ur.user_id=u.id), '{}')`
 
 func scanUser(row pgx.Row) (*model.User, error) {
 	var u model.User
-	if err := row.Scan(&u.ID, &u.Username, &u.Email, &u.DisplayName, &u.PasswordHash, &u.Source, &u.Active, &u.CreatedAt, &u.Roles); err != nil {
+	if err := row.Scan(&u.ID, &u.Username, &u.Email, &u.DisplayName, &u.PasswordHash, &u.Source, &u.Active, &u.CreatedAt, &u.MustChangePassword, &u.Roles); err != nil {
 		return nil, err
 	}
 	return &u, nil
@@ -167,8 +171,8 @@ func (s *Service) CreateUser(ctx context.Context, u *model.User) error {
 		u.Source = "local"
 	}
 	return s.DB.Tx(ctx, func(tx pgx.Tx) error {
-		_, err := tx.Exec(ctx, `INSERT INTO users(id,username,email,display_name,password_hash,source,active) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-			u.ID, u.Username, u.Email, u.DisplayName, u.PasswordHash, u.Source, u.Active)
+		_, err := tx.Exec(ctx, `INSERT INTO users(id,username,email,display_name,password_hash,source,active,must_change_password) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+			u.ID, u.Username, u.Email, u.DisplayName, u.PasswordHash, u.Source, u.Active, u.MustChangePassword)
 		if err != nil {
 			if strings.Contains(err.Error(), "23505") {
 				return ErrConflict
@@ -213,12 +217,38 @@ func (s *Service) CheckPassword(ctx context.Context, username, pw string) error 
 	return s.Settings(ctx).Password.Validate(pw, username)
 }
 
-func (s *Service) SetPassword(ctx context.Context, username, pw string) error {
+// PasswordOrigin says who chose the password. It decides whether the owner is
+// made to change it at next login, so every caller has to be explicit rather
+// than inherit a default that is wrong half the time.
+type PasswordOrigin int
+
+const (
+	// PasswordByOwner: the user chose it themselves. Clears the obligation.
+	PasswordByOwner PasswordOrigin = iota
+	// PasswordByAdmin: somebody else chose it — a reset, or a new account's
+	// initial password. That password has been seen by at least two people,
+	// so the owner has to replace it before doing anything else.
+	PasswordByAdmin
+	// PasswordUnchanged: the same password re-hashed with stronger parameters.
+	// Nothing about who knows it has changed, so the flag must not move.
+	PasswordUnchanged
+)
+
+func (s *Service) SetPassword(ctx context.Context, username, pw string, by PasswordOrigin) error {
 	hash, err := HashPassword(pw)
 	if err != nil {
 		return err
 	}
-	tag, err := s.DB.Pool.Exec(ctx, `UPDATE users SET password_hash=$2 WHERE username=$1`, username, hash)
+	set := `password_hash=$2`
+	switch by {
+	case PasswordByOwner:
+		set += `, must_change_password=false`
+	case PasswordByAdmin:
+		set += `, must_change_password=true`
+	case PasswordUnchanged:
+		// leave must_change_password alone
+	}
+	tag, err := s.DB.Pool.Exec(ctx, `UPDATE users SET `+set+` WHERE username=$1`, username, hash)
 	if err != nil {
 		return err
 	}
@@ -356,7 +386,8 @@ func (s *Service) principalFor(ctx context.Context, u *model.User, via string) (
 	if err != nil {
 		return nil, err
 	}
-	p := &Principal{Username: u.Username, Roles: u.Roles, Via: via, Anonymous: u.Username == UserAnonymous}
+	p := &Principal{Username: u.Username, Roles: u.Roles, Via: via, Anonymous: u.Username == UserAnonymous,
+		MustChangePassword: u.MustChangePassword}
 	ids := u.Roles
 	if !p.Anonymous {
 		// "Default Role" realm: every authenticated user gets these too.
@@ -573,7 +604,7 @@ func (s *Service) localLogin(ctx context.Context, username, password string) (*P
 		return nil, ErrInvalidCreds
 	}
 	if rehash {
-		if err := s.SetPassword(ctx, username, password); err != nil {
+		if err := s.SetPassword(ctx, username, password, PasswordUnchanged); err != nil {
 			s.Log.Warn("rehash password", "user", username, "err", err)
 		}
 	}

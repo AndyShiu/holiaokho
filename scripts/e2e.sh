@@ -12,7 +12,9 @@ pass=0; fail=0
 ok()   { echo "  ✅ $*"; pass=$((pass+1)); }
 bad()  { echo "  ❌ $*"; fail=$((fail+1)); }
 check(){ if "$@" >/dev/null 2>&1; then ok "$*"; else bad "$*"; fi; }
-api()  { curl -sf -u admin:admin123 -H 'Content-Type: application/json' "$@"; }
+BOOT_PW=admin123          # what bootstrap sets
+ADMIN_PW='E2e-Runner-2026'  # what we replace it with, as any real operator must
+api()  { curl -sf -u "admin:$ADMIN_PW" -H 'Content-Type: application/json' "$@"; }
 D()    { docker exec hl-dind docker "$@"; }
 
 echo "== infrastructure"
@@ -28,6 +30,24 @@ HOLIAOKHO_DATABASE_URL="postgres://holiaokho:holiaokho@localhost:55432/holiaokho
   HOLIAOKHO_STORAGE_PATH="$W/blobs" HOLIAOKHO_LOG_LEVEL=info nohup ./bin/holiaokho > "$W/server.log" 2>&1 &
 for i in $(seq 1 30); do curl -sf $H/healthz >/dev/null && break; sleep 1; done
 check curl -sf $H/readyz
+
+echo "== first login must change the password"
+# The bootstrap password came from the environment, so the API refuses
+# everything until it is replaced. Prove both halves: locked before, open after.
+if curl -sf -u "admin:$BOOT_PW" $H/api/v1/repositories >/dev/null 2>&1; then
+  bad "admin should be locked out until the bootstrap password is changed"
+else
+  ok "admin locked out until the bootstrap password is changed"
+fi
+if curl -sf -u "admin:$BOOT_PW" -X PUT $H/api/v1/me/password -H 'Content-Type: application/json' \
+     -d "{\"current\":\"$BOOT_PW\",\"password\":\"$BOOT_PW\"}" >/dev/null 2>&1; then
+  bad "reusing the same password should be rejected"
+else
+  ok "reusing the same password is rejected"
+fi
+check curl -sf -u "admin:$BOOT_PW" -X PUT $H/api/v1/me/password -H 'Content-Type: application/json' \
+  -d "{\"current\":\"$BOOT_PW\",\"password\":\"$ADMIN_PW\"}"
+check api $H/api/v1/repositories
 
 echo "== repositories"
 # A fresh install now ships starter repositories (like Nexus); drop them so
@@ -56,7 +76,7 @@ echo "== maven"
 mkdir -p "$W/mvn/src/main/java/demo"; cd "$W/mvn"
 cat > settings.xml <<XML
 <settings><mirrors><mirror><id>hl</id><url>$H/repository/maven-public/</url><mirrorOf>external:*</mirrorOf></mirror></mirrors>
-<servers><server><id>rel</id><username>admin</username><password>admin123</password></server><server><id>snap</id><username>admin</username><password>admin123</password></server></servers></settings>
+<servers><server><id>rel</id><username>admin</username><password>E2e-Runner-2026</password></server><server><id>snap</id><username>admin</username><password>E2e-Runner-2026</password></server></servers></settings>
 XML
 cat > pom.xml <<XML
 <project xmlns="http://maven.apache.org/POM/4.0.0"><modelVersion>4.0.0</modelVersion><groupId>tw.holiaokho.e2e</groupId><artifactId>lib</artifactId><version>1.0.0</version>
@@ -84,7 +104,8 @@ check npm install --cache "$W/npmcache" --no-fund --no-audit --loglevel=error
 check test -d node_modules/@babel/core
 cd "$W/npm/lib"
 echo '{"name":"@e2e/lib","version":"1.0.0","main":"index.js"}' > package.json; echo 'module.exports=1' > index.js
-printf 'registry=%s/repository/npm-hosted/\n//localhost:18081/repository/npm-hosted/:_auth=YWRtaW46YWRtaW4xMjM=\n' "$H" > .npmrc
+printf 'registry=%s/repository/npm-hosted/\n//localhost:18081/repository/npm-hosted/:_auth=%s\n' \
+  "$H" "$(printf '%s' "admin:$ADMIN_PW" | base64)" > .npmrc
 check npm publish --cache "$W/npmcache" --loglevel=error
 cd "$W/npm/app"; check npm install @e2e/lib@1.0.0 --cache "$W/npmcache" --no-fund --no-audit --loglevel=error
 check test -f node_modules/@e2e/lib/index.js
@@ -96,7 +117,7 @@ check D pull alpine:3.20                                    # registry-mirror mo
 check D pull host.docker.internal:15000/busybox:1.36        # port connector, HUB index
 check D pull host.docker.internal:18081/docker-hub/alpine:3.19   # path mode
 if D login host.docker.internal:15001 -u admin -p wrong >/dev/null 2>&1; then bad "docker login must reject wrong password"; else ok "docker login rejects wrong password"; fi
-check D login host.docker.internal:15001 -u admin -p admin123
+check D login host.docker.internal:15001 -u admin -p "$ADMIN_PW"
 D tag alpine:3.20 host.docker.internal:15001/e2e/alpine:t
 check D push host.docker.internal:15001/e2e/alpine:t
 D rmi host.docker.internal:15001/e2e/alpine:t >/dev/null
@@ -112,14 +133,14 @@ with zipfile.ZipFile('e2epkg-0.1.0-py3-none-any.whl','w') as z:
     z.writestr('e2epkg.py','X=1\n'); z.writestr('e2epkg-0.1.0.dist-info/METADATA','Metadata-Version: 2.1\nName: e2epkg\nVersion: 0.1.0\n')
     z.writestr('e2epkg-0.1.0.dist-info/WHEEL','Wheel-Version: 1.0\nRoot-Is-Purelib: true\nTag: py3-none-any\n'); z.writestr('e2epkg-0.1.0.dist-info/RECORD','')
 PY
-  check curl -sf -u admin:admin123 -F ":action=file_upload" -F "name=e2epkg" -F "version=0.1.0" -F "content=@e2epkg-0.1.0-py3-none-any.whl" $H/repository/pypi-hosted/
+  check curl -sf -u "admin:$ADMIN_PW" -F ":action=file_upload" -F "name=e2epkg" -F "version=0.1.0" -F "content=@e2epkg-0.1.0-py3-none-any.whl" $H/repository/pypi-hosted/
   check "$W/venv/bin/pip" install -q --index-url $H/repository/pypi-group/simple/ --no-cache-dir e2epkg
   cd "$ROOT"
 fi
 
 echo "== cli"
 export HOLIAO_CONFIG="$W/holiao.yaml"
-check "$ROOT/bin/holiao" login $H -u admin -p admin123
+check "$ROOT/bin/holiao" login $H -u admin -p "$ADMIN_PW"
 check "$ROOT/bin/holiao" repo ls
 check "$ROOT/bin/holiao" search lib
 check "$ROOT/bin/holiao" task run blob-gc

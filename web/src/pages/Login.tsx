@@ -83,13 +83,20 @@ export default function Login() {
   const locked = lockUntil > now
   const remaining = Math.ceil((lockUntil - now) / 1000)
 
-  if (!loading && session && !session.anonymous) return <Navigate to={next} replace />
+  if (!loading && session && !session.anonymous)
+    return <Navigate to={session.mustChangePassword ? '/change-password?forced=1' : next} replace />
 
   const onFinish = async (v: { username: string; password: string }) => {
     setSubmitting(true)
     setError(null)
     try {
       const s = await login(v.username.trim(), v.password)
+      if (s.mustChangePassword) {
+        navigate('/change-password?forced=1', { replace: true })
+        return
+      }
+      // Kept for accounts that predate the flag: the health check spots a
+      // password still set to a known default.
       const { makeCan } = await import('@/auth/AuthContext')
       if (makeCan(s).can('app:status', 'read')) {
         try {

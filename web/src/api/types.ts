@@ -1,5 +1,5 @@
 export interface Privilege { target: string; actions: string[] }
-export interface Session { username: string; roles: string[]; anonymous: boolean; via: string; privileges: Privilege[] }
+export interface Session { username: string; roles: string[]; anonymous: boolean; via: string; privileges: Privilege[]; mustChangePassword?: boolean }
 export interface PasswordPolicy {
   minLength: number; maxLength: number; requireUpper: boolean; requireLower: boolean; requireDigit: boolean
   requireSymbol: boolean; disallowUsername: boolean; disallowCommon: boolean

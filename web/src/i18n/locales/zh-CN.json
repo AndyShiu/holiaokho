@@ -313,6 +313,8 @@
       "rate_limited": "登录失败次数过多，请稍后再试",
       "required": "请先登录才能继续"
     },
+    "auth.password_change_required": "这个账号必须先修改密码才能使用",
+    "auth.password_reused": "新密码不能与当前密码相同",
     "body": {
       "invalid": "无法读取请求内容"
     },
@@ -471,8 +473,8 @@
     "current": "当前密码",
     "currentRequired": "请输入当前密码",
     "currentWrong": "当前密码不正确",
-    "forcedHint": "admin 账号仍在使用默认密码，请先设置新密码再继续。",
-    "forcedTitle": "请先更换默认密码",
+    "forcedHint": "这组密码是别人替你设置的,不只你一个人知道。请先换成只有你知道的密码,才能开始使用这个账号。",
+    "forcedTitle": "请先设置你自己的密码",
     "hint": "为 {{user}} 设置新密码。",
     "mismatch": "两次输入的密码不一致",
     "new": "新密码",

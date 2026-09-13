@@ -313,6 +313,8 @@
       "rate_limited": "登入失敗次數過多，請稍後再試",
       "required": "請先登入才能繼續"
     },
+    "auth.password_change_required": "這個帳號必須先變更密碼才能使用",
+    "auth.password_reused": "新密碼不能與目前的密碼相同",
     "body": {
       "invalid": "無法讀取請求內容"
     },
@@ -471,8 +473,8 @@
     "current": "目前密碼",
     "currentRequired": "請輸入目前密碼",
     "currentWrong": "目前密碼不正確",
-    "forcedHint": "admin 帳號仍使用預設密碼，請先設定新密碼再繼續。",
-    "forcedTitle": "請先更換預設密碼",
+    "forcedHint": "這組密碼是別人幫你設定的,不只你一個人知道。請先換成只有你知道的密碼,才能開始使用這個帳號。",
+    "forcedTitle": "請先設定你自己的密碼",
     "hint": "為 {{user}} 設定新密碼。",
     "mismatch": "兩次輸入的密碼不一致",
     "new": "新密碼",

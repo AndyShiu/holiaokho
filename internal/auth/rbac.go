@@ -22,6 +22,9 @@ type Principal struct {
 	Anonymous  bool
 	// Via records how the principal authenticated: basic|token|session|anonymous.
 	Via string
+	// MustChangePassword is carried from the user record so the API can lock
+	// the account down to the password-change endpoint.
+	MustChangePassword bool
 }
 
 // Can reports whether the principal may perform action on target.

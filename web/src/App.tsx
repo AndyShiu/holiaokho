@@ -31,10 +31,18 @@ function Center({ children }: { children: ReactNode }) {
   return <div style={{ minHeight: '60vh', display: 'grid', placeItems: 'center' }}>{children}</div>
 }
 
+// An account whose password somebody else chose may not go anywhere except
+// the password form. The server enforces this too — this only saves the user
+// from walking into a wall of 403s.
+function mustChangePassword(session: { mustChangePassword?: boolean } | null, pathname: string) {
+  return !!session?.mustChangePassword && pathname !== '/change-password'
+}
+
 function Guard({ children, target, action = 'read', authed }: { children: ReactNode; target?: string; action?: string; authed?: boolean }) {
   const { loading, session, can, methods } = useAuth()
   const loc = useLocation()
   if (loading) return <Center><Spin /></Center>
+  if (mustChangePassword(session, loc.pathname)) return <Navigate to="/change-password?forced=1" replace />
   const anon = !session || session.anonymous
   if ((authed || target) && anon) {
     if (target && methods?.anonymous && can(target, action)) return <>{children}</>
@@ -48,6 +56,7 @@ function ShellGuard() {
   const { loading, session, methods } = useAuth()
   const loc = useLocation()
   if (loading) return <Center><Spin /></Center>
+  if (mustChangePassword(session, loc.pathname)) return <Navigate to="/change-password?forced=1" replace />
   const anon = !session || session.anonymous
   if (anon && methods && !methods.anonymous) return <Navigate to={`/login?next=${encodeURIComponent(loc.pathname + loc.search)}`} replace />
   return <AppShell />

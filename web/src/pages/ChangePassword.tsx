@@ -10,7 +10,7 @@ import { useErrorText } from '@/components/Common'
 
 export default function ChangePassword() {
   const { t } = useTranslation()
-  const { methods, session, refresh } = useAuth()
+  const { methods, session, refresh, logout } = useAuth()
   const [params] = useSearchParams()
   const forced = params.get('forced') === '1'
   const navigate = useNavigate()
@@ -51,9 +51,9 @@ export default function ChangePassword() {
           <LogoMark size={26} ink="var(--hlk-text)" />
           <Wordmark size={18} />
         </div>
-        <h1 style={{ fontSize: 20, fontWeight: 600, margin: '0 0 6px' }}>{forced ? t('password.forcedTitle', 'Please change the default password first') : t('password.title', 'Change password')}</h1>
+        <h1 style={{ fontSize: 20, fontWeight: 600, margin: '0 0 6px' }}>{forced ? t('password.forcedTitle', 'Set your own password first') : t('password.title', 'Change password')}</h1>
         <p style={{ color: 'var(--hlk-text-secondary)', fontSize: 13, margin: '0 0 20px' }}>
-          {forced ? t('password.forcedHint', 'The admin account still uses the default password. Set a new one before continuing.') : t('password.hint', 'Choose a new password for {{user}}.', { user: session?.username })}
+          {forced ? t('password.forcedHint', 'This password was set for you by someone else, so it is not yours alone to rely on. Choose a new one before using the account.') : t('password.hint', 'Choose a new password for {{user}}.', { user: session?.username })}
         </p>
         {error && <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} />}
         <Form layout="vertical" onFinish={onFinish} requiredMark={false} disabled={busy}>
@@ -68,7 +68,9 @@ export default function ChangePassword() {
             <Input.Password value={pw2} onChange={(e) => setPw2(e.target.value)} autoComplete="new-password" />
           </Form.Item>
           <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-            {!forced && <Button onClick={() => navigate(-1)}>{t('common.cancel', 'Cancel')}</Button>}
+            {forced
+              ? <Button onClick={async () => { await logout(); navigate('/login', { replace: true }) }}>{t('nav.logout', 'Sign out')}</Button>
+              : <Button onClick={() => navigate(-1)}>{t('common.cancel', 'Cancel')}</Button>}
             <Button type="primary" htmlType="submit" disabled={!ok} loading={busy}>{t('password.submit', 'Change password')}</Button>
           </div>
         </Form>
