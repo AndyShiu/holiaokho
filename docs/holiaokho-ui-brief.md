@@ -110,6 +110,7 @@
 - 匿名開啟時，登入頁要有「先逛逛」的入口。
 - 錯誤：帳密錯（401）、登入次數過多（429，顯示「請稍後再試」）。
 - 首次登入若 admin 仍用預設密碼，登入後跳強制改密碼流程（health check 會回報 `default_admin_password`）。
+- 所有設密碼的表單（建立使用者、重設、個人改密碼）要顯示目前政策的規則清單（來源 `GET /auth/methods` 的 `passwordPolicy`），輸入時即時打勾／打叉；送出後伺服器回 `password.*` code + params，由前端翻譯顯示。
 
 ### 5.2 Dashboard（Admin）
 - **健康卡片**：DB、每個 storage（用量／配額，>90% 警示）、scheduler、預設密碼未改。來源 `GET /status/check`。
@@ -160,6 +161,7 @@
 - **Auth Settings**：分區
   - Realms 順序（local、ldap 拖曳）與匿名存取開關（顯示目前匿名角色的權限摘要）
   - Default roles（多選）
+  - Password policy（minLength、maxLength、需含大寫／小寫／數字／符號四個開關、不可包含帳號、拒絕常見密碼）
   - LDAP 表單（url、startTLS、bindDN、密碼、userBaseDN、userFilter、group 設定、roleMapping 表格、timeout）＋「測試連線／測試登入」
   - OIDC 表單（issuer、clientId、secret、scopes、usernameClaim、groupsClaim、roleMapping、redirectUrl 顯示供 IdP 註冊）
   - Rut Auth（header、trustedProxies CIDR 列表、autoCreate、defaultRoles）——要有明顯警語「只在反向代理後方啟用」
