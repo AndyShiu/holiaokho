@@ -49,6 +49,12 @@ a { color: inherit; }
 .hlk-privchip { font-family: var(--hlk-mono); font-size: 11px; padding: 5px 8px; border-radius: 4px; border: 1px solid var(--hlk-border-strong); background: transparent; color: var(--hlk-text-secondary); cursor: pointer; }
 .hlk-privchip.on { background: var(--hlk-ink); color: #F3EFE7; border-color: var(--hlk-ink); }
 [data-theme="dark"] .hlk-privchip.on { background: #E9E6DF; color: #131923; border-color: #E9E6DF; }
+/* An "on" switch in dark mode is a warm-white track with a DARK knob
+   (design README, logs page). The knob colour was never implemented, so a
+   white handle sat on a warm-white track and the whole control read as one
+   grey slab — on and off looked the same. Same treatment as .hlk-privchip
+   and Segmented: warm white carries dark content. */
+[data-theme="dark"] .ant-switch-checked .ant-switch-handle::before { background: #131923; }
 .hlk-privchip:disabled { opacity: .45; cursor: not-allowed; }
 .hlk-summary { background: var(--hlk-card-alt); border-left: 3px solid var(--hlk-amber); border-radius: 8px; padding: 12px 16px; font-size: 13px; line-height: 1.7; }
 [data-theme="dark"] .hlk-summary { background: #131923; }

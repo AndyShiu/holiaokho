@@ -66,10 +66,6 @@ export const dark: ThemeConfig = {
     Tabs: { inkBarColor: AMBER, itemSelectedColor: '#F3EFE7' },
     Steps: { colorPrimary: '#E9E6DF' },
     Segmented: { itemSelectedBg: '#E9E6DF', itemSelectedColor: '#131923' },
-    // colorPrimary is a pale off-white here, which reads fine as a button
-    // fill but turns an "on" switch into a grey pill that looks disabled.
-    // A switch has to say on or off at a glance, so it uses the accent.
-    Switch: { colorPrimary: AMBER, colorPrimaryHover: '#F0A855' },
   },
 }
 
