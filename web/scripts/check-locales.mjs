@@ -44,5 +44,37 @@ if (unknown.size) {
   console.error(`keys used in source but missing from en.json:\n  ${[...unknown].join('\n  ')}`)
   bad++
 }
+// Translations get written by people and machines that do not read every
+// script, and a stray Cyrillic or Hangul word inside a Japanese sentence is
+// invisible to anyone who cannot read it. Both have shipped here before.
+const scripts = {
+  cyrillic: /[\u0400-\u04FF]/u,
+  hangul: /[\uAC00-\uD7AF\u1100-\u11FF]/u,
+  kana: /[\u3040-\u30FF]/u,
+}
+const forbidden = {
+  en: ['cyrillic', 'hangul', 'kana'],
+  'zh-TW': ['cyrillic', 'hangul', 'kana'],
+  'zh-CN': ['cyrillic', 'hangul', 'kana'],
+  ja: ['cyrillic', 'hangul'],
+  ko: ['cyrillic', 'kana'],
+}
+// These deliberately list every language in its own script.
+const multiScriptKeys = new Set(['about.s7Body'])
+for (const [loc, names] of Object.entries(forbidden)) {
+  const flat = locales[loc]
+  if (!flat) continue
+  for (const [key, value] of Object.entries(flat)) {
+    if (typeof value !== 'string') continue
+    if (key.startsWith('lang.') || multiScriptKeys.has(key)) continue
+    for (const name of names) {
+      if (scripts[name].test(value)) {
+        console.error(`${loc}.json: ${key} contains ${name} characters — likely a translation slip`)
+        bad++
+      }
+    }
+  }
+}
+
 console.log(`locales ok: ${Object.keys(locales).join(', ')} (${Object.keys(en).length} keys)`)
 process.exit(bad ? 1 : 0)

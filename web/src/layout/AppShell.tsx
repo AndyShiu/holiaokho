@@ -166,7 +166,12 @@ export default function AppShell() {
         {!compact && (
           <>
             <Wordmark size={15} />
-            <span className="hlk-mono" style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--hlk-text-tertiary)' }}>{status.data?.version ? `v${status.data.version}` : ''}</span>
+            <span
+              className="hlk-mono hlk-versionlink"
+              title={t('about.title', 'About Holiaokho')}
+              style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--hlk-text-tertiary)' }}
+              onClick={(e) => { e.stopPropagation(); navigate('/about'); setNavOpen(false) }}
+            >{status.data?.version ? `v${status.data.version}` : ''}</span>
           </>
         )}
       </div>

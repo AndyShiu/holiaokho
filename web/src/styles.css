@@ -190,3 +190,17 @@ a { color: inherit; }
   width: 3px; border-radius: 2px; background: var(--hlk-amber);
 }
 .hlk-anchor.active span:last-child { color: var(--hlk-amber); }
+
+/* ---- About ---- */
+.hlk-about-hero {
+  position: relative; background: #131923; border-radius: 10px;
+  padding: 40px 40px 36px; margin-bottom: 24px; overflow: hidden;
+}
+.hlk-about-bar { position: absolute; top: 0; left: 40px; width: 160px; height: 3px; background: #E8963A; }
+.hlk-about-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+@media (max-width: 640px) {
+  .hlk-about-hero { padding: 28px 24px 24px; }
+  .hlk-about-bar { left: 24px; width: 120px; }
+}
+.hlk-versionlink { cursor: pointer; }
+.hlk-versionlink:hover { color: var(--hlk-text-secondary) !important; text-decoration: underline; }
