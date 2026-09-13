@@ -2,6 +2,7 @@
 
 > 給 Claude Design 的完整說明：這個產品是什麼、給誰用、有哪些頁面、每頁的資料與操作、關鍵流程、風格方向、技術限制。
 > 讀完這份文件應能直接產出設計系統與所有頁面的 layout，不需要再問後端問題。
+> 第 5 節是全站共用的業務邏輯，第 6 節逐頁列出元件、互動與前端業務邏輯（欄位名皆對應實際 API）。
 > 後端 API 已完成，規格在 `/api/v1/openapi.yaml`（32 個 path）；本文件以使用者角度描述，不重複 API 細節。
 > 2026-09-13。
 
@@ -101,111 +102,384 @@
 
 ---
 
-## 5. 各頁面：資料、操作、狀態
+## 5. 全站共用的業務邏輯（每頁都依賴）
 
-以下每頁列出「看到什麼」「能做什麼」「空狀態／錯誤」。資料欄位名稱對應 API。
+設計與前端都要先理解這一節，後面每頁只寫該頁特有的部分。
 
-### 5.1 登入
-- 顯示哪些登入方式由 `GET /api/v1/auth/methods` 決定：`local`（帳密）、`ldap`（同一個帳密表單，不需區分）、`oidc`（一顆「使用 SSO 登入」按鈕，跳轉）。
-- 匿名開啟時，登入頁要有「先逛逛」的入口。
-- 錯誤：帳密錯（401）、登入次數過多（429，顯示「請稍後再試」）。
-- 首次登入若 admin 仍用預設密碼，登入後跳強制改密碼流程（health check 會回報 `default_admin_password`）。
-- 所有設密碼的表單（建立使用者、重設、個人改密碼）要顯示目前政策的規則清單（來源 `GET /auth/methods` 的 `passwordPolicy`），輸入時即時打勾／打叉；送出後伺服器回 `password.*` code + params，由前端翻譯顯示。
+### 5.0.1 啟動與身分
+1. App 載入先打 `GET /api/v1/auth/methods`（公開）→ 得到 `{local, ldap, oidc, oidcLoginUrl, anonymous, passwordPolicy}`，存成全域 `authMethods`。
+2. 再打 `GET /api/v1/session`（whoami）→ `{username, roles[], anonymous, via, privileges[]}`。
+   - `anonymous: true` 且 `authMethods.anonymous: true` → 以匿名身分渲染（可看 Browse／Search）。
+   - `anonymous: true` 且 `authMethods.anonymous: false` → 導向登入頁，並記住原本路徑做 `next`。
+   - 401 → 同上。
+3. `privileges[]` 是 `{target, actions[]}`；前端用它決定**導覽顯示與按鈕出現**（不是 disabled，是不出現）。判斷函式：
+   - `can(target, action)`：target 精確相符、或 privilege target 為 `*`、或同前綴的萬用（`app:*`、`repo:*`、`format:*`）；actions 含該 action 或 `*`。
+   - 導覽對照：Repositories 管理 → `app:repositories read`；Storages → `app:storages read`；Users → `app:users read`；Roles／Content Selectors → `app:roles read`；Tasks → `app:tasks read`；Auth Settings／Webhooks／Email／System／Audit → `app:system read`；Search → `app:search read`；Dashboard 健康卡片 → `app:status read`。
+   - repo 層級：上傳／刪除檔案按鈕 → `repo:<name> write/delete`（或 `format:<format>`、`*`）。
+4. 登入後把 whoami 重新拉一次；登出 `DELETE /session` 後清空並回登入頁。
+5. Session 逾時：任何 API 回 401 → 全域攔截，彈「登入已逾時」→ 導向登入並帶 `next`；**不要**在匿名可讀的頁面上彈（匿名 401 只代表這個操作要登入，改顯示「登入以繼續」按鈕）。
 
-### 5.2 Dashboard（Admin）
-- **健康卡片**：DB、每個 storage（用量／配額，>90% 警示）、scheduler、預設密碼未改。來源 `GET /status/check`。
-- **數字**：repositories 數、packages 數、blob 總大小、今日請求量（`/metrics`）。
-- **最近活動**：audit log 最新 10 筆（誰、做了什麼、對哪個 repo）。
-- **任務**：最近失敗的任務、下一次執行時間。
-- **快速動作**：建立 repository、匯入 Nexus 說明。
-- 空狀態（全新安裝）：引導三步驟——改密碼 → 建第一個 proxy repo → 複製 client 設定。
+### 5.0.2 錯誤處理
+- 後端錯誤格式固定 `{code, message, params?}`，HTTP 狀態：400 驗證、401 未登入、403 無權限、404、409 衝突（名稱重複、版本已存在）、429 限流、502 上游失敗、507 配額。
+- 前端翻譯順序：`errors.<code>`（帶 params）→ 沒有翻譯就顯示 `message` 原文，並在旁邊小字顯示 code（方便回報）。
+- 表單類錯誤（400／409）顯示在表單頂端的 Alert 並保留使用者輸入；列表操作類錯誤用 toast。
+- 502 upstream 類錯誤附「查看上游設定」連結（proxy repo）。
 
-### 5.3 Browse（所有人）
-- 左：repository 列表（可依 format／type 篩選，顯示 format icon、type 標籤、大小、線上／離線）。
-- 右：選定 repo 後的**樹狀目錄**（`GET /repositories/{name}/browse?path=`），資料夾可展開；檔案列顯示大小、更新時間、sha256（可複製）、下載按鈕。
-- Group repo 的瀏覽是合併後的結果；proxy 只顯示已快取的內容（要說明「這是快取，不代表上游全部」）。
-- 檔案詳情 Drawer：路徑、大小、content-type、checksum、所屬 package、最後下載時間、下載 URL（可複製）、刪除（有權限時）。
-- **使用方式 Tab**（很重要）：依 format 顯示可複製的 client 設定片段，例如 Maven 的 `settings.xml` mirror、npm 的 `.npmrc`、Docker 的 `docker login` 與 daemon `registry-mirrors`、pip 的 `--index-url`、Go 的 `GOPROXY`、Helm 的 `helm repo add`、APT 的 sources.list（含金鑰下載連結）…。URL 依當前 host 自動帶入。
+### 5.0.3 列表通用行為
+- 後端目前**回整包陣列**（repositories、users、roles、storages、tasks、policies…都不分頁）；只有 `search`、`packages`、`audit`、`logs` 有 `limit/offset` 或 `tail`。前端對整包陣列做本地排序／篩選／分頁（AntD Table 內建）；search 與 packages 用伺服器分頁（每頁 50，`offset` 累加）。
+- 每個列表都有：頂部工具列（搜尋框 debounce 300ms、篩選、主要動作按鈕靠右）、欄位可排序、列點擊進詳情、列尾 `⋯` 動作選單。
+- 刪除一律走確認 Modal；「高風險」（repo、storage、user、還原備份、cleanup 執行）要求**輸入名稱**才能按確認。
 
-### 5.4 Search（所有人）
-- 一個搜尋框 + 篩選（format、repository、namespace/群組）；結果表：format icon、repository、namespace、name、version、最後下載、建立時間。
-- 點擊進 package 詳情（`GET /packages/{id}`）：assets 清單、下載連結、刪除整個版本（Admin）。
-- 空狀態：建議關鍵字格式（`gson`、`@babel/core`、`library/alpine`）。
+### 5.0.4 表單通用行為
+- 用 Drawer（右側，寬 560–720）做建立／編輯，列表保持在後面；多步驟精靈（建 repo）用整頁。
+- 髒表單離開時提示。
+- 儲存成功：toast + 關閉 Drawer + 重新拉列表；失敗：Alert 留在 Drawer 內。
+- 秘密欄位（密碼、secretKey、token secret、簽章私鑰）：後端讀回一律是 `***`。前端規則：**欄位留空或維持 `***` = 不變更**；使用者輸入新值才送出。UI 用 password input + 「已設定，留空保留」的 placeholder。
 
-### 5.5 Repositories（Admin）
-**列表**：name、format、type、storage、online、packages、size、URL（可複製）、Docker 的 port／path 模式標示、routing rule、cleanup policies；列動作：編輯、內容、invalidate cache（proxy）、刪除（要輸入名稱確認）。
+### 5.0.5 時間、大小、複製
+- 時間欄顯示相對時間（`3 分鐘前`），hover 顯示 ISO 絕對時間，皆依語系。
+- bytes 顯示成 KB/MB/GB（1024 進位）；配額輸入用 GB，送出時 ×1024³ 轉 bytes。
+- `<Copyable>` 元件：等寬字、尾端複製 icon、點擊後 icon 變勾勾 1.5 秒；長字串（sha256、token）中間省略、hover 顯示全文。
+- 「使用方式」程式碼片段：語法高亮、右上角複製、內容用 `window.location.origin` 帶入 base URL（若後端 `status.baseUrl` 有設則優先）。
 
-**建立精靈（3 步）**：
-1. 選 **format**（26 個 icon 卡片，含搜尋）
-2. 選 **type**（hosted／proxy／group，各附一句說明與適用情境）
-3. **設定**：
-   - 共同：name（規則：字母數字 `-_.`）、storage、online、routing rule、cleanup policies
-   - proxy：remoteUrl（依 format 給預設值，例如 Maven Central、registry.npmjs.org、registry-1.docker.io）、contentMaxAge／metadataMaxAge（分鐘，-1 = 永久）、negative cache TTL、上游帳密、blocked／autoBlock
-   - hosted：writePolicy（allow／allow_once／deny，附說明）
-   - group：members 排序清單（拖曳排序，只列同 format）
-   - format 專屬：Maven（layoutPolicy STRICT/PERMISSIVE、versionPolicy RELEASE/SNAPSHOT/MIXED）、Docker（httpPort、httpsPort＋憑證路徑、subdomain、forceBasicAuth、indexType HUB/REGISTRY、pathEnabled）、APT（distribution、component、簽章金鑰）、YUM／Alpine（簽章金鑰）、Cargo（downloadUrl 範本）…。簽章金鑰欄位旁有「產生金鑰」按鈕（`POST /system/pgp-key`、`/system/rsa-key`），並提供「下載公鑰」給 client 使用。
-   - 建立後直接進「使用方式」頁。
+### 5.0.6 輪詢
+- 不用 websocket。Dashboard 健康卡片每 30s、Tasks 列表在有 `running: true` 時每 3s、Logs 開啟自動更新時每 2s、其他頁不輪詢。頁面不可見（`document.hidden`）時暫停。
 
-**單一 repo 頁**：Tabs = 設定（同精靈第 3 步）／內容（同 Browse 該 repo）／使用方式／統計（packages、assets、size、命中率若有）。
-
-### 5.6 Storages（Admin）
-- 列表：name、type（fs／s3）、路徑或 bucket、used、blobs 數、quota、可用狀態。
-- 建立：fs（path）或 s3（endpoint、region、bucket、prefix、accessKey、secretKey、pathStyle）；「測試連線」。
-- 設定配額（bytes，UI 用 GB 輸入）。
-- 說明區：「內容位址去重：同一個檔案在多個 repo 只存一份」。
-
-### 5.7 Users / Roles / Content Selectors / Auth Settings（Admin）
-- **Users**：username、display name、email、source（local／ldap／oidc／rut 標籤）、roles、active；建立（local 才能設密碼）、編輯 roles、停用、重設密碼、刪除。外部來源的使用者標示「由 LDAP/OIDC 同步」，roles 由 mapping 決定不可手改（或可加本地角色，需標示）。
-- **Roles**：id、name、description、privileges 表格。privilege 編輯器：target 型別下拉（整個系統 `*`、某 repo、某 format 所有 repo、應用區域 `app:*`、content selector）＋ actions 多選（read／write／delete／admin）。內建角色（admin、anonymous、developer）標示不可刪。
-- **Content Selectors**：name、expression（等寬字、語法提示：`format == "maven" and path =^ "/com/acme/"`）、「測試」面板（輸入 format＋path 看 match 與否）。
-- **Auth Settings**：分區
-  - Realms 順序（local、ldap 拖曳）與匿名存取開關（顯示目前匿名角色的權限摘要）
-  - Default roles（多選）
-  - Password policy（minLength、maxLength、需含大寫／小寫／數字／符號四個開關、不可包含帳號、拒絕常見密碼）
-  - LDAP 表單（url、startTLS、bindDN、密碼、userBaseDN、userFilter、group 設定、roleMapping 表格、timeout）＋「測試連線／測試登入」
-  - OIDC 表單（issuer、clientId、secret、scopes、usernameClaim、groupsClaim、roleMapping、redirectUrl 顯示供 IdP 註冊）
-  - Rut Auth（header、trustedProxies CIDR 列表、autoCreate、defaultRoles）——要有明顯警語「只在反向代理後方啟用」
-
-### 5.8 我的 Tokens（所有登入者）
-- 列表：name、prefix、建立、最後使用、到期；建立（name、到期日）→ **一次性顯示 secret** 的 Modal（大字、複製按鈕、說明「關閉後不再顯示」）；撤銷。
-- 說明區：token 可當密碼用於任何 client（Basic）、`Authorization: Bearer`、NuGet ApiKey、cargo token…。
-
-### 5.9 Tasks（Admin）
-- 列表：name、description、排程（interval 或 cron）、enabled、上次執行＋狀態、下次執行、執行中指示；動作：立即執行、設定 cron（cron 輸入 + 人類可讀說明 + 下次幾次執行預覽）、啟用/停用。
-- 執行記錄：時間、狀態、log（等寬、可展開）。
-- 內建任務：blob-gc、compact-blobs、cleanup-policies、prune-expired、rebuild-indexes、backup（若設定）。
-
-### 5.10 Cleanup Policies（Admin）
-- 列表：name、format、criteria 摘要、套用的 repos。
-- 表單：lastDownloadedDays、lastUpdatedDays、keepLatest、nameRegex、versionRegex、prerelease；**預覽**：選一個 repo → 顯示「會刪除 N 個套件」與清單（分頁）。這是使用者最怕誤刪的地方，預覽要醒目。
-- 指派到 repo（多選）。
-
-### 5.11 Routing Rules（Admin）
-- 列表：name、mode（allow／block）、matchers（regex 清單）、使用中的 repos；表單 + 「測試路徑」面板（`/routing-rules/test`）。
-
-### 5.12 Backup / Restore（Admin）
-- 顯示排程備份設定（目錄、含 blobs、保留數，來自設定檔，唯讀）、最近備份記錄（task runs）。
-- 「立即下載備份」（可勾含 blobs，警告大小）。
-- 「還原」：上傳 tar.gz，兩段確認（會覆蓋所有資料）。
-
-### 5.13 Webhooks / Email（Admin）
-- Webhooks：name、url、events（多選：`asset.*`、`repository.*`、`user.*`、`task.failed`、`*`…）、repository 篩選、secret、enabled；「送測試事件」；說明簽章 header。
-- Email：host、port、username、password、from、startTLS／SSL、收件人清單；「寄測試信」。
-
-### 5.14 System（Admin）
-- **Health**：同 dashboard 卡片的完整版。
-- **Information**：版本、Go、OS、CPU、記憶體、DB 版本與連線數、各表列數、storages、formats、相依套件清單（可折疊）。
-- **Logs**：最近 N 行（等寬、可依 level 上色、自動更新開關、複製）、log level 下拉即時切換。
-- **Configuration**：目前設定 YAML/JSON 唯讀顯示（密碼已遮蔽）。
-- **Support ZIP**：一顆下載鈕與說明內容物。
-- **Audit Log**：時間、actor、action、target、detail（JSON 可展開）、篩選與分頁。
-
-### 5.15 Migrate from Nexus
-- 靜態說明頁：三步驟（Nexus 還在跑時匯入 → 切換 port → 驗證），顯示可複製的 `holiaokho import-nexus --nexus-db ... --nexus-blobs ... --link` 指令，以及「換掉之後 CI 不用改設定」的對照表（URL 相同、Docker port 相同、帳密相同）。
+### 5.0.7 多語系
+- 語言存在 localStorage，初值取瀏覽器語言對應（zh-TW／zh-CN／ja／ko／en，其他 → en）。
+- 所有文案 key 化；後端 code 對照表放在 `errors.*`；format 名稱、type 名稱、task 名稱也要有翻譯。
 
 ---
 
-## 6. 關鍵流程（要畫 flow / 逐頁 mockup）
+## 6. 各頁面詳細規格
+
+每頁格式：**路由／權限** → **版面與元件** → **資料來源** → **互動** → **業務邏輯** → **狀態**。
+
+### 6.1 登入 `/ui/login`
+
+**權限**：公開。已登入者進來直接導向 `next` 或 Dashboard。
+
+**版面與元件**
+- 置中卡片（寬 400）：Logo + wordmark、副標「好料庫」。
+- 表單：username、password（可顯示／隱藏）、「登入」按鈕（loading 狀態）。
+- `authMethods.oidc` 為 true → 表單下方分隔線＋「使用 SSO 登入」按鈕。
+- `authMethods.anonymous` 為 true → 底部連結「先瀏覽套件（不登入）」→ Browse。
+- 語言切換放右上角（登入前就要能切）。
+
+**資料來源**：`POST /api/v1/session {username, password}` → 200 設 cookie；`GET /api/v1/auth/oidc/login?next=<path>` 整頁跳轉。
+
+**互動與業務邏輯**
+- Enter 送出；送出中禁用表單。
+- 401 → 表單頂端 Alert「帳號或密碼錯誤」（不區分哪個錯）；429 → Alert「登入失敗次數過多，請稍後再試」並把按鈕鎖 30 秒倒數。
+- 成功後：重拉 whoami → 若 `can("app:status","read")` 則額外打 `GET /status/check`，`checks.default_admin_password.healthy === false` → 導向**強制改密碼**頁（6.2），否則導向 `next`（只接受站內相對路徑，防 open redirect）或 Dashboard。
+- OIDC 回來時 callback 已由後端處理並導回 `next`；前端只需在載入時重拉 whoami。
+- 一律不記住密碼、不提供「忘記密碼」（管理員重設）。
+
+**狀態**：無空狀態；後端不可達顯示「無法連線到伺服器」與重試。
+
+### 6.2 強制改密碼（首次登入）`/ui/change-password?forced=1`
+
+**版面**：全頁置中卡片、不顯示側欄。標題「請先更換預設密碼」，說明一句。
+- 欄位：目前密碼、新密碼、確認新密碼。
+- **密碼規則清單元件 `<PasswordRules>`**：依 `authMethods.passwordPolicy` 動態列出規則（最少 N 碼、含大寫、含小寫、含數字、含符號（若要求）、不含帳號、非常見密碼），使用者輸入時逐條即時打勾／打叉；「非常見密碼」這條前端無法判斷，顯示為中性 icon 並註明「送出時檢查」。
+- 送出按鈕在「前端可判斷的規則全部通過且兩次輸入相同」前 disabled。
+
+**資料來源**：`PUT /api/v1/me/password {current, password}` → 204。
+
+**業務邏輯**
+- 401（目前密碼錯）→ 目前密碼欄位錯誤；400 `password.*` → 對應規則列變紅並顯示訊息（例如 `password.common`）。
+- 成功後重拉 whoami，導向 Dashboard；同一個元件不帶 `forced` 也用於個人選單的「改密碼」（放在 Drawer 裡）。
+
+### 6.3 Dashboard `/ui/`
+
+**權限**：登入者；卡片依權限顯示（無 `app:status` 就不顯示健康卡片；Developer 看到的是精簡版：我的 tokens 數、最近瀏覽的 repo、快速搜尋）。
+
+**版面與元件（Admin）**
+1. 第一列 **健康卡片群**：每個 check 一張小卡（icon＋名稱＋狀態色）：`database`、`storage:<name>`（顯示 usedBytes/quotaBytes 進度條，>90% 黃、超過紅）、`scheduler`、`default_admin_password`（不健康時整張紅並有「立即更改」按鈕）。頂端一顆總狀態 Badge：`healthy` 綠／有問題紅。
+2. 第二列 **統計數字卡**：Repositories 數（依 type 拆 hosted/proxy/group）、Packages 總數、Assets 總數、總大小（sum of repo `stats.size`）。
+3. 第三列左 **最近活動**（audit 最新 10 筆：相對時間、actor、動作翻譯、target 連結）；右 **任務**（`lastStatus === "failed"` 的任務列在最上、標紅；其餘顯示 nextRun；每列「立即執行」）。
+4. 頂部右側 **快速動作**：「建立 Repository」「從 Nexus 搬家」。
+
+**資料來源**：`GET /status/check`（30s 輪詢）、`GET /repositories`（含 stats）、`GET /audit?limit=10`、`GET /tasks`。
+
+**業務邏輯**
+- 全新安裝判斷：`repositories.length === 0` → 用**引導面板**取代統計卡：三步驟 Steps（改密碼 ✓ 依 `default_admin_password`、建立第一個 proxy → 開精靈並預選 maven/proxy、複製 client 設定 → 進該 repo 的使用方式）。
+- 任何卡片載入失敗只影響該卡片（顯示重試），不整頁錯誤。
+
+### 6.4 Browse `/ui/browse/:repo?/:path*`
+
+**權限**：`app:repositories read` 不必；列表用 `GET /repositories`（後端依 repo 讀權限過濾）。匿名可用。
+
+**版面與元件**
+- 左欄（寬 280，可拖曳調整）：**Repository 清單**
+  - 頂部：搜尋框（本地過濾 name）、篩選 chips（format 多選、type 多選）。
+  - 每列：format icon、name、type Tag（Hosted 藍／Proxy 紫／Group 綠，顏色待設計）、右側灰字大小；`online: false` 顯示灰色與「離線」小 Tag。
+  - 選中列高亮，URL 同步 `/ui/browse/<name>`。
+- 右欄：
+  - **標題列**：repo 名、format／type Tag、可複製的 repo URL（`url` 欄位）、右側按鈕群：「使用方式」（開 Drawer）、「上傳」（hosted 且有 write 權）、「重新整理」。
+  - **Tabs**：`內容`、`套件`。
+  - **內容 Tab**：麵包屑（可點回上層）＋**檔案表**：名稱（資料夾 icon 可點進入；檔案 icon）、大小、更新時間、`cacheExpiresAt`（proxy 才有，顯示「快取到期」相對時間；已過期灰字）、動作（下載、詳情、刪除）。資料夾在前、檔案在後，各自按名稱排序。
+  - **套件 Tab**：表格 namespace／name／version／最後下載／建立時間，伺服器分頁；頂部有 name／namespace 篩選框；點列開 Package Drawer（見 6.5）。
+  - proxy repo 內容表頂端一條淡色提示：「這裡只顯示已被快取的內容，不代表上游全部」。
+  - group repo 提示：「合併自 N 個成員：a、b、c」，成員可點跳轉。
+
+**檔案詳情 Drawer**（`GET /assets/{id}`）：路徑（Copyable）、大小、contentType、`blobDigest`（Copyable）、所屬 package（連結）、建立／更新／最後下載、快取到期、`negative: true` 時顯示「負快取（上游 404 記錄）」標籤、下載 URL（Copyable，`<repoUrl>/<path>`）、「刪除」按鈕（`repo:<name> delete`）。
+
+**上傳 Drawer**（hosted only；`POST /repositories/{name}/upload` multipart `file`、`path`、`overwrite`）：拖放區、path 輸入（預設為目前瀏覽目錄＋檔名，可改）、overwrite 勾選（writePolicy 為 `allow_once` 時顯示說明「此 repo 不允許覆蓋，勾選也無效」）、進度條。409 `repo.redeploy_denied` → 提示版本已存在。
+
+**資料來源**：`GET /repositories`、`GET /repositories/{name}/browse?path=`、`GET /repositories/{name}/packages?q&name&namespace&limit&offset`、`GET /assets/{id}`、`DELETE /assets/{id}`。
+
+**業務邏輯**
+- URL 是唯一狀態來源：`/ui/browse/maven-central/com/google/gson` 重新整理要能回到同位置。
+- 進入資料夾時先顯示 skeleton，回應後替換；回上層用快取（保留最近 20 個目錄）。
+- 「下載」直接開 `<repoUrl>/<path>`（瀏覽器 GET，靠 cookie 或匿名）。
+- 刪除後從表格移除該列並 toast；若刪的是 package 最後一個 asset，後端會一併刪 package，套件 Tab 需重拉。
+- Docker repo 的內容路徑是 `v2/<image>/manifests/<tag>` 與 `blobs/sha256:…`，前端在 Docker 格式下把 `manifests` 目錄的檔案顯示為「tag」、`blobs` 顯示 digest 短碼；套件 Tab 對 Docker 顯示 image:tag。
+
+**狀態**：無 repo → 空狀態「還沒有 repository」（Admin 顯示建立按鈕）；repo 空 → 「此 repository 尚無內容」（proxy 附「第一次下載後就會出現」、hosted 附上傳按鈕）；離線 repo → 內容照常可瀏覽但標題列黃色 Alert「離線：client 請求會被拒絕」。
+
+### 6.5 Search `/ui/search?q=&format=&repository=&namespace=`
+
+**權限**：`app:search read`（匿名角色預設有）。
+
+**版面與元件**
+- 頂部大搜尋框（autofocus，Enter 或 debounce 400ms 觸發）＋篩選列：format（Select，附 icon）、repository（Select，依 format 連動）、namespace（Input）、version（Input）。
+- 結果表：format icon、repository（連結到 Browse）、namespace、name、version、最後下載、建立時間；每頁 50，底部「載入更多」（offset 累加）或分頁。
+- 列點擊 → **Package Drawer**：標題 `namespace/name@version`、所屬 repo、屬性（`attrs` 依 format 顯示：npm 的 description/license、maven 的 packaging、docker 的 digest/size…，其餘用 key-value 表）、**Assets 表**（path、大小、sha256、下載）、右上角「刪除此版本」（`repo:<name> delete`，確認 Modal）。
+- 全域頂欄的搜尋框：輸入後 Enter 直接跳到本頁帶 `q`。
+
+**資料來源**：`GET /search?q&format&repository&namespace&name&version&limit&offset`、`GET /packages/{id}`、`GET /packages/{id}/assets`、`DELETE /packages/{id}`。
+
+**業務邏輯**
+- `q` 對 name／namespace 做子字串比對（後端）；輸入含 `@`（npm scope）或 `:`（maven gav）時前端不特別解析，直接送。
+- 篩選變更即重查並重設 offset；查詢參數全部同步到 URL。
+- 沒有任何條件時不查，顯示空狀態與範例關鍵字（`gson`、`@babel/core`、`library/alpine`）。
+- 刪除版本後從結果移除。
+
+### 6.6 Repositories 管理 `/ui/admin/repositories`
+
+**權限**：`app:repositories read`；建立／編輯 `write`；刪除 `delete`。
+
+#### 列表
+- 工具列：搜尋、format／type 篩選、「建立 Repository」主按鈕。
+- 欄位：name（連結）、format icon＋名、type Tag、storage、online（Switch，直接切換 → `PUT /repositories/{name} {online}`）、packages、size、URL（Copyable，Docker 另顯示 `:httpPort`／path／subdomain 小 Tag）、routing rule 名、cleanup policies 數。
+- 列動作：編輯（Drawer）、瀏覽內容（跳 Browse）、使用方式、invalidate cache（proxy／group only，`POST /{name}/invalidate-cache`，確認後 toast）、刪除（輸入名稱確認；`DELETE`；提示「內容與 blob 會在下次 blob-gc 回收」）。
+- group 列 hover 顯示成員；proxy 列 `attributes.proxy.blocked` 顯示紅色「已封鎖」Tag；autoBlock 觸發中（後端暫時封鎖）目前無 API 顯示，略。
+
+#### 建立精靈 `/ui/admin/repositories/new`（整頁 Steps）
+**Step 1 選格式**：26 張卡片（icon、名稱、一句話），頂部搜尋。點選即進下一步。
+**Step 2 選型態**：三張大卡 Hosted／Proxy／Group，各附說明與適用情境；Group 卡在該 format 沒有任何 repo 時 disabled 並註明「先建立 hosted 或 proxy」。
+**Step 3 設定**（單一表單，分區塊）：
+- **基本**：name（regex `^[A-Za-z0-9._-]+$`，即時驗證，409 → 「名稱已存在」）、storage（Select，`GET /storages`，預設 `default`）、online（預設 on）。
+- **Proxy**（type=proxy）：remoteUrl（依 format 預填：maven→`https://repo1.maven.org/maven2/`、npm→`https://registry.npmjs.org/`、docker→`https://registry-1.docker.io`、pypi→`https://pypi.org/`、go→`https://proxy.golang.org`、helm 需使用者填、其他依表）、contentMaxAge（分鐘，預設 1440；`-1` 有 checkbox「永久快取」）、metadataMaxAge（預設 1440）、negativeCacheTtl（預設 1440；0 = 關閉）、上游帳密（username／password，密碼規則同 5.0.4）、blocked、autoBlock（預設 on）。
+- **Hosted**（type=hosted）：writePolicy Radio：`allow`（可覆蓋）／`allow_once`（預設；同路徑不可重新上傳，Maven SNAPSHOT 例外）／`deny`（唯讀）。
+- **Group**（type=group）：members 雙欄 Transfer 或可拖曳排序清單，只列同 format 的非 group repo；順序即解析順序，要有說明「先命中的成員優先」。
+- **格式專屬**（依 Step 1 顯示）：
+  - maven：layoutPolicy（STRICT／PERMISSIVE）、versionPolicy（RELEASE／SNAPSHOT／MIXED；hosted 才有意義）。
+  - docker：httpPort（0=不開）、httpsPort＋tlsCert／tlsKey（PEM 路徑，伺服器端檔案）、subdomain、pathEnabled（預設 on）、forceBasicAuth、indexType（HUB／REGISTRY／CUSTOM；proxy 才顯示）。三種存取方式旁邊各有一行說明對應的 URL 長什麼樣。
+  - apt：distribution（預設 `stable`）、component（`main`）、signingKey（PGP 私鑰 ASCII-armored textarea）＋passphrase、flat（proxy）。
+  - yum：repodataDepth（0–5）、signingKey＋passphrase。
+  - alpine：signingKey（RSA 私鑰 PEM）、keyName（預設 `holiaokho.rsa.pub`）。
+  - cargo：downloadUrl 範本（proxy 可留空）。
+  - 其他 format 無專屬欄位。
+- **簽章金鑰產生器**：signingKey 欄旁「產生金鑰」→ Modal 輸入 name／email → `POST /system/pgp-key`（apt/yum）或 `POST /system/rsa-key`（alpine）→ 回 `{privateKey, publicKey}`：私鑰自動填入欄位，公鑰顯示在 Modal 內供下載／複製，並提醒「公鑰之後可在 `<repoUrl>/repository-key.gpg`（alpine：`<repoUrl>/<keyName>`）取得」。
+- **Routing rule**（Select，可空）、**Cleanup policies**（多選；建立後逐一 `PUT /cleanup-policies/{id}/repositories/{name}`）。
+- 底部：「建立」→ `POST /repositories` → 成功導向該 repo 詳情的「使用方式」Tab。
+
+**業務邏輯**
+- 送出 payload：`{name, format, type, storage, online, attributes: {proxy?|hosted?|group?, <format>?}}`；未顯示的區塊不送。
+- 400 `validation` 顯示在對應欄位（後端 message 含欄位名時前端做對照，否則顯示在頂部）。
+- 精靈可用「上一步」回去改 format／type，已填的共通欄位保留、格式專屬欄位清空。
+
+#### 單一 repo 頁 `/ui/admin/repositories/:name`
+Tabs：
+- **設定**：同 Step 3 表單（name／format／type 唯讀灰顯）；儲存 `PUT /repositories/{name}`（只送 `online` 與 `attributes`）；proxy 的 password 顯示 `***`。
+- **內容**：內嵌 Browse 右欄。
+- **使用方式**：見 6.7。
+- **統計**：packages、assets、size 三個數字＋（未來）下載次數；「Invalidate cache」與「刪除」放在此 Tab 底部危險區。
+
+### 6.7 「使用方式」Drawer／Tab（`<UsageSnippets format type url>`）
+
+純前端元件，無 API。依 format 產生 1–3 個片段，每個片段有標題、說明一句、程式碼區（可複製）。URL 用 repo `url`；Docker 依 `attributes.docker` 產生不同位址：
+- port 模式：`<host>:<httpPort>/<image>`；path 模式：`<host>/<repo>/<image>`（`pathEnabled`）；subdomain：`<subdomain>.<host>/<image>`；proxy 另附 daemon `registry-mirrors` 設定。
+- Maven：`settings.xml` 的 `<mirror>`（group／proxy）或 `<distributionManagement>`（hosted）＋`<server>` 憑證用 token。
+- npm：`.npmrc` 的 `registry=` 與 `//host/repository/<name>/:_authToken=`；scope 版本。
+- PyPI：`pip.conf index-url`、`twine upload --repository-url`。
+- Go：`GOPROXY=<url>`（附 `GONOSUMDB`／`GOSUMDB=sum.golang.org <url>/sumdb` 說明）。
+- Helm：`helm repo add`；hosted 附 `helm push`／curl upload。
+- APT：`sources.list` 一行＋ `curl <url>/repository-key.gpg | gpg --dearmor`；YUM：`.repo` 檔含 `gpgkey=`；Alpine：`/etc/apk/repositories` ＋ 下載公鑰到 `/etc/apk/keys/`。
+- NuGet：`dotnet nuget add source`、`nuget push -ApiKey <token>`。
+- Cargo：`.cargo/config.toml` `[registries]` sparse；`cargo login`。
+- Composer：`composer config repositories.holiao composer <url>`。Conda：`channels`。CRAN：`options(repos=)`。RubyGems：`gem sources -a`／`gem push --host`。pub：`PUB_HOSTED_URL`。Terraform：`provider_installation network_mirror`／module source。Git LFS：`.lfsconfig`。Hugging Face：`HF_ENDPOINT`。Ansible：`ansible.cfg server_list`。Conan：`conan remote add`。Swift：`swift package-registry set`。CocoaPods：`source`。p2：Eclipse update site URL。raw：`curl` 上傳／下載範例。
+- 每個片段底部一行「憑證：使用 User Token（帳號 + token 當密碼）」連到我的 Tokens。
+- 所有片段都有 **語言無關** 的程式碼，說明文字走 i18n。
+
+### 6.8 Storages `/ui/admin/storages`
+
+**權限**：`app:storages read/write`。
+
+**版面**：卡片或表格：name、type Tag（fs／s3）、位置（fs 顯示 path；s3 顯示 `bucket/prefix @ endpoint`）、使用量進度條（`/status/check` 的 `storage:<name>` usedBytes／quotaBytes）、blobs 數（若有）、狀態（健康／錯誤訊息）。「建立 Storage」按鈕。
+
+**建立 Drawer**（`POST /storages`）：name、type Radio；fs：path（伺服器端絕對路徑，提示「容器內路徑」）；s3：endpoint、region、bucket、prefix、accessKey、secretKey、pathStyle（MinIO／自架必開）。「測試連線」按鈕（目前沒有專用 API：前端先送建立，失敗即顯示錯誤；設計上保留按鈕位置，未來補 API）。
+
+**編輯 Drawer**（`PUT /storages/{name}`）：只能改 quota（GB 輸入，0 = 無限制）與 s3 憑證；path／bucket 不可改（說明「改位置請建立新 storage」）。
+
+**業務邏輯**
+- `default` storage 不能刪（後端無刪除 API；UI 不提供刪除）。
+- 配額滿時 client 上傳會收到 507；UI 在 storage 卡片與 Dashboard 都要紅色提示。
+- 說明區塊（可收合）：「同一份檔案在多個 repo 只存一份（content-addressed）；刪除的內容由 blob-gc 任務回收，compact-blobs 才真正釋放磁碟」。
+
+### 6.9 Users `/ui/admin/users`
+
+**權限**：`app:users`。
+
+**列表**：username、displayName、email、source Tag（local／ldap／oidc／rut）、roles Tags、active（Switch → `PUT /users/{u} {active}`）、createdAt；工具列搜尋、source 篩選、「建立使用者」。列動作：編輯、重設密碼（local only）、Tokens、刪除（輸入名稱；不可刪 `admin` 與自己、`anonymous` 不列出或列出但不可編輯密碼）。
+
+**建立 Drawer**（`POST /users`）：username（regex 同 repo 名）、displayName、email、password＋確認＋`<PasswordRules>`、roles（多選，`GET /roles`）、active。
+**編輯 Drawer**（`PUT /users/{u}`）：同上但無密碼；`source !== "local"` 時顯示 Alert「由 LDAP／OIDC 同步，roles 由 mapping 決定；此處加的角色為附加本地角色」。
+**重設密碼 Modal**（`PUT /users/{u}/password`）：新密碼＋`<PasswordRules>`（username 帶入以檢查「不含帳號」）。
+**Tokens Drawer**：同 6.12，但用 `/users/{u}/tokens`。
+
+**業務邏輯**
+- 409 `user.exists` → username 欄位錯誤。
+- 自己的 roles 若移除 admin 會被鎖在外面：前端在把自己的 `admin` 角色拿掉時彈確認警告。
+- `admin` 使用者不可停用、不可刪。
+
+### 6.10 Roles `/ui/admin/roles`
+
+**列表**：id、name、description、privileges 數、內建標記（`admin`、`anonymous`、`developer` 顯示「內建」Tag，不可刪，可編輯 privileges 但 `admin` 不可）。
+
+**建立／編輯 Drawer**（`POST /roles`、`PUT /roles/{id}`）：id（建立時可填，regex 同上，留空自動）、name、description、**Privilege 編輯器**：
+- 表格每列 = 一條 privilege：`target` ＋ `actions`。
+- target 用兩段式輸入：**類型 Select**（整個系統 `*` ／ 應用區域 `app:` ／ 某 repository `repo:` ／ 某格式所有 repo `format:` ／ 內容選擇器 `selector:`）＋ **值**：app 用 Select（repositories、storages、users、roles、tasks、system、search、status、`*`）；repo 用 Select（含 `*`）；format 用 Select；selector 用「選擇器名 @ repo 或 *」兩個 Select。
+- actions 用 Checkbox 群：read／write／delete／admin，或 `*`（勾 `*` 時其他 disabled）。
+- 底部即時顯示「這個角色可以做什麼」的人話摘要（例如「讀取所有 repository；管理 users」）。
+- 新增列、刪除列、複製列。
+
+**業務邏輯**
+- 至少一條 privilege 才能儲存。
+- `selector:` target 只有在有 content selector 時可選，否則顯示「先建立 Content Selector」連結。
+
+### 6.11 Content Selectors `/ui/admin/content-selectors`
+
+**列表**：name、expression（等寬字截斷）、description、被哪些 roles 引用（前端從 roles 列表比對 `selector:<name>@`）。
+
+**Drawer**（`POST`／`PUT /content-selectors`）：name、description、expression（CodeMirror 風格單行／多行、語法說明面板：支援 `format == "maven"`、`path =^ "/com/acme/"`（前綴）、`path =~ "regex"`、`and`／`or`／`not`／括號）。
+**測試面板**（在 Drawer 內）：輸入 format＋path → `POST /content-selectors/test {expression, format, path, coordinate?}` → `{matches}` → 綠勾「符合」／灰叉「不符合」；表達式語法錯誤 400 顯示在 expression 欄下。
+
+**業務邏輯**：被 role 引用中的 selector 刪除時警告會影響哪些 roles。
+
+### 6.12 我的 Tokens `/ui/me/tokens`（個人選單）
+
+**權限**：任何登入者（匿名不顯示）。
+
+**列表**：name、prefix（`hlk_xxxx…`）、createdAt、lastUsedAt、expiresAt（過期列灰色＋「已過期」）；「建立 Token」；列動作「撤銷」（確認）。
+
+**建立 Modal**（`POST /me/tokens {name, expiresAt?}`）：name（必填）、到期（Radio：30 天／90 天／1 年／永不／自訂日期）。成功後切換成 **一次性顯示畫面**：大字等寬 secret、複製按鈕、紅字「關閉後無法再看到，請立即保存」、勾選「我已保存」才能關閉。
+
+**說明區**：token 當密碼用在任何 client（Basic）、`Authorization: Bearer <token>`、NuGet ApiKey、cargo token、npm `_authToken`；各附一行範例。
+
+**業務邏輯**：secret 只存在該 Modal 的 state，關閉即清除；撤銷後立即從列表移除。
+
+### 6.13 Auth Settings `/ui/admin/auth`
+
+**權限**：`app:system`。單一頁、左側錨點導覽、右側分區表單，**每區獨立儲存**（都打同一支 `PUT /auth/settings`，前端合併目前設定＋該區變更後整包送出；秘密欄位維持 `***`）。
+
+**區塊**
+1. **Realms 與匿名**：Realms 可拖曳排序清單（local、ldap），未啟用的 realm 可移除；匿名存取狀態（唯讀顯示，來自設定檔 `auth.anonymous_enabled`，附「在設定檔或環境變數修改」說明）＋目前 `anonymous` 角色權限摘要（連到 Roles）。
+2. **Default roles**：多選。
+3. **Password policy**：minLength（≥8）、maxLength、四個 require 開關、disallowUsername、disallowCommon；右側即時範例「合格密碼長這樣」。
+4. **LDAP**：enabled 開關；url（`ldap://`／`ldaps://`）、startTLS、bindDN、bindPassword、userBaseDN、userFilter（預設 `(uid={username})`）、userSubtree、emailAttr、displayNameAttr、group 區（groupBaseDN、groupFilter、groupNameAttr、memberAttr）、roleMapping 表（LDAP group → role 多選）、timeout。按鈕：「測試連線」「測試登入」（`POST /auth/ldap/test {config: <目前表單的 LDAP 區塊>, username, password}` → 用未儲存的設定直接測，顯示找到的 DN、email、groups、對應到的 roles）。
+5. **OIDC**：enabled；issuer、clientId、clientSecret、scopes（tags）、usernameClaim、groupsClaim、roleMapping 表、autoCreate；唯讀顯示 redirect URL `<origin>/api/v1/auth/oidc/callback`（Copyable）供 IdP 註冊。
+6. **Rut Auth**：enabled；header 名、autoCreate、defaultRoles；紅色 Alert「只有在反向代理會剝除此 header 且 `server.trusted_proxies` 已設定時才可啟用」，並唯讀顯示目前 trusted_proxies（來自 `/system/config`）。
+
+**業務邏輯**
+- 儲存 LDAP／OIDC enabled 但必填欄位空 → 前端擋。
+- 把 `ldap` 從 realms 移除但 LDAP enabled → 提示「LDAP 已設定但不在 realm 順序中，不會被使用」。
+- 修改後 30 秒內後端快取才更新（後端 settings cache 30s）；UI 儲存成功 toast 加註「最多 30 秒生效」。
+
+### 6.14 Tasks `/ui/admin/tasks`
+
+**列表**（`GET /tasks`，有 running 時 3s 輪詢）：name（翻譯＋原名）、description、排程（`cron` 有值顯示 cron＋人話；否則顯示 `interval`）、enabled Switch、lastRun（相對時間＋`lastStatus` 色點）、nextRun、running spinner；列動作：「立即執行」（`POST /tasks/{name}/run` → 202 → toast 並開始輪詢）、「設定排程」。
+
+**排程 Modal**（`PUT /tasks/{name}/schedule {cron?, enabled}`）：Radio「預設間隔」／「Cron」；cron 輸入框＋常用範本（每天 02:00、每小時、每週日）＋人話解析＋「接下來 5 次執行時間」預覽（前端用 cron 解析函式庫計算）；enabled 開關。
+
+**執行記錄**（頁面下半或 Tab；`GET /tasks/runs?task=`）：時間、任務、狀態 Tag（success／failed／running）、耗時、展開列顯示 `log`（等寬、深色底）。
+
+**內建任務清單與翻譯**：`blob-gc`（回收未引用 blob，軟刪除）、`compact-blobs`（實際刪除檔案釋放空間）、`cleanup-policies`（套用清理規則）、`prune-expired`（清過期快取／session／token）、`rebuild-indexes`（重建各格式索引）、`backup`（有設定才出現）。
+
+### 6.15 Cleanup Policies `/ui/admin/cleanup`
+
+**列表**：name、format（`*` 顯示「全部」）、criteria 摘要（例：「30 天未下載 · 保留最新 5 版 · 排除 prerelease」）、套用的 repos Tags；「建立規則」。
+
+**Drawer**（`POST`／`PUT /cleanup-policies`）：name、format（Select，含「全部」）、criteria：lastDownloadedDays、lastUpdatedDays（兩者 OR 關係要說明）、keepLatest（每個 name 保留最新 N 版）、nameRegex、versionRegex、prerelease（Radio：不限／只清 prerelease／排除 prerelease）。
+**預覽區**（Drawer 底部或獨立 Modal）：選 repo → `POST /cleanup-policies/{id}/preview?repository=<name>&limit=200` → `{wouldDelete, packages[]}` 顯示「將刪除 N 個套件」與清單（namespace/name/version、最後下載），分頁。**未儲存的規則不能預覽**（先儲存）。
+**指派**：Drawer 內 repo 多選（只列 format 相符）；差異化送 `PUT`／`DELETE /cleanup-policies/{id}/repositories/{name}`。
+
+**業務邏輯**
+- 至少一個 criteria 才能儲存。
+- 規則只在 `cleanup-policies` 任務執行時生效：Drawer 頂端提示下次執行時間（從 `/tasks` 取），並提供「立即執行清理」按鈕（跳 Tasks 執行，先確認）。
+- 這是最容易誤刪的地方：預覽結果 > 100 時用醒目黃色。
+
+### 6.16 Routing Rules `/ui/admin/routing-rules`
+
+**列表**：name、mode Tag（allow 綠／block 紅）、matchers 數（hover 顯示）、description、使用中的 repos（前端由 repositories 的 `routingRuleId` 反查）。
+
+**Drawer**：name、description、mode Radio（`block`：符合任一 matcher 的路徑拒絕；`allow`：只有符合的才放行）、matchers 動態列表（regex，每列即時語法檢查）。
+**測試面板**：輸入 path → `POST /routing-rules/test {mode, matchers, path}`（送目前表單內容，不需先儲存）→ `{allowed}` 顯示「允許／封鎖」＋命中的 matcher 高亮。
+
+**業務邏輯**：被 repo 使用中的規則刪除 → 警告列出 repos，刪除後那些 repo 的 `routingRuleId` 變 null（後端處理）。
+
+### 6.17 Backup / Restore `/ui/admin/backup`
+
+**權限**：`app:system admin`（比 write 更高）。
+
+**版面**
+- **排程備份**卡（唯讀，來自 `/system/config` 的 `backup` 區）：目錄、是否含 blobs、保留數、cron；「在設定檔修改」說明；旁邊顯示 `backup` 任務最近執行。
+- **立即下載備份**：勾選「包含 blobs」（警告：大小約 = 總 storage 用量）→ `GET /system/backup?blobs=true` 以瀏覽器下載（`<a download>`，帶 cookie）。
+- **還原**危險區（紅框）：上傳 `.tar.gz`（Dragger）→ 第一段確認 Modal 說明「將覆蓋所有資料庫內容與 blobs，服務期間請停止 client 存取」→ 第二段輸入 `RESTORE` 才能按 → `POST /system/restore` multipart，上傳進度＋處理中 spinner（可能數分鐘）→ 完成後強制重新登入。
+
+### 6.18 Webhooks `/ui/admin/webhooks`
+
+**列表**：name、url、events Tags、repository 篩選（空＝全部）、enabled Switch、createdAt；「建立」；列動作：編輯、「送測試事件」（`POST /webhooks/{id}/test` → `{queued, message}`；事件是非同步送出，toast 顯示「已排入」，實際結果看 Logs）、刪除。
+
+**Drawer**：name、url（https 建議）、events 多選（`asset.created`、`asset.deleted`、`package.deleted`、`repository.create`、`repository.update`、`repository.delete`、`repository.invalidate_cache`、`user.create`、`user.update`、`user.delete`、`task.failed`、`*`）、repository（Select，可空）、secret（密碼欄，`***` 規則）、enabled。
+**說明區**：payload 範例 JSON、簽章 header `X-Holiaokho-Signature: sha256=<HMAC>`、驗簽範例（Node／Go 各一）。
+
+### 6.19 Email `/ui/admin/email`
+
+單一表單（`GET`／`PUT /email`）：enabled、host、port、username、password（`***`）、from、startTls／ssl（互斥 Radio：無／STARTTLS／SSL）、recipients（tags；任務失敗與配額警告會寄到這些人）。「寄測試信」（`POST /email/test {to}` → `{sent}` toast）。
+
+### 6.20 System `/ui/admin/system/*`
+
+- **Health** `/health`：同 Dashboard 卡片的表格版：check 名、狀態、message、（storage）用量；「重新檢查」按鈕；30s 輪詢。
+- **Information** `/info`（`GET /system/info`）：分組 Descriptions：版本（version、commit、buildDate）、執行環境（`go`、`os`/`arch`、`cpus`、`hostname`、`pid`、`uptime`、`memory`：heapAllocBytes／sysBytes／goroutines／numGC）、資料庫（版本、連線數、各表列數）、storages、formats（26 個 Tag）、相依套件（可折疊表格）。右上角「複製為文字」。
+- **Logs** `/logs`（`GET /system/logs?tail=500`）：深色等寬區、level 上色（ERROR 紅、WARN 黃、INFO 灰、DEBUG 淡）、頂部：tail 行數 Select（200／500／2000）、level 篩選（前端）、關鍵字過濾（前端）、「自動更新」Switch（2s，開啟時自動捲到底）、「複製全部」；旁邊 **Log level** Select（`GET`／`PUT /system/log-level`：debug／info／warn／error，即時生效，提示「重啟後回到設定檔值」）。
+- **Configuration** `/config`（`GET /system/config`）：YAML 唯讀（語法高亮）；秘密已被後端遮蔽；頂部說明「修改請編輯設定檔或環境變數 `HOLIAOKHO_*`」。
+- **Support ZIP** `/support`：一顆下載按鈕（`GET /system/support-zip`）＋內容物清單（system info、config（遮蔽）、最近 logs、health、repo 清單）＋「不含使用者資料與 blobs」。
+- **Audit Log** `/audit`（`GET /audit?limit=`）：時間、actor（username；`anonymous`／token 前綴／`system`）、action（翻譯，例 `repository.create` → 「建立 repository」）、target 型別＋名稱（可點跳轉）、detail（JSON，展開列）；篩選 action／actor（前端）、limit Select；「載入更多」。
+
+### 6.21 Migrate from Nexus `/ui/admin/migrate`
+
+靜態說明頁（無 API），三個 Steps 卡片：
+1. **匯入**（Nexus 還在跑時）：可複製的指令  
+   `holiaokho import-nexus --nexus-db postgres://nexus:***@host:5432/nexus --nexus-blobs /nexus-data/blobs/default --link`  
+   附參數說明（`--link` 用 hardlink 不複製檔案、`--dry-run`）、匯入內容清單（repos、users（密碼雜湊可沿用，首次登入自動升級）、roles、內容索引、blobs）。
+2. **切換**：停 Nexus → Holiaokho 改監聽同一 port（K3s：改 Deployment image、沿用 Service／PVC 的 manifest 範例可複製）→ Docker port connector 對照表。
+3. **驗證**：checklist（`mvn dependency:resolve`、`npm install`、`docker pull` 各一行）、「在 Repositories 列表確認匯入的 repo」連結。
+底部「CI 不用改設定」對照表：URL 相同／Docker port 相同／帳密相同／REST `/service/rest/v1` 相容子集。
+
+### 6.22 個人選單（頂欄右上）
+- 顯示 username＋`via` Tag（session／token／ldap／oidc）。
+- 項目：我的 Tokens、改密碼（local 使用者才顯示；`via` 為 ldap／oidc 隱藏）、語言、主題、登出。
+- 匿名時此處是「登入」按鈕。
+
+### 6.23 通知中心（頂欄鈴鐺）
+純前端彙整，無專用 API：每 60s 拉 `/status/check` 與 `/tasks`，把「不健康的 check」與「lastStatus failed 的任務」列成通知；點擊跳對應頁；已讀狀態存 localStorage。沒有權限（非 Admin）則不顯示鈴鐺。
+
+---
+
+## 7. 關鍵流程（要畫 flow / 逐頁 mockup）
 
 1. **首次安裝**：登入（admin/預設密碼）→ 強制改密碼 → Dashboard 空狀態引導 → 建立第一個 proxy（例如 Maven Central）→ 「使用方式」複製 settings.xml。
 2. **Developer 找套件**：匿名進 Browse → 搜尋 `gson` → 看到在哪個 repo、哪些版本 → 複製下載 URL 或 client 設定。
@@ -216,7 +490,7 @@
 
 ---
 
-## 7. 多語系與在地化
+## 8. 多語系與在地化
 
 - 語言：**en、zh-TW、zh-CN、ja、ko**，右上角切換，記住偏好；預設跟瀏覽器。
 - 後端錯誤回 `{code, message, params}`，前端依 `code` 查翻譯（例：`repo.redeploy_denied` → 「此 repository 不允許重複部署同版本」）。設計時錯誤訊息預留**兩行**空間。
@@ -227,7 +501,7 @@
 
 ---
 
-## 8. 版面與裝置
+## 9. 版面與裝置
 
 - **桌面優先**（Admin 都在桌機），寬度 1280–1920；資料表多、要善用寬度。
 - 平板（768–1024）：導覽收合、表格可橫向捲動、表單單欄。
@@ -237,7 +511,7 @@
 
 ---
 
-## 9. 狀態與細節（每個列表／表單都要有）
+## 10. 狀態與細節（每個列表／表單都要有）
 
 - Loading（skeleton）、空狀態（附下一步動作）、錯誤（可重試、顯示錯誤碼）、權限不足（不顯示或友善說明）。
 - 破壞性操作（刪 repo、刪 user、還原備份、執行 cleanup）：Modal 要求輸入名稱或勾選確認。
@@ -248,7 +522,7 @@
 
 ---
 
-## 10. 技術限制（設計需知道）
+## 11. 技術限制（設計需知道）
 
 - SPA 掛在 `/ui/`（其他路徑是套件 client 用的 `/repository/...`、`/v2/...`），build 後打包進 Go binary；沒有 SSR。
 - 所有資料都來自 `/api/v1`（OpenAPI：`/api/v1/openapi.yaml`），無 GraphQL、無 websocket。
@@ -258,11 +532,11 @@
 
 ---
 
-## 11. 期望交付
+## 12. 期望交付
 
 1. **設計系統**：色彩（含 light/dark）、字級、間距、圓角、陰影、狀態色；對應到 Ant Design token 名稱。
 2. **Logo / wordmark** 提案 2–3 款與 favicon。
-3. **頁面 layout**：第 4 節每一頁的桌面版（重點頁另附平板版）；第 6 節六個流程的逐頁 mockup。
+3. **頁面 layout**：第 6 節每一頁的桌面版（重點頁另附平板版）；第 7 節六個流程的逐頁 mockup。
 4. **元件規範**：format icon 集（26 個）、type 標籤（hosted/proxy/group）、可複製文字、健康狀態卡片、privilege 編輯器、cron 編輯器、一次性 secret Modal、預覽刪除清單。
 5. **空狀態／錯誤／loading** 的通用樣式。
 6. 一份「設計說明」讓前端工程師照做（含 i18n 與 dark mode 注意事項）。
