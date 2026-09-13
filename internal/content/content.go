@@ -40,6 +40,12 @@ type Service struct {
 	mu     sync.RWMutex
 	stores map[uuid.UUID]storage.Storage
 	repos  map[string]*model.Repository // cache by name
+
+	// touched remembers when each asset last had its download time written,
+	// so a burst of requests for the same artifact costs one update, not one
+	// per request. See TouchDownloaded.
+	touchMu sync.Mutex
+	touched map[int64]time.Time
 }
 
 func New(d *db.DB, log *slog.Logger) *Service {
@@ -728,10 +734,50 @@ func (s *Service) ListChildren(ctx context.Context, repoID uuid.UUID, dir string
 	return dirs, files, nil
 }
 
+// touchWindow is how coarse "last downloaded" needs to be. Cleanup policies
+// work in days, so a minute of slack costs nothing.
+const touchWindow = time.Minute
+
+// TouchDownloaded records that an asset was served. The throttle lives in
+// memory rather than in the WHERE clause: the statement used to be sent on
+// every single download and merely declined to write, which still cost a round
+// trip and a pooled connection. Under a CI burst of thousands of requests a
+// minute that was enough to saturate the pool on its own.
 func (s *Service) TouchDownloaded(ctx context.Context, assetID int64) {
-	// Best-effort; throttle to once per minute per asset to avoid write storms.
-	s.DB.Pool.Exec(ctx, `UPDATE assets SET last_downloaded_at=now() WHERE id=$1 AND (last_downloaded_at IS NULL OR last_downloaded_at < now() - interval '1 minute')`, assetID)
-	s.DB.Pool.Exec(ctx, `UPDATE packages p SET last_downloaded_at=now() FROM assets a WHERE a.id=$1 AND p.id=a.package_id AND (p.last_downloaded_at IS NULL OR p.last_downloaded_at < now() - interval '1 minute')`, assetID)
+	if !s.shouldTouch(assetID) {
+		return
+	}
+	// One statement for both rows; best-effort, so errors are ignored.
+	s.DB.Pool.Exec(ctx, `
+		WITH a AS (
+			UPDATE assets SET last_downloaded_at=now()
+			WHERE id=$1 AND (last_downloaded_at IS NULL OR last_downloaded_at < now() - $2::interval)
+			RETURNING package_id
+		)
+		UPDATE packages p SET last_downloaded_at=now()
+		FROM a WHERE p.id = a.package_id
+		  AND (p.last_downloaded_at IS NULL OR p.last_downloaded_at < now() - $2::interval)`,
+		assetID, touchWindow.String())
+}
+
+// shouldTouch reports whether this asset is due an update, remembering the
+// last time we issued one. The map is cleared wholesale when it grows large:
+// entries are pure cache, and dropping them only costs an extra update.
+func (s *Service) shouldTouch(assetID int64) bool {
+	now := time.Now()
+	s.touchMu.Lock()
+	defer s.touchMu.Unlock()
+	if s.touched == nil {
+		s.touched = make(map[int64]time.Time)
+	}
+	if at, ok := s.touched[assetID]; ok && now.Sub(at) < touchWindow {
+		return false
+	}
+	if len(s.touched) > 50000 {
+		s.touched = make(map[int64]time.Time)
+	}
+	s.touched[assetID] = now
+	return true
 }
 
 // --------------------------------------------------------------- packages
