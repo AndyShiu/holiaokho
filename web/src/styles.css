@@ -160,3 +160,27 @@ a { color: inherit; }
   .ant-drawer-body [style*="grid-template-columns: 1fr 1fr"],
   .ant-modal-body [style*="grid-template-columns: 1fr 1fr"] { grid-template-columns: 1fr !important; }
 }
+
+/* Multi-column form rows: bottom-align so a label that wraps to two lines
+   (common once translated) never pushes its control out of line, and reflow
+   to fewer columns when the drawer is narrow. */
+.hlk-form-row { display: grid; align-items: end; }
+.hlk-form-row > .ant-form-item { margin-bottom: 16px; }
+@media (max-width: 760px) {
+  .hlk-form-row { grid-template-columns: 1fr !important; }
+}
+
+/* Auth Settings anchor nav with scroll spy */
+.hlk-anchor {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+  padding: 7px 10px; border-radius: 6px; font-size: 13px; text-decoration: none;
+  color: inherit; position: relative; transition: background .15s ease, color .15s ease;
+}
+.hlk-anchor span:last-child { color: var(--hlk-text-tertiary); text-align: right; }
+.hlk-anchor:hover { background: var(--hlk-card-alt); color: inherit; }
+.hlk-anchor.active { background: var(--hlk-selected); font-weight: 500; }
+.hlk-anchor.active::before {
+  content: ""; position: absolute; left: 0; top: 7px; bottom: 7px;
+  width: 3px; border-radius: 2px; background: var(--hlk-amber);
+}
+.hlk-anchor.active span:last-child { color: var(--hlk-amber); }

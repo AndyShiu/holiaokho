@@ -59,7 +59,7 @@ export default function Roles() {
         {save.error ? <Alert type="error" showIcon message={errText(save.error)} style={{ marginBottom: 16 }} /> : null}
         {editing?.id === 'admin' && <Alert type="info" showIcon message={t('roles.adminLocked', 'The admin role always has full access; its privileges cannot be changed.')} style={{ marginBottom: 16 }} />}
         <Form form={form} layout="vertical" onFinish={(v) => save.mutate(v)} disabled={!canWrite || editing?.id === 'admin'}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div className="hlk-form-row" style={{ gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <Form.Item name="id" label="ID" rules={[{ pattern: /^[A-Za-z0-9._-]*$/, message: t('repos.nameInvalid', 'Only letters, digits, . _ -') }]} extra={drawer === 'new' ? t('roles.idHint', 'Leave empty to derive from the name') : undefined}><Input className="hlk-mono" disabled={!!editing} /></Form.Item>
             <Form.Item name="name" label={t('common.name', 'Name')} rules={[{ required: true }]}><Input /></Form.Item>
           </div>

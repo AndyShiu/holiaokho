@@ -177,12 +177,17 @@ func New(ctx context.Context, cfg config.Config, log *slog.Logger, sys *System) 
 		}
 	}
 	task.RegisterBuiltins(s.Tasks, c)
-	if cfg.Backup.Dir != "" {
-		s.Tasks.Register("backup", "Write a database backup archive to "+cfg.Backup.Dir, 24*time.Hour, func(ctx context.Context, logf func(string, ...any)) error {
-			_, err := backup.WriteFile(ctx, c, Version, cfg.Backup.Dir, cfg.Backup.WithBlobs, cfg.Backup.Keep, logf)
-			return err
-		})
-	}
+	// The backup task is always registered; it reads its settings at run time
+	// so they can be changed from the UI without a restart.
+	s.Tasks.Register("backup", "Write a scheduled backup archive to the configured directory", 24*time.Hour, func(ctx context.Context, logf func(string, ...any)) error {
+		b := backup.Load(ctx, d, backup.Settings{Enabled: cfg.Backup.Dir != "", Dir: cfg.Backup.Dir, WithBlobs: cfg.Backup.WithBlobs, Keep: cfg.Backup.Keep})
+		if !b.Enabled || b.Dir == "" {
+			logf("scheduled backup is not configured; set a directory in Backup / Restore")
+			return nil
+		}
+		_, err := backup.WriteFile(ctx, c, Version, b.Dir, b.WithBlobs, b.Keep, logf)
+		return err
+	})
 	s.Tasks.Register("re-encrypt-secrets", "Re-encrypt stored secrets with the current key (run after rotating secrets.key)", 24*time.Hour, func(ctx context.Context, logf func(string, ...any)) error {
 		return s.reencryptSecrets(ctx, logf)
 	})

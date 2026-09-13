@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Avatar, Badge, Button, Dropdown, Input, Layout, Menu, Tooltip, type MenuProps } from 'antd'
+import { Avatar, Badge, Button, Drawer, Dropdown, Input, Layout, Menu, Tooltip, type MenuProps } from 'antd'
 import {
   AppstoreOutlined, BellOutlined, ClockCircleOutlined, DatabaseOutlined, DeleteOutlined, FileSearchOutlined, FolderOpenOutlined, GlobalOutlined, HddOutlined,
   KeyOutlined, LogoutOutlined, MailOutlined, MoonOutlined, SafetyCertificateOutlined, SearchOutlined, SettingOutlined, SunOutlined, TeamOutlined, ToolOutlined,
-  UserOutlined, ApiOutlined, BranchesOutlined, FilterOutlined, SaveOutlined, DashboardOutlined, LockOutlined,
+  UserOutlined, ApiOutlined, BranchesOutlined, FilterOutlined, SaveOutlined, DashboardOutlined, LockOutlined, MenuOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
@@ -66,9 +66,25 @@ export default function AppShell() {
   const { session, can, logout, isAnonymous, isLocalUser } = useAuth()
   const loc = useLocation()
   const navigate = useNavigate()
-  const [collapsed, setCollapsed] = useState(() => window.innerWidth < 1024)
+  const [collapsed, setCollapsed] = useState(() => window.innerWidth < 1200)
+  const [mobile, setMobile] = useState(() => window.innerWidth < 768)
+  const [navOpen, setNavOpen] = useState(false)
   const [q, setQ] = useState('')
   const status = useQuery({ queryKey: ['status'], queryFn: () => get<Status>('status'), staleTime: 300000 })
+
+  useEffect(() => {
+    const onResize = () => {
+      const w = window.innerWidth
+      setMobile(w < 768)
+      setCollapsed(w < 1200)
+      if (w >= 768) setNavOpen(false)
+    }
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  // Close the mobile nav whenever the route changes.
+  useEffect(() => setNavOpen(false), [loc.pathname])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -138,42 +154,66 @@ export default function AppShell() {
         { key: 'logout', icon: <LogoutOutlined />, label: t('nav.logout', 'Log out'), onClick: async () => { await logout(); navigate('/login') } },
       ]
 
+  // One nav body, rendered either inside the Sider or inside the mobile Drawer.
+  const navBody = (compact: boolean) => (
+    <>
+      <div
+        style={{ padding: compact ? '14px 12px' : '14px 12px 8px', display: 'flex', alignItems: 'center', gap: 8, cursor: mobile ? 'default' : 'pointer', flex: 'none' }}
+        onClick={() => !mobile && setCollapsed(!collapsed)}
+      >
+        <LogoMark size={22} ink={'var(--hlk-text)'} />
+        {!compact && (
+          <>
+            <Wordmark size={15} />
+            <span className="hlk-mono" style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--hlk-text-tertiary)' }}>{status.data?.version ? `v${status.data.version}` : ''}</span>
+          </>
+        )}
+      </div>
+      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden' }}>
+        <Menu mode="inline" items={items} selectedKeys={selected} style={{ background: 'transparent', padding: '0 12px 8px', fontSize: 13 }} inlineIndent={10} />
+      </div>
+      <div style={{ flex: 'none', padding: 12, borderTop: '1px solid var(--hlk-border)' }}>
+        <Dropdown menu={{ items: userMenu }} trigger={['click']} placement="topLeft">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: 4 }}>
+            <Avatar size={26} style={{ background: 'var(--hlk-ink)', color: '#F3EFE7', fontSize: 12, flex: 'none' }} icon={isAnonymous ? <UserOutlined /> : undefined}>
+              {!isAnonymous ? session?.username.slice(0, 2).toUpperCase() : undefined}
+            </Avatar>
+            {!compact && (
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{isAnonymous ? t('nav.anonymous', 'Anonymous') : session?.username}</div>
+                <div className="hlk-mono" style={{ fontSize: 10, color: 'var(--hlk-text-tertiary)' }}>{isAnonymous ? t('nav.clickToLogin', 'click to log in') : `via ${session?.via}`}</div>
+              </div>
+            )}
+          </div>
+        </Dropdown>
+      </div>
+    </>
+  )
+
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Sider
-        width={232} collapsedWidth={56} collapsible collapsed={collapsed} trigger={null}
-        style={{ borderRight: '1px solid var(--hlk-border)', position: 'sticky', top: 0, height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
-      >
-        <div style={{ padding: collapsed ? '14px 12px' : '14px 12px 8px', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', flex: 'none' }} onClick={() => setCollapsed(!collapsed)}>
-          <LogoMark size={22} ink={'var(--hlk-text)'} />
-          {!collapsed && (
-            <>
-              <Wordmark size={15} />
-              <span className="hlk-mono" style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--hlk-text-tertiary)' }}>{status.data?.version ? `v${status.data.version}` : ''}</span>
-            </>
-          )}
-        </div>
-        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden' }}>
-          <Menu mode="inline" items={items} selectedKeys={selected} style={{ background: 'transparent', padding: '0 12px 8px', fontSize: 13 }} inlineIndent={10} />
-        </div>
-        <div style={{ flex: 'none', padding: 12, borderTop: '1px solid var(--hlk-border)' }}>
-          <Dropdown menu={{ items: userMenu }} trigger={['click']} placement="topLeft">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: 4 }}>
-              <Avatar size={26} style={{ background: 'var(--hlk-ink)', color: '#F3EFE7', fontSize: 12, flex: 'none' }} icon={isAnonymous ? <UserOutlined /> : undefined}>
-                {!isAnonymous ? session?.username.slice(0, 2).toUpperCase() : undefined}
-              </Avatar>
-              {!collapsed && (
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{isAnonymous ? t('nav.anonymous', 'Anonymous') : session?.username}</div>
-                  <div className="hlk-mono" style={{ fontSize: 10, color: 'var(--hlk-text-tertiary)' }}>{isAnonymous ? t('nav.clickToLogin', 'click to log in') : `via ${session?.via}`}</div>
-                </div>
-              )}
-            </div>
-          </Dropdown>
-        </div>
-      </Sider>
+      {mobile ? (
+        <Drawer
+          open={navOpen}
+          onClose={() => setNavOpen(false)}
+          placement="left"
+          width={248}
+          closable={false}
+          styles={{ body: { padding: 0, display: 'flex', flexDirection: 'column', height: '100%' } }}
+        >
+          {navBody(false)}
+        </Drawer>
+      ) : (
+        <Sider
+          width={232} collapsedWidth={56} collapsible collapsed={collapsed} trigger={null}
+          style={{ borderRight: '1px solid var(--hlk-border)', position: 'sticky', top: 0, height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+        >
+          {navBody(collapsed)}
+        </Sider>
+      )}
       <Layout>
         <Header style={{ display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid var(--hlk-border)', position: 'sticky', top: 0, zIndex: 10, lineHeight: 'normal' }}>
+          {mobile && <Button type="text" icon={<MenuOutlined />} onClick={() => setNavOpen(true)} aria-label={t('nav.menu', 'Menu')} />}
           <Input
             id="hlk-global-search"
             prefix={<SearchOutlined style={{ color: 'var(--hlk-text-tertiary)' }} />}
@@ -182,15 +222,15 @@ export default function AppShell() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             onPressEnter={() => { navigate(`/search?q=${encodeURIComponent(q)}`); setQ('') }}
-            style={{ width: 380, maxWidth: '50vw', height: 32 }}
+            style={{ width: 380, maxWidth: mobile ? '100%' : '50vw', height: 32, flex: mobile ? 1 : undefined }}
             size="small"
           />
           <div style={{ flex: 1 }} />
-          <LangSwitch compact />
+          {!mobile && <LangSwitch compact />}
           <ThemeSwitch />
           <Notifications />
         </Header>
-        <Content style={{ padding: 24, minWidth: 0 }}>
+        <Content style={{ padding: mobile ? 16 : 24, minWidth: 0 }}>
           <Outlet />
         </Content>
       </Layout>

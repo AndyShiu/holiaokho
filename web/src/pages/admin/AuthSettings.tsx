@@ -81,6 +81,7 @@ export default function AuthSettings() {
   const [draft, setDraft] = useState<AS | null>(null)
   const [dirty, setDirty] = useState<Set<SectionKey>>(new Set())
   const [saving, setSaving] = useState<SectionKey | null>(null)
+  const [active, setActive] = useState<SectionKey>('realms')
   const [dragFrom, setDragFrom] = useState<number | null>(null)
   const [dragOver, setDragOver] = useState<number | null>(null)
   const [ldapTest, setLdapTest] = useState({ username: '', password: '' })
@@ -93,6 +94,49 @@ export default function AuthSettings() {
   const setO = (p: Partial<OIDCConfig>) => mark('oidc', { oidc: { ...draft!.oidc, ...p } })
   const setR = (p: Partial<RutConfig>) => mark('rut', { rut: { ...draft!.rut, ...p } })
   const setP = (p: Partial<PasswordPolicy>) => mark('password', { password: { ...draft!.password, ...p } })
+
+  // Scroll spy. An IntersectionObserver is used rather than a scroll
+  // listener: the page scrolls the document element and scroll events do not
+  // reach window here, so a listener would never fire.
+  useEffect(() => {
+    if (!draft) return
+    const keys: SectionKey[] = ['realms', 'roles', 'password', 'ldap', 'oidc', 'rut']
+    const els = keys.map((k) => document.getElementById(`auth-${k}`)).filter((e): e is HTMLElement => !!e)
+    if (!els.length) return
+    const visible = new Map<string, number>()
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) visible.set(e.target.id, e.boundingClientRect.top)
+          else visible.delete(e.target.id)
+        }
+        // The highest section still crossing the top band wins.
+        let best: SectionKey | null = null
+        let bestTop = Infinity
+        for (const [id, top] of visible) {
+          if (top < bestTop) {
+            bestTop = top
+            best = id.replace('auth-', '') as SectionKey
+          }
+        }
+        if (best) setActive(best)
+      },
+      // Only the band just below the sticky header counts as "current".
+      { rootMargin: '-80px 0px -70% 0px', threshold: 0 },
+    )
+    els.forEach((e) => io.observe(e))
+    // The last section can never reach the top band, so the end of the page
+    // coming into view activates it instead.
+    const end = document.getElementById('auth-end')
+    const endIo = end
+      ? new IntersectionObserver((entries) => { if (entries.some((e) => e.isIntersecting)) setActive(keys[keys.length - 1]) }, { threshold: 0 })
+      : null
+    if (end && endIo) endIo.observe(end)
+    return () => {
+      io.disconnect()
+      endIo?.disconnect()
+    }
+  }, [draft])
 
   const save = async (k: SectionKey) => {
     if (!draft || !q.data) return
@@ -150,7 +194,7 @@ export default function AuthSettings() {
   const moveRealm = (i: number, d: number) => { const r = [...realms]; const j = i + d; if (j < 0 || j >= r.length) return; [r[i], r[j]] = [r[j], r[i]]; mark('realms', { realms: r }) }
   const trusted = cfg.data?.server?.trusted_proxies ?? cfg.data?.Server?.TrustedProxies ?? []
   const redirect = `${window.location.origin}/api/v1/auth/oidc/callback`
-  const grid2: React.CSSProperties = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 16px' }
+  const grid2: React.CSSProperties = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 16px', alignItems: 'end' }
 
   return (
     <>
@@ -158,9 +202,18 @@ export default function AuthSettings() {
       <div className="hlk-auth-grid">
         <div style={{ position: 'sticky', top: 76 }}>
           {sections.map((s) => (
-            <a key={s.key} href={`#auth-${s.key}`} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '7px 10px', borderRadius: 6, fontSize: 13, textDecoration: 'none', color: 'inherit' }}>
+            <a
+              key={s.key}
+              href={`#auth-${s.key}`}
+              className={`hlk-anchor${active === s.key ? ' active' : ''}`}
+              onClick={(e) => {
+                e.preventDefault()
+                setActive(s.key)
+                document.getElementById(`auth-${s.key}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              }}
+            >
               <span>{s.label}</span>
-              <span className="hlk-mono" style={{ fontSize: 11, color: dirty.has(s.key) ? 'var(--hlk-unsaved)' : 'var(--hlk-text-tertiary)' }}>{s.sum}</span>
+              <span className="hlk-mono" style={{ fontSize: 11, color: dirty.has(s.key) ? 'var(--hlk-unsaved)' : undefined }}>{s.sum}</span>
             </a>
           ))}
         </div>
@@ -304,6 +357,9 @@ export default function AuthSettings() {
           </Card>
 
           <Card id="auth-rut" title="Rut Auth" summary={sections[5].sum} dirty={dirty.has('rut')} onSave={() => save('rut')} saving={saving === 'rut'} disabled={!canWrite}>
+            <div style={{ fontSize: 13, color: 'var(--hlk-text-secondary)', marginBottom: 12, lineHeight: 1.7 }}>
+              {t('auth.rutDesc', 'For setups where a reverse proxy or SSO gateway has already authenticated the user and passes the username in an HTTP header. Holiaokho then trusts that header and logs the user in without a password. If you are adding SSO from scratch, prefer OIDC above.')}
+            </div>
             <Alert type="error" showIcon style={{ marginBottom: 14 }} message={t('auth.rutWarn', 'Enable only behind a reverse proxy that strips this header from client requests, and only when server.trusted_proxies is configured.')} description={<span className="hlk-mono" style={{ fontSize: 12 }}>trusted_proxies: {Array.isArray(trusted) && trusted.length ? trusted.join(', ') : t('common.none', 'None')}</span>} />
             <div style={{ marginBottom: 14 }}><Switch checked={draft.rut.enabled} disabled={!Array.isArray(trusted) || !trusted.length} onChange={(v) => setR({ enabled: v })} /> <span style={{ marginLeft: 8 }}>{draft.rut.enabled ? t('common.enabled', 'enabled') : t('common.off', 'off')}</span></div>
             <div style={grid2}>
@@ -312,6 +368,7 @@ export default function AuthSettings() {
               <F label={t('auth.defaultRoles', 'Default roles')}><Select mode="multiple" style={{ width: '100%' }} value={draft.rut.defaultRoles ?? []} onChange={(v) => setR({ defaultRoles: v })} options={roleList.map((r) => ({ value: r.id }))} /></F>
             </div>
           </Card>
+          <div id="auth-end" style={{ height: 1 }} />
         </div>
       </div>
     </>

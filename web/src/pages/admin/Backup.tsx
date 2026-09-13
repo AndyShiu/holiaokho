@@ -1,18 +1,20 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Alert, App, Button, Checkbox, Input, Modal, Upload } from 'antd'
+import { Alert, App, Button, Checkbox, Input, InputNumber, Modal, Skeleton, Switch, Upload } from 'antd'
 import { CloudUploadOutlined, DownloadOutlined } from '@ant-design/icons'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { api, get } from '@/api/client'
-import type { Health, Task, TaskRun } from '@/api/types'
+import { api, get, put } from '@/api/client'
+import type { BackupSettings, Health, Task, TaskRun } from '@/api/types'
 import { useAuth } from '@/auth/AuthContext'
-import { KV, PageHeader, useErrorText } from '@/components/Common'
+import { PageHeader, useErrorText } from '@/components/Common'
 import { fmtBytes, RelTime, StatusDot } from '@/components/Format'
 
 export default function Backup() {
   const { t } = useTranslation()
-  const { logout } = useAuth()
+  const { logout, can } = useAuth()
+  const canAdmin = can('app:system', 'admin')
+  const qc = useQueryClient()
   const { message } = App.useApp()
   const errText = useErrorText()
   const [blobs, setBlobs] = useState(false)
@@ -21,11 +23,19 @@ export default function Backup() {
   const [typed, setTyped] = useState('')
   const [busy, setBusy] = useState(false)
   const [log, setLog] = useState<string[] | null>(null)
-  const cfg = useQuery({ queryKey: ['system-config'], queryFn: () => get<any>('system/config') })
+  const settings = useQuery({ queryKey: ['backup-settings'], queryFn: () => get<BackupSettings>('system/backup-settings') })
+  const [draft, setDraft] = useState<BackupSettings | null>(null)
+  const [dirty, setDirty] = useState(false)
+  useEffect(() => { if (settings.data && !draft) setDraft(settings.data) }, [settings.data, draft])
+  const edit = (patch: Partial<BackupSettings>) => { setDraft((d) => (d ? { ...d, ...patch } : d)); setDirty(true) }
+  const save = useMutation({
+    mutationFn: (v: BackupSettings) => put<BackupSettings>('system/backup-settings', v),
+    onSuccess: (v) => { setDraft(v); setDirty(false); message.success(t('common.saved', 'Saved')); qc.invalidateQueries({ queryKey: ['tasks'] }) },
+    onError: (e) => message.error(errText(e)),
+  })
   const tasks = useQuery({ queryKey: ['tasks'], queryFn: () => get<Task[]>('tasks') })
   const runs = useQuery({ queryKey: ['task-runs', 'backup'], queryFn: () => get<TaskRun[]>('tasks/runs', { task: 'backup' }) })
   const health = useQuery({ queryKey: ['health'], queryFn: () => get<Health>('status/check') })
-  const b = cfg.data?.backup ?? cfg.data?.Backup ?? {}
   const backupTask = tasks.data?.find((x) => x.name === 'backup')
   const total = Object.values(health.data?.checks ?? {}).reduce((a, c) => a + (c.usedBytes ?? 0), 0)
 
@@ -52,16 +62,45 @@ export default function Backup() {
       <PageHeader title={t('nav.backup', 'Backup / Restore')} />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 16, marginBottom: 16 }}>
         <div className="hlk-card">
-          <div className="hlk-section-label" style={{ marginBottom: 12 }}>{t('backup.scheduled', 'Scheduled backup')}</div>
-          <KV items={[
-            [t('backup.dir', 'Directory'), <span className="hlk-mono">{b.dir ?? b.Dir ?? '—'}</span>],
-            [t('backup.includeBlobs', 'Include blobs'), String(b.include_blobs ?? b.IncludeBlobs ?? false)],
-            [t('backup.keep', 'Keep'), String(b.keep ?? b.Keep ?? '—')],
-            ['Cron', <span className="hlk-mono">{backupTask?.cron ?? b.cron ?? b.Cron ?? '—'}</span>],
-            [t('tasks.lastRun', 'Last run'), backupTask ? <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}><StatusDot status={backupTask.lastStatus === 'failed' ? 'error' : backupTask.lastStatus === 'success' ? 'success' : 'idle'} /><RelTime value={backupTask.lastRun} empty={t('common.never', 'never')} /></span> : t('backup.notConfigured', 'not configured')],
-          ]} />
-          <div style={{ fontSize: 12, color: 'var(--hlk-text-tertiary)', marginTop: 12 }}>{t('backup.cfgHint', 'Configured in the config file (backup.*). Runs as the "backup" task.')} <Link to="/admin/tasks">{t('nav.tasks', 'Tasks')}</Link></div>
-          {runs.data && runs.data.length > 0 && <div style={{ marginTop: 12, fontSize: 12 }}>{runs.data.slice(0, 5).map((r) => <div key={r.id} style={{ display: 'flex', gap: 8, padding: '3px 0' }}><StatusDot status={r.status === 'failed' ? 'error' : 'success'} /><RelTime value={r.startedAt} /><span style={{ color: 'var(--hlk-text-tertiary)' }}>{r.status}</span></div>)}</div>}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+            <div className="hlk-section-label">{t('backup.scheduled', 'Scheduled backup')}</div>
+            <div style={{ flex: 1 }} />
+            {dirty && <span className="hlk-unsaved">● {t('common.unsaved', 'Unsaved changes')}</span>}
+            <Button type="primary" size="small" disabled={!dirty || !canAdmin} loading={save.isPending} onClick={() => draft && save.mutate(draft)}>
+              {t('common.save', 'Save')}
+            </Button>
+          </div>
+          {draft ? (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                <Switch checked={draft.enabled} disabled={!canAdmin} onChange={(v) => edit({ enabled: v })} />
+                <span style={{ fontSize: 13 }}>{draft.enabled ? t('common.enabled', 'Enabled') : t('common.off', 'off')}</span>
+              </div>
+              <div style={{ fontSize: 12, fontWeight: 500, marginBottom: 4 }}>{t('backup.dir', 'Directory')}</div>
+              <Input className="hlk-mono" value={draft.dir} disabled={!canAdmin} onChange={(e) => edit({ dir: e.target.value })} placeholder="/data/backups" />
+              <div style={{ fontSize: 11, color: 'var(--hlk-text-tertiary)', margin: '4px 0 12px' }}>{t('backup.dirHint', 'Absolute path on the server (inside the container when deployed with Docker/K8s).')}</div>
+              <div className="hlk-form-row" style={{ gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 500, marginBottom: 4 }}>{t('backup.keep', 'Keep')}</div>
+                  <InputNumber min={1} max={365} style={{ width: '100%' }} value={draft.keep} disabled={!canAdmin} onChange={(v) => edit({ keep: v ?? 7 })} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 500, marginBottom: 4 }}>Cron</div>
+                  <Input className="hlk-mono" value={draft.cron} disabled={!canAdmin} onChange={(e) => edit({ cron: e.target.value })} placeholder="0 2 * * *" />
+                </div>
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--hlk-text-tertiary)', margin: '4px 0 12px' }}>{t('backup.cronHint', 'Leave empty to run once a day. Set the schedule precisely under Tasks.')}</div>
+              <Checkbox checked={draft.withBlobs} disabled={!canAdmin} onChange={(e) => edit({ withBlobs: e.target.checked })}>
+                {t('backup.includeBlobs', 'Include blobs')} <span style={{ color: 'var(--hlk-text-tertiary)' }}>(≈ {fmtBytes(total)})</span>
+              </Checkbox>
+              <div style={{ marginTop: 14, fontSize: 12, color: 'var(--hlk-text-secondary)', display: 'flex', gap: 8, alignItems: 'center' }}>
+                {t('tasks.lastRun', 'Last run')}:
+                {backupTask ? <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}><StatusDot status={backupTask.lastStatus === 'failed' ? 'error' : backupTask.lastStatus === 'success' ? 'success' : 'idle'} /><RelTime value={backupTask.lastRun} empty={t('common.never', 'never')} /></span> : '—'}
+                <Link to="/admin/tasks">{t('nav.tasks', 'Tasks')} →</Link>
+              </div>
+              {runs.data && runs.data.length > 0 && <div style={{ marginTop: 10, fontSize: 12 }}>{runs.data.slice(0, 5).map((r) => <div key={r.id} style={{ display: 'flex', gap: 8, padding: '3px 0' }}><StatusDot status={r.status === 'failed' ? 'error' : 'success'} /><RelTime value={r.startedAt} /><span style={{ color: 'var(--hlk-text-tertiary)' }}>{r.status}</span></div>)}</div>}
+            </>
+          ) : <Skeleton active />}
         </div>
         <div className="hlk-card">
           <div className="hlk-section-label" style={{ marginBottom: 12 }}>{t('backup.download', 'Download a backup now')}</div>

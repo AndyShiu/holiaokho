@@ -114,7 +114,7 @@ export function RepoForm({ format, type, value, onChange, editing, existing }: {
   return (
     <Form layout="vertical" component="div" size="middle">
       <Section title={t('repos.sec.basic', 'Basic')} style={{ marginBottom: 16 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <div className="hlk-form-row" style={{ gridTemplateColumns: '1fr 1fr', gap: 16 }}>
           <Form.Item label={label('common.name', 'Name')} validateStatus={value.name && !nameOk ? 'error' : undefined} help={value.name && !nameOk ? t('repos.nameInvalid', 'Only letters, digits, . _ -') : undefined}>
             <Input className="hlk-mono" value={value.name} onChange={(e) => set({ name: e.target.value })} disabled={editing} placeholder={`${format}-${type}`} />
             {!editing && hint('A–Z a–z 0–9 . _ -')}
@@ -133,7 +133,7 @@ export function RepoForm({ format, type, value, onChange, editing, existing }: {
           <Form.Item label={label('repos.f.remoteUrl', 'Remote URL')}>
             <Input className="hlk-mono" value={a.proxy?.remoteUrl ?? ''} onChange={(e) => setAttr('proxy', { remoteUrl: e.target.value })} placeholder="https://" />
           </Form.Item>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+          <div className="hlk-form-row" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
             <Form.Item label={label('repos.f.contentMaxAge', 'Content max age')}>
               <InputNumber style={{ width: '100%' }} addonAfter={t('common.min', 'min')} value={forever ? undefined : a.proxy?.contentMaxAge} disabled={forever} onChange={(v) => setAttr('proxy', { contentMaxAge: v ?? 0 })} min={0} />
               <Checkbox checked={forever} onChange={(e) => { setForever(e.target.checked); setAttr('proxy', { contentMaxAge: e.target.checked ? -1 : 1440 }) }} style={{ marginTop: 6, fontSize: 12 }}>{t('repos.f.cacheForever', 'Cache forever')}</Checkbox>
@@ -147,7 +147,7 @@ export function RepoForm({ format, type, value, onChange, editing, existing }: {
               {hint(t('repos.f.negativeHint', 'Remember upstream 404s for this long. 0 disables.'))}
             </Form.Item>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div className="hlk-form-row" style={{ gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             <Form.Item label={label('repos.f.upstreamUser', 'Upstream username')}><Input value={a.proxy?.username ?? ''} onChange={(e) => setAttr('proxy', { username: e.target.value })} autoComplete="off" /></Form.Item>
             <Form.Item label={label('repos.f.upstreamPass', 'Upstream password')}>
               <Input.Password value={a.proxy?.password ?? ''} onChange={(e) => setAttr('proxy', { password: e.target.value })} autoComplete="new-password" placeholder={editing ? '***' : undefined} />
@@ -192,7 +192,7 @@ export function RepoForm({ format, type, value, onChange, editing, existing }: {
 
       {format === 'maven' && (
         <Section title="Maven" style={{ marginBottom: 16 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div className="hlk-form-row" style={{ gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             <Form.Item label={label('repos.f.layoutPolicy', 'Layout policy')}>
               <Select value={a.maven?.layoutPolicy ?? 'STRICT'} onChange={(v) => setAttr('maven', { layoutPolicy: v })} options={[{ value: 'STRICT' }, { value: 'PERMISSIVE' }]} />
             </Form.Item>
@@ -260,7 +260,7 @@ export function RepoForm({ format, type, value, onChange, editing, existing }: {
       {format === 'apt' && (
         <Section title="APT" style={{ marginBottom: 16 }}>
           {type === 'hosted' ? (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <div className="hlk-form-row" style={{ gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               <Form.Item label={label('repos.f.distribution', 'Distribution')}><Input className="hlk-mono" value={a.apt?.distribution ?? ''} onChange={(e) => setAttr('apt', { distribution: e.target.value })} /></Form.Item>
               <Form.Item label={label('repos.f.component', 'Component')}><Input className="hlk-mono" value={a.apt?.component ?? ''} onChange={(e) => setAttr('apt', { component: e.target.value })} /></Form.Item>
             </div>
@@ -299,7 +299,7 @@ export function RepoForm({ format, type, value, onChange, editing, existing }: {
       )}
 
       <Section title={t('repos.sec.optional', 'Optional')} style={{ marginBottom: 16 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <div className="hlk-form-row" style={{ gridTemplateColumns: '1fr 1fr', gap: 16 }}>
           <Form.Item label={label('nav.routing', 'Routing rule')}>
             <Select allowClear value={value.routingRuleId ?? undefined} onChange={(v) => set({ routingRuleId: v ?? null })} options={(rules.data ?? []).map((r) => ({ value: r.id, label: `${r.name} (${r.mode})` }))} placeholder={t('common.none', 'None')} />
           </Form.Item>

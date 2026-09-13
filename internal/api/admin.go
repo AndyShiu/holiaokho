@@ -75,6 +75,8 @@ func (a *API) adminRoutes(r chi.Router) {
 		r.Post("/pgp-key", a.need("app:system", auth.Write, a.generatePGPKey))
 		r.Post("/rsa-key", a.need("app:system", auth.Write, a.generateRSAKey))
 		r.Get("/backup", a.need("app:system", auth.Admin, a.downloadBackup))
+		r.Get("/backup-settings", a.need("app:system", auth.Read, a.getBackupSettings))
+		r.Put("/backup-settings", a.need("app:system", auth.Admin, a.putBackupSettings))
 		r.Post("/restore", a.need("app:system", auth.Admin, a.restoreBackup))
 	})
 }
@@ -598,6 +600,38 @@ func (a *API) downloadBackup(w http.ResponseWriter, r *http.Request) {
 }
 
 // restoreBackup loads an uploaded archive (body = tar.gz).
+// getBackupSettings / putBackupSettings expose the scheduled-backup config so
+// it can be managed from the UI instead of the config file only.
+func (a *API) getBackupSettings(w http.ResponseWriter, r *http.Request) {
+	writeJSON(w, 200, backup.Load(r.Context(), a.Content.DB, a.backupFallback()))
+}
+
+func (a *API) putBackupSettings(w http.ResponseWriter, r *http.Request) {
+	var in backup.Settings
+	if err := readJSON(r, &in); err != nil {
+		writeErr(w, 400, "body.invalid", "invalid body")
+		return
+	}
+	if in.Enabled && strings.TrimSpace(in.Dir) == "" {
+		writeErr(w, 400, "validation", "a directory is required to enable scheduled backups")
+		return
+	}
+	if in.Keep < 0 {
+		writeErr(w, 400, "validation", "keep must not be negative")
+		return
+	}
+	if err := backup.Save(r.Context(), a.Content.DB, in); err != nil {
+		a.fail(w, err)
+		return
+	}
+	a.audit_(r, "system.backup_settings", "system", "", map[string]any{"enabled": in.Enabled, "dir": in.Dir})
+	writeJSON(w, 200, backup.Load(r.Context(), a.Content.DB, a.backupFallback()))
+}
+
+func (a *API) backupFallback() backup.Settings {
+	return backup.Settings{Enabled: a.Config.Backup.Dir != "", Dir: a.Config.Backup.Dir, WithBlobs: a.Config.Backup.WithBlobs, Keep: a.Config.Backup.Keep}
+}
+
 func (a *API) restoreBackup(w http.ResponseWriter, r *http.Request) {
 	var lines []string
 	logf := func(f string, args ...any) { lines = append(lines, fmt.Sprintf(f, args...)) }

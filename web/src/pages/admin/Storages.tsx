@@ -88,7 +88,7 @@ export default function Storages() {
                 <Form.Item name={['config', 'path']} label={t('storages.path', 'Path')} rules={[{ required: true }]} extra={t('storages.pathHint', 'Absolute path on the server (inside the container when deployed with Docker/K8s).')}><Input className="hlk-mono" disabled={!!editing} placeholder="/data/blobs" /></Form.Item>
               ) : (
                 <>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div className="hlk-form-row" style={{ gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                     <Form.Item name={['config', 'endpoint']} label={t('storages.endpoint', 'Endpoint')} extra={t('storages.endpointHint', 'Empty = AWS')}><Input className="hlk-mono" placeholder="https://s3.example.com" /></Form.Item>
                     <Form.Item name={['config', 'region']} label={t('storages.region', 'Region')}><Input className="hlk-mono" /></Form.Item>
                     <Form.Item name={['config', 'bucket']} label={t('storages.bucket', 'Bucket')} rules={[{ required: true }]}><Input className="hlk-mono" disabled={!!editing} /></Form.Item>

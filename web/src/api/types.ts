@@ -39,6 +39,7 @@ export interface RoutingRule { id: string; name: string; description: string; mo
 export interface ContentSelector { id: string; name: string; description: string; expression: string; createdAt: string }
 export interface Webhook { id: string; name: string; url: string; secret?: string; events: string[]; repository: string; enabled: boolean; createdAt: string }
 export interface EmailSettings { enabled: boolean; host: string; port: number; username: string; password?: string; from: string; startTls: boolean; ssl: boolean; recipients: string[] }
+export interface BackupSettings { enabled: boolean; dir: string; withBlobs: boolean; keep: number; cron: string }
 export interface AuditEntry { id: string; at: string; actor: string; action: string; targetType: string; targetId: string; detail?: any }
 export interface HealthCheck { healthy: boolean; code?: string; message?: string; type?: string; usedBytes?: number; quotaBytes?: number }
 export interface Health { healthy: boolean; checks: Record<string, HealthCheck> }

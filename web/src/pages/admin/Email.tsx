@@ -31,7 +31,7 @@ export default function Email() {
         {save.error ? <Alert type="error" showIcon message={errText(save.error)} style={{ marginBottom: 16 }} /> : null}
         <Form form={form} layout="vertical" onFinish={(v) => save.mutate(v)} disabled={!canWrite}>
           <Form.Item name="enabled" label={t('common.enabled', 'Enabled')} valuePropName="checked"><Switch /></Form.Item>
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 12 }}>
+          <div className="hlk-form-row" style={{ gridTemplateColumns: '2fr 1fr', gap: 12 }}>
             <Form.Item name="host" label={t('email.host', 'Host')}><Input className="hlk-mono" placeholder="smtp.example.com" /></Form.Item>
             <Form.Item name="port" label={t('email.port', 'Port')}><InputNumber min={1} max={65535} style={{ width: '100%' }} /></Form.Item>
             <Form.Item name="username" label={t('login.username', 'Username')}><Input autoComplete="off" /></Form.Item>

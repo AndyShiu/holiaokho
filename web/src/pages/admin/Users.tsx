@@ -87,7 +87,7 @@ export default function Users() {
           save.mutate(v)
         }}>
           <Form.Item name="username" label={t('login.username', 'Username')} rules={[{ required: true }, { pattern: /^[A-Za-z0-9._@-]+$/, message: t('repos.nameInvalid', 'Only letters, digits, . _ -') }]}><Input className="hlk-mono" disabled={!!editing} autoComplete="off" /></Form.Item>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div className="hlk-form-row" style={{ gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <Form.Item name="displayName" label={t('users.displayName', 'Display name')}><Input /></Form.Item>
             <Form.Item name="email" label={t('users.email', 'Email')} rules={[{ type: 'email' }]}><Input /></Form.Item>
           </div>

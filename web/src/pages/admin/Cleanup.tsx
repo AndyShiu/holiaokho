@@ -99,17 +99,17 @@ export default function Cleanup() {
         {save.error ? <Alert type="error" showIcon message={errText(save.error)} style={{ marginBottom: 16 }} /> : null}
         <div className="hlk-side-grid">
           <Form form={form} layout="vertical" initialValues={{ format: '*', prerelease: '' }} onFinish={(v) => save.mutate(v)} disabled={!canWrite}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div className="hlk-form-row" style={{ gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <Form.Item name="name" label={t('common.name', 'Name')} rules={[{ required: true }]}><Input /></Form.Item>
               <Form.Item name="format" label={t('common.format', 'Format')}><Select options={[{ value: '*', label: t('common.all', 'All formats') }, ...(status.data?.formats ?? []).map((f) => ({ value: f, label: formatInfo(f).label }))]} /></Form.Item>
             </div>
             <div className="hlk-section-label" style={{ marginBottom: 8 }}>{t('cleanup.criteria', 'Criteria')} <span style={{ textTransform: 'none', letterSpacing: 0 }}>· {t('cleanup.criteriaHint', 'a package is removed when ANY age criterion matches; keepLatest always protects the newest versions')}</span></div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+            <div className="hlk-form-row" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
               <Form.Item name="lastDownloadedDays" label={t('cleanup.lastDl', 'Not downloaded for (days)')}><InputNumber min={0} style={{ width: '100%' }} /></Form.Item>
               <Form.Item name="lastUpdatedDays" label={t('cleanup.lastUpd', 'Older than (days)')}><InputNumber min={0} style={{ width: '100%' }} /></Form.Item>
               <Form.Item name="keepLatest" label={t('cleanup.keep', 'Keep newest N per name')}><InputNumber min={0} style={{ width: '100%' }} /></Form.Item>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div className="hlk-form-row" style={{ gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <Form.Item name="nameRegex" label={t('cleanup.nameRegex', 'Name regex')}><Input className="hlk-mono" placeholder="^com\\.acme\\." /></Form.Item>
               <Form.Item name="versionRegex" label={t('cleanup.versionRegex', 'Version regex')}><Input className="hlk-mono" placeholder="-SNAPSHOT$" /></Form.Item>
             </div>
