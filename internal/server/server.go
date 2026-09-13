@@ -27,6 +27,7 @@ import (
 	"github.com/holiaokho/holiaokho/internal/format"
 	"github.com/holiaokho/holiaokho/internal/format/alpine"
 	"github.com/holiaokho/holiaokho/internal/format/apt"
+	"github.com/holiaokho/holiaokho/internal/format/cargo"
 	"github.com/holiaokho/holiaokho/internal/format/docker"
 	"github.com/holiaokho/holiaokho/internal/format/goproxy"
 	"github.com/holiaokho/holiaokho/internal/format/helm"
@@ -124,6 +125,7 @@ func New(ctx context.Context, cfg config.Config, log *slog.Logger, sys *System) 
 	s.Formats.Register(yum.Format{})
 	s.Formats.Register(alpine.Format{})
 	s.Formats.Register(rubygems.Format{})
+	s.Formats.Register(cargo.Format{})
 	s.Formats.Register(s.Docker)
 
 	s.Tasks = task.NewScheduler(d, log)
