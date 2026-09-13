@@ -15,6 +15,22 @@ export interface Release {
 
 export const releases: Release[] = [
   {
+    version: '1.0.3',
+    date: '2026-09-13',
+    changes: [
+      {
+        kind: 'added',
+        text: {
+          en: 'New installs get a ghcr.io proxy and a docker-group on port 8082, so a Docker daemon can reach both Docker Hub and ghcr through one address.',
+          'zh-TW': '全新安裝會自動建立 ghcr.io 代理與 docker-group(綁定 8082),讓 Docker 透過同一個位址就能取得 Docker Hub 與 ghcr 的 image。',
+          'zh-CN': '全新安装会自动建立 ghcr.io 代理与 docker-group(绑定 8082),让 Docker 通过同一个地址就能取得 Docker Hub 与 ghcr 的镜像。',
+          ja: '新規インストールで ghcr.io プロキシと docker-group(ポート 8082)が作られ、Docker Hub と ghcr の両方に一つのアドレスで到達できます。',
+          ko: '새로 설치하면 ghcr.io 프록시와 docker-group(8082 포트)이 만들어져, 하나의 주소로 Docker Hub와 ghcr 모두에 접근할 수 있습니다.',
+        },
+      },
+    ],
+  },
+  {
     version: '1.0.2',
     date: '2026-09-13',
     changes: [

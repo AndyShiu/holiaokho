@@ -43,13 +43,23 @@ func defaultRepos() []defaultRepo {
 		{"npm-hosted", "npm", model.Hosted, map[string]any{"hosted": map[string]any{"writePolicy": "allow_once"}}},
 		{"npm-group", "npm", model.Group, map[string]any{
 			"group": map[string]any{"members": []string{"npm-hosted", "npm-proxy"}}}},
-		// No httpPort by default: binding an arbitrary port on a fresh install
-		// can fail (already in use) and would take the whole server down. Path
-		// mode works for pull/push out of the box; a dedicated port is only
-		// required to use this as a Docker daemon registry-mirror, and the
-		// Usage tab says so.
 		{"docker-hub", "docker", model.Proxy, merge(proxy("https://registry-1.docker.io"),
 			map[string]any{"docker": map[string]any{"indexType": "HUB", "pathEnabled": true}})},
+		// GitHub Container Registry is where a lot of CI tooling now lives, and
+		// image names there are always owner/name, so REGISTRY rather than HUB:
+		// HUB would rewrite a single-segment name to library/<name>.
+		{"ghcr", "docker", model.Proxy, merge(proxy("https://ghcr.io"),
+			map[string]any{"docker": map[string]any{"indexType": "REGISTRY", "pathEnabled": true}})},
+		// The group owns the port rather than docker-hub, because a Docker
+		// daemon can only be pointed at one plain-HTTP address: whatever holds
+		// 8082 has to serve both the Hub mirror and anything else you proxy.
+		//
+		// Binding it by default is safe — a port already in use logs an error
+		// and the connector is skipped, the server keeps running — and 8082 is
+		// the port Nexus uses, so an existing daemon.json keeps working.
+		{"docker-group", "docker", model.Group, map[string]any{
+			"group":  map[string]any{"members": []string{"docker-hub", "ghcr"}},
+			"docker": map[string]any{"indexType": "HUB", "pathEnabled": true, "httpPort": 8082}}},
 		{"nuget.org-proxy", "nuget", model.Proxy, proxy("https://api.nuget.org/v3/index.json")},
 		{"nuget-hosted", "nuget", model.Hosted, map[string]any{"hosted": map[string]any{"writePolicy": "allow_once"}}},
 		{"nuget-group", "nuget", model.Group, map[string]any{
