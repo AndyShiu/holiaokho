@@ -103,7 +103,7 @@ export default function Dashboard() {
         extra={can('app:repositories', 'write') && <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/admin/repositories/new')}>{t('repos.create', 'Create Repository')}</Button>}
       />
       {canStatus && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 16 }}>
           {health.isLoading ? [0, 1, 2, 3].map((i) => <div key={i} className="hlk-card"><Skeleton active paragraph={{ rows: 1 }} /></div>) : checks.map(([k, c]) => <HealthCard key={k} name={k} c={c} />)}
         </div>
       )}
@@ -122,7 +122,7 @@ export default function Dashboard() {
         </div>
       ) : (
         canRepos && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12, marginBottom: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 16 }}>
             <Stat label={t('dashboard.repos', 'Repositories')} value={<Num value={repoList.length} />} sub={`${byType.hosted} hosted · ${byType.proxy} proxy · ${byType.group} group`} />
             <Stat label={t('dashboard.packages', 'Packages')} value={<Num value={totals.packages} />} />
             <Stat label={t('dashboard.assets', 'Assets')} value={<Num value={totals.assets} />} />
