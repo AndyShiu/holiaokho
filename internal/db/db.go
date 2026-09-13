@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -34,11 +35,40 @@ func Open(ctx context.Context, url string, maxConns int32) (*DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := pool.Ping(ctx); err != nil {
+	if err := pingWithRetry(ctx, pool); err != nil {
 		pool.Close()
-		return nil, fmt.Errorf("ping database: %w", err)
+		return nil, err
 	}
 	return &DB{Pool: pool}, nil
+}
+
+// startupPingTimeout bounds how long Open waits for the database to answer.
+// Kubernetes restarts a container the instant its sandbox is recreated, which
+// can happen before CoreDNS is ready again: a real deployment exited twice
+// because "nexus-postgres" briefly did not resolve. Ordering between a pod and
+// its dependencies is never guaranteed, so wait rather than crash-loop.
+const startupPingTimeout = 90 * time.Second
+
+func pingWithRetry(ctx context.Context, pool *pgxpool.Pool) error {
+	deadline := time.Now().Add(startupPingTimeout)
+	delay := 250 * time.Millisecond
+	for attempt := 1; ; attempt++ {
+		err := pool.Ping(ctx)
+		if err == nil {
+			return nil
+		}
+		if ctx.Err() != nil || time.Now().After(deadline) {
+			return fmt.Errorf("ping database after %d attempts: %w", attempt, err)
+		}
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("ping database: %w", ctx.Err())
+		case <-time.After(delay):
+		}
+		if delay < 5*time.Second {
+			delay *= 2
+		}
+	}
 }
 
 func (d *DB) Close() { d.Pool.Close() }
