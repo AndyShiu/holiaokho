@@ -8,12 +8,14 @@ RUN npm run build
 
 FROM golang:1.27-alpine AS build
 WORKDIR /src
+ARG VERSION=0.1.0-dev
+ENV LDFLAGS="-s -w -X github.com/holiaokho/holiaokho/internal/server.Version=$VERSION"
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
 COPY --from=web /web/dist ./web/dist
-RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/holiaokho ./cmd/holiaokho \
- && CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/holiao ./cmd/holiao
+RUN CGO_ENABLED=0 go build -trimpath -ldflags="$LDFLAGS" -o /out/holiaokho ./cmd/holiaokho \
+ && CGO_ENABLED=0 go build -trimpath -ldflags="$LDFLAGS" -o /out/holiao ./cmd/holiao
 
 FROM alpine:3.20
 RUN apk add --no-cache ca-certificates tzdata && adduser -D -u 10001 holiaokho

@@ -60,7 +60,10 @@ import (
 	"github.com/holiaokho/holiaokho/web"
 )
 
-const Version = "0.1.0-dev"
+// Version is the build's version string. Releases override it at link time
+// with -ldflags "-X .../internal/server.Version=..." so the running binary can
+// say which build it is; the fallback below only applies to local builds.
+var Version = "0.1.0-dev"
 
 type Server struct {
 	Cfg     config.Config
