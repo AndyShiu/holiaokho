@@ -43,6 +43,11 @@ func defaultRepos() []defaultRepo {
 		{"npm-hosted", "npm", model.Hosted, map[string]any{"hosted": map[string]any{"writePolicy": "allow_once"}}},
 		{"npm-group", "npm", model.Group, map[string]any{
 			"group": map[string]any{"members": []string{"npm-hosted", "npm-proxy"}}}},
+		// No httpPort by default: binding an arbitrary port on a fresh install
+		// can fail (already in use) and would take the whole server down. Path
+		// mode works for pull/push out of the box; a dedicated port is only
+		// required to use this as a Docker daemon registry-mirror, and the
+		// Usage tab says so.
 		{"docker-hub", "docker", model.Proxy, merge(proxy("https://registry-1.docker.io"),
 			map[string]any{"docker": map[string]any{"indexType": "HUB", "pathEnabled": true}})},
 		{"nuget.org-proxy", "nuget", model.Proxy, proxy("https://api.nuget.org/v3/index.json")},

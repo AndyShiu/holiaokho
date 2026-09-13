@@ -764,6 +764,8 @@
     "credNote": "# 凭证：你的账号 ＋ User Token 作为密码",
     "docker": {
       "mirror": "Docker daemon registry mirror",
+      "mirrorHint": "# Docker 这里只接受 scheme://host:port，路径（例如\n# /repository/<名称>）会被忽略。请在「设置」中为该仓库\n# 指定 HTTP/HTTPS 端口或子域名，这段配置就会出现。",
+      "mirrorNeedsPort": "需要独立的端口或子域名",
       "path": "路径模式（主端口）",
       "port": "端口",
       "subdomain": "子域名",

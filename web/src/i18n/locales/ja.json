@@ -764,6 +764,8 @@
     "credNote": "# 認証情報：ユーザー名 ＋ User Token をパスワードとして",
     "docker": {
       "mirror": "Docker daemon registry mirror",
+      "mirrorHint": "# ここで Docker が受け付けるのは scheme://host:port だけで、\n# /repository/<名前> のようなパスは無視されます。「設定」でこの\n# リポジトリに HTTP/HTTPS ポートかサブドメインを割り当てると表示されます。",
+      "mirrorNeedsPort": "専用のポートまたはサブドメインが必要です",
       "path": "パスモード（メインポート）",
       "port": "ポート",
       "subdomain": "サブドメイン",

@@ -764,6 +764,8 @@
     "credNote": "# 憑證：你的帳號 ＋ User Token 當作密碼",
     "docker": {
       "mirror": "Docker daemon registry mirror",
+      "mirrorHint": "# Docker 這裡只接受 scheme://host:port，路徑（例如\n# /repository/<名稱>）會被忽略。請在「設定」為這個 repository\n# 指定 HTTP/HTTPS port 或子網域，這段設定就會出現。",
+      "mirrorNeedsPort": "需要獨立的 port 或子網域",
       "path": "路徑模式（主連接埠）",
       "port": "連接埠",
       "subdomain": "子網域",

@@ -764,6 +764,8 @@
     "credNote": "# 자격 증명: 아이디 ＋ User Token을 비밀번호로",
     "docker": {
       "mirror": "Docker daemon registry mirror",
+      "mirrorHint": "# 여기서 Docker는 scheme://host:port 만 받습니다.\n# /repository/<이름> 같은 경로는 무시됩니다. 「설정」에서 이\n# 리포지터리에 HTTP/HTTPS 포트나 서브도메인을 지정하면 표시됩니다.",
+      "mirrorNeedsPort": "전용 포트 또는 서브도메인이 필요합니다",
       "path": "경로 모드(메인 포트)",
       "port": "포트",
       "subdomain": "서브도메인",

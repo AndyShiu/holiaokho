@@ -42,7 +42,20 @@ export function snippetsFor(rp: Repository, t: (k: string, d: string, o?: any) =
       if (d.httpsPort) s.push({ title: t('usage.docker.tls', 'TLS port connector'), code: `docker login ${bareHost}:${d.httpsPort} -u USERNAME -p USER_TOKEN\ndocker pull ${bareHost}:${d.httpsPort}/library/alpine:3.20` })
       if (d.pathEnabled !== false) s.push({ title: t('usage.docker.path', 'Path mode (main port)'), desc: `${host}/${n}/<image>`, code: `docker login ${host} -u USERNAME -p USER_TOKEN\ndocker pull ${host}/${n}/library/alpine:3.20${hosted ? `\ndocker push ${host}/${n}/myimage:1.0` : ''}` })
       if (d.subdomain) s.push({ title: t('usage.docker.subdomain', 'Subdomain'), code: `docker pull ${d.subdomain}.${host}/library/alpine:3.20` })
-      if (rp.type !== 'hosted') s.push({ title: t('usage.docker.mirror', 'Docker daemon registry mirror'), file: '/etc/docker/daemon.json', code: `{\n  "registry-mirrors": ["${d.httpPort ? `http://${bareHost}:${d.httpPort}` : `${url}`}"]\n}`, wide: true })
+      if (rp.type !== 'hosted') {
+        // registry-mirrors takes scheme://host[:port] only — a path is not
+        // accepted, so path mode cannot serve as a daemon mirror.
+        const mirror = d.httpPort ? `http://${bareHost}:${d.httpPort}` : d.httpsPort ? `https://${bareHost}:${d.httpsPort}` : d.subdomain ? `https://${d.subdomain}.${host}` : ''
+        s.push({
+          title: t('usage.docker.mirror', 'Docker daemon registry mirror'),
+          file: mirror ? '/etc/docker/daemon.json' : undefined,
+          desc: mirror ? undefined : t('usage.docker.mirrorNeedsPort', 'Needs a dedicated port or subdomain'),
+          code: mirror
+            ? `{\n  "registry-mirrors": ["${mirror}"]\n}`
+            : t('usage.docker.mirrorHint', '# Docker only accepts scheme://host:port here — a path such as\n# /repository/<name> is ignored. Give this repository an HTTP/HTTPS\n# port or a subdomain in Settings, then this snippet appears.'),
+          wide: true,
+        })
+      }
       break
     }
     case 'pypi':

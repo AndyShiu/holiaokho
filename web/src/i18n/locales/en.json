@@ -764,6 +764,8 @@
     "credNote": "# credentials: your username + a User Token as the password",
     "docker": {
       "mirror": "Docker daemon registry mirror",
+      "mirrorHint": "# Docker only accepts scheme://host:port here — a path such as\n# /repository/<name> is ignored. Give this repository an HTTP/HTTPS\n# port or a subdomain in Settings, then this snippet appears.",
+      "mirrorNeedsPort": "Needs a dedicated port or subdomain",
       "path": "Path mode (main port)",
       "port": "Port connector",
       "subdomain": "Subdomain",

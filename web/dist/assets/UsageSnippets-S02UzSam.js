@@ -1,4 +1,4 @@
-import{u as m,j as c,L as h}from"./react-BWHAFyLI.js";import{a as $}from"./Copyable-B1KF8BU8.js";function f(i,o=window.location.origin){return i.url||`${o}/repository/${i.name}`}function k(i){try{return new URL(i).host}catch{return i}}function E(i,o){var d,u,n;const e=f(i),a=k(e),t=i.name,p=i.type==="hosted",r=[],g=o("usage.credNote","# credentials: your username + a User Token as the password");switch(i.format){case"maven":r.push({title:o("usage.maven.mirror","Use as mirror"),file:"~/.m2/settings.xml",code:`<settings>
+import{u as h,j as d,L as $}from"./react-BWHAFyLI.js";import{a as f}from"./Copyable-DCXes2wN.js";function k(i,o=window.location.origin){return i.url||`${o}/repository/${i.name}`}function b(i){try{return new URL(i).host}catch{return i}}function E(i,o){var u,n,g;const e=k(i),a=b(e),t=i.name,p=i.type==="hosted",r=[],m=o("usage.credNote","# credentials: your username + a User Token as the password");switch(i.format){case"maven":r.push({title:o("usage.maven.mirror","Use as mirror"),file:"~/.m2/settings.xml",code:`<settings>
   <mirrors>
     <mirror>
       <id>${t}</id>
@@ -28,15 +28,17 @@ import{u as m,j as c,L as h}from"./react-BWHAFyLI.js";import{a as $}from"./Copya
         credentials { username = "USERNAME"; password = "USER_TOKEN" }
     }
 }`});break;case"npm":r.push({title:o("usage.npm.registry","Registry"),file:".npmrc",code:`registry=${e}/
-//${a}/repository/${t}/:_authToken=USER_TOKEN`}),r.push({title:o("usage.npm.scope","Only for a scope"),file:".npmrc",code:`@myorg:registry=${e}/`}),p&&r.push({title:o("usage.npm.publish","Publish"),code:`npm publish --registry ${e}/`});break;case"docker":{const s=i.attributes.docker??{},l=a.split(":")[0];s.httpPort&&r.push({title:o("usage.docker.port","Port connector"),desc:`${l}:${s.httpPort}`,code:`docker login ${l}:${s.httpPort} -u USERNAME -p USER_TOKEN
-docker pull ${l}:${s.httpPort}/library/alpine:3.20
-${p?`docker tag myimage ${l}:${s.httpPort}/myimage:1.0
-docker push ${l}:${s.httpPort}/myimage:1.0`:""}`.trim()}),s.httpsPort&&r.push({title:o("usage.docker.tls","TLS port connector"),code:`docker login ${l}:${s.httpsPort} -u USERNAME -p USER_TOKEN
-docker pull ${l}:${s.httpsPort}/library/alpine:3.20`}),s.pathEnabled!==!1&&r.push({title:o("usage.docker.path","Path mode (main port)"),desc:`${a}/${t}/<image>`,code:`docker login ${a} -u USERNAME -p USER_TOKEN
+//${a}/repository/${t}/:_authToken=USER_TOKEN`}),r.push({title:o("usage.npm.scope","Only for a scope"),file:".npmrc",code:`@myorg:registry=${e}/`}),p&&r.push({title:o("usage.npm.publish","Publish"),code:`npm publish --registry ${e}/`});break;case"docker":{const s=i.attributes.docker??{},c=a.split(":")[0];if(s.httpPort&&r.push({title:o("usage.docker.port","Port connector"),desc:`${c}:${s.httpPort}`,code:`docker login ${c}:${s.httpPort} -u USERNAME -p USER_TOKEN
+docker pull ${c}:${s.httpPort}/library/alpine:3.20
+${p?`docker tag myimage ${c}:${s.httpPort}/myimage:1.0
+docker push ${c}:${s.httpPort}/myimage:1.0`:""}`.trim()}),s.httpsPort&&r.push({title:o("usage.docker.tls","TLS port connector"),code:`docker login ${c}:${s.httpsPort} -u USERNAME -p USER_TOKEN
+docker pull ${c}:${s.httpsPort}/library/alpine:3.20`}),s.pathEnabled!==!1&&r.push({title:o("usage.docker.path","Path mode (main port)"),desc:`${a}/${t}/<image>`,code:`docker login ${a} -u USERNAME -p USER_TOKEN
 docker pull ${a}/${t}/library/alpine:3.20${p?`
-docker push ${a}/${t}/myimage:1.0`:""}`}),s.subdomain&&r.push({title:o("usage.docker.subdomain","Subdomain"),code:`docker pull ${s.subdomain}.${a}/library/alpine:3.20`}),i.type!=="hosted"&&r.push({title:o("usage.docker.mirror","Docker daemon registry mirror"),file:"/etc/docker/daemon.json",code:`{
-  "registry-mirrors": ["${s.httpPort?`http://${l}:${s.httpPort}`:`${e}`}"]
-}`,wide:!0});break}case"pypi":r.push({title:"pip",file:"~/.config/pip/pip.conf",code:`[global]
+docker push ${a}/${t}/myimage:1.0`:""}`}),s.subdomain&&r.push({title:o("usage.docker.subdomain","Subdomain"),code:`docker pull ${s.subdomain}.${a}/library/alpine:3.20`}),i.type!=="hosted"){const l=s.httpPort?`http://${c}:${s.httpPort}`:s.httpsPort?`https://${c}:${s.httpsPort}`:s.subdomain?`https://${s.subdomain}.${a}`:"";r.push({title:o("usage.docker.mirror","Docker daemon registry mirror"),file:l?"/etc/docker/daemon.json":void 0,desc:l?void 0:o("usage.docker.mirrorNeedsPort","Needs a dedicated port or subdomain"),code:l?`{
+  "registry-mirrors": ["${l}"]
+}`:o("usage.docker.mirrorHint",`# Docker only accepts scheme://host:port here — a path such as
+# /repository/<name> is ignored. Give this repository an HTTP/HTTPS
+# port or a subdomain in Settings, then this snippet appears.`),wide:!0})}break}case"pypi":r.push({title:"pip",file:"~/.config/pip/pip.conf",code:`[global]
 index-url = ${e}/simple
 # with credentials:
 # index-url = https://USERNAME:USER_TOKEN@${a}/repository/${t}/simple`}),p&&r.push({title:"twine",file:"~/.pypirc",code:`[distutils]
@@ -51,14 +53,14 @@ password = USER_TOKEN
 helm repo update`}),p&&r.push({title:o("usage.helm.push","Upload a chart"),code:`curl -u USERNAME:USER_TOKEN --upload-file mychart-1.0.0.tgz ${e}/`});break;case"go":r.push({title:"GOPROXY",code:`export GOPROXY=${e}
 export GONOSUMDB=
 export GOSUMDB="sum.golang.org ${e}/sumdb"`,wide:!0});break;case"apt":r.push({title:o("usage.apt.sources","Sources"),file:"/etc/apt/sources.list.d/holiaokho.list",code:`curl -fsSL ${e}/repository-key.gpg | gpg --dearmor -o /etc/apt/keyrings/${t}.gpg
-echo "deb [signed-by=/etc/apt/keyrings/${t}.gpg] ${e} ${((d=i.attributes.apt)==null?void 0:d.distribution)??"stable"} ${((u=i.attributes.apt)==null?void 0:u.component)??"main"}" > /etc/apt/sources.list.d/${t}.list
+echo "deb [signed-by=/etc/apt/keyrings/${t}.gpg] ${e} ${((u=i.attributes.apt)==null?void 0:u.distribution)??"stable"} ${((n=i.attributes.apt)==null?void 0:n.component)??"main"}" > /etc/apt/sources.list.d/${t}.list
 apt-get update`,wide:!0}),p&&r.push({title:o("usage.apt.upload","Upload a .deb"),code:`curl -u USERNAME:USER_TOKEN --upload-file mypkg_1.0_amd64.deb ${e}/`});break;case"yum":r.push({title:".repo",file:`/etc/yum.repos.d/${t}.repo`,code:`[${t}]
 name=${t}
 baseurl=${e}/
 enabled=1
 gpgcheck=1
 repo_gpgcheck=1
-gpgkey=${e}/repository-key.gpg`}),p&&r.push({title:o("usage.yum.upload","Upload an .rpm"),code:`curl -u USERNAME:USER_TOKEN --upload-file mypkg-1.0-1.x86_64.rpm ${e}/`});break;case"alpine":{const s=((n=i.attributes.alpine)==null?void 0:n.keyName)??"holiaokho.rsa.pub";r.push({title:"apk",file:"/etc/apk/repositories",code:`curl -fsSL ${e}/${s} -o /etc/apk/keys/${s}
+gpgkey=${e}/repository-key.gpg`}),p&&r.push({title:o("usage.yum.upload","Upload an .rpm"),code:`curl -u USERNAME:USER_TOKEN --upload-file mypkg-1.0-1.x86_64.rpm ${e}/`});break;case"alpine":{const s=((g=i.attributes.alpine)==null?void 0:g.keyName)??"holiaokho.rsa.pub";r.push({title:"apk",file:"/etc/apk/repositories",code:`curl -fsSL ${e}/${s} -o /etc/apk/keys/${s}
 echo "${e}/main" >> /etc/apk/repositories
 apk update`,wide:!0});break}case"rubygems":r.push({title:"gem",code:`gem sources --add ${e}/
 # or in Gemfile:
@@ -90,4 +92,4 @@ conan remote login ${t} USERNAME -p USER_TOKEN${p?`
 conan upload "*" -r ${t} --confirm`:""}`});break;case"swift":r.push({title:"swift package-registry",code:`swift package-registry set ${e}
 swift package-registry login ${e} --username USERNAME --password USER_TOKEN`});break;default:r.push({title:"URL",code:e})}return r.map(s=>({...s,code:s.code.replace(/\n{3,}/g,`
 
-`)})).concat([{title:"",code:g,wide:!0}]).filter(s=>s.title!=="")}function U({repo:i}){const{t:o}=m(),e=E(i,o);return c.jsxs("div",{children:[c.jsx("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(380px, 1fr))",gap:16},children:e.map((a,t)=>c.jsx("div",{style:a.wide?{gridColumn:"1 / -1"}:void 0,children:c.jsx($,{code:a.code,title:a.title,filename:a.file??a.desc})},t))}),c.jsxs("div",{style:{display:"flex",alignItems:"center",gap:10,marginTop:16,fontSize:13},children:[c.jsx("span",{style:{width:8,height:8,background:"var(--hlk-amber)",borderRadius:2}}),o("usage.cred","Credentials: use a User Token (username + token as the password)."),c.jsx(h,{to:"/me/tokens",children:o("usage.createToken","Create my token →")})]})]})}export{U,f as r,E as s};
+`)})).concat([{title:"",code:m,wide:!0}]).filter(s=>s.title!=="")}function R({repo:i}){const{t:o}=h(),e=E(i,o);return d.jsxs("div",{children:[d.jsx("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(380px, 1fr))",gap:16},children:e.map((a,t)=>d.jsx("div",{style:a.wide?{gridColumn:"1 / -1"}:void 0,children:d.jsx(f,{code:a.code,title:a.title,filename:a.file??a.desc})},t))}),d.jsxs("div",{style:{display:"flex",alignItems:"center",gap:10,marginTop:16,fontSize:13},children:[d.jsx("span",{style:{width:8,height:8,background:"var(--hlk-amber)",borderRadius:2}}),o("usage.cred","Credentials: use a User Token (username + token as the password)."),d.jsx($,{to:"/me/tokens",children:o("usage.createToken","Create my token →")})]})]})}export{R as U,k as r,E as s};
