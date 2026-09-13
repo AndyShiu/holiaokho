@@ -18,6 +18,15 @@ If that is not something you want to grant, please still open an issue. A good
 bug report with a reproduction is worth more than most patches, and needs no
 paperwork.
 
+## Branches
+
+`main` is the only long-lived branch, and pull requests target it. Branch off
+it for anything non-trivial and let the branch go once it is merged.
+
+There is no develop branch, no release branch and no long-running feature
+branch. Releases are tags on `main`, and a tag is what publishes the images —
+see `.github/workflows/release.yml`.
+
 ## Reporting a security problem
 
 Please do **not** open a public issue for a security vulnerability. Use
