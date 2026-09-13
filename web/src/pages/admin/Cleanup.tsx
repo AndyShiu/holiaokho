@@ -97,7 +97,7 @@ export default function Cleanup() {
       </div>
       <Drawer open={!!drawer} onClose={() => setDrawer(null)} width={860} title={drawer === 'new' ? t('cleanup.create', 'Create policy') : t('cleanup.edit', 'Edit policy')} destroyOnClose>
         {save.error ? <Alert type="error" showIcon message={errText(save.error)} style={{ marginBottom: 16 }} /> : null}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24 }}>
+        <div className="hlk-side-grid">
           <Form form={form} layout="vertical" initialValues={{ format: '*', prerelease: '' }} onFinish={(v) => save.mutate(v)} disabled={!canWrite}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <Form.Item name="name" label={t('common.name', 'Name')} rules={[{ required: true }]}><Input /></Form.Item>

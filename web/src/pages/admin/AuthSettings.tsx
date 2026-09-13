@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { Alert, App, Button, Checkbox, Form, Input, InputNumber, Select, Skeleton, Switch, Tag } from 'antd'
-import { ArrowDownOutlined, ArrowUpOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons'
+import { ArrowDownOutlined, ArrowUpOutlined, DeleteOutlined, HolderOutlined, PlusOutlined } from '@ant-design/icons'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { get, post, put } from '@/api/client'
@@ -70,7 +70,7 @@ function MappingTable({ value, onChange, roles, leftLabel }: { value: Record<str
 
 export default function AuthSettings() {
   const { t } = useTranslation()
-  const { can, methods } = useAuth()
+  const { can, methods, refreshMethods: refreshAuth } = useAuth()
   const qc = useQueryClient()
   const { message } = App.useApp()
   const errText = useErrorText()
@@ -80,6 +80,8 @@ export default function AuthSettings() {
   const [draft, setDraft] = useState<AS | null>(null)
   const [dirty, setDirty] = useState<Set<SectionKey>>(new Set())
   const [saving, setSaving] = useState<SectionKey | null>(null)
+  const [dragFrom, setDragFrom] = useState<number | null>(null)
+  const [dragOver, setDragOver] = useState<number | null>(null)
   const [ldapTest, setLdapTest] = useState({ username: '', password: '' })
   const [ldapResult, setLdapResult] = useState<{ ok: boolean; ms?: number; user?: any; error?: string } | null>(null)
   const canWrite = can('app:system', 'write')
@@ -98,7 +100,10 @@ export default function AuthSettings() {
       // Each card saves only its own block on top of the last-loaded settings.
       const base: AS = JSON.parse(JSON.stringify(q.data))
       const merged: AS = { ...base }
-      if (k === 'realms') merged.realms = draft.realms
+      if (k === 'realms') {
+        merged.realms = draft.realms
+        merged.anonymous = draft.anonymous ?? methods?.anonymous ?? false
+      }
       if (k === 'roles') merged.defaultRoles = draft.defaultRoles
       if (k === 'password') merged.password = draft.password
       if (k === 'ldap') merged.ldap = draft.ldap
@@ -109,6 +114,7 @@ export default function AuthSettings() {
       const fresh = await qc.fetchQuery({ queryKey: ['auth-settings'], queryFn: () => get<AS>('auth/settings') })
       setDraft((d) => (d ? normalize({ ...d, [k === 'roles' ? 'defaultRoles' : k]: (fresh as any)[k === 'roles' ? 'defaultRoles' : k] } as AS) : d))
       setDirty((s) => { const n = new Set(s); n.delete(k); return n })
+      if (k === 'realms') refreshAuth()
       message.success(t('auth.saved', 'Saved — takes effect within 30 seconds'))
     } catch (e) {
       message.error(errText(e))
@@ -129,7 +135,7 @@ export default function AuthSettings() {
   }
 
   const sections = useMemo(() => draft ? [
-    { key: 'realms', label: t('auth.realms', 'Realms & anonymous'), sum: draft.realms.join(' · ') },
+    { key: 'realms', label: t('auth.realms', 'Realms & anonymous'), sum: `${draft.realms.join(' · ')}${(draft.anonymous ?? methods?.anonymous) ? ' · anon' : ''}` },
     { key: 'roles', label: t('auth.defaultRoles', 'Default roles'), sum: draft.defaultRoles.join(', ') || '—' },
     { key: 'password', label: t('auth.password', 'Password policy'), sum: `${draft.password.minLength}+ · ${draft.password.requireUpper ? 'A' : ''}${draft.password.requireLower ? 'a' : ''}${draft.password.requireDigit ? '1' : ''}${draft.password.requireSymbol ? '#' : ''}` },
     { key: 'ldap', label: 'LDAP', sum: draft.ldap.enabled ? t('common.enabled', 'enabled') : t('common.off', 'off') },
@@ -138,6 +144,7 @@ export default function AuthSettings() {
   ] as { key: SectionKey; label: string; sum: string }[] : [], [draft, t])
 
   if (!draft) return <Skeleton active />
+  const anon = draft.anonymous ?? methods?.anonymous ?? false
   const realms = draft.realms
   const moveRealm = (i: number, d: number) => { const r = [...realms]; const j = i + d; if (j < 0 || j >= r.length) return; [r[i], r[j]] = [r[j], r[i]]; mark('realms', { realms: r }) }
   const trusted = cfg.data?.server?.trusted_proxies ?? cfg.data?.Server?.TrustedProxies ?? []
@@ -147,7 +154,7 @@ export default function AuthSettings() {
   return (
     <>
       <PageHeader title={t('nav.auth', 'Auth Settings')} sub={<span style={{ color: 'var(--hlk-text-tertiary)' }}>{t('nav.group.security', 'Security')} › {t('nav.auth', 'Auth Settings')}</span>} />
-      <div style={{ display: 'grid', gridTemplateColumns: '200px minmax(0,1fr)', gap: 28, alignItems: 'start' }}>
+      <div className="hlk-auth-grid">
         <div style={{ position: 'sticky', top: 76 }}>
           {sections.map((s) => (
             <a key={s.key} href={`#auth-${s.key}`} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '7px 10px', borderRadius: 6, fontSize: 13, textDecoration: 'none', color: 'inherit' }}>
@@ -158,21 +165,54 @@ export default function AuthSettings() {
         </div>
         <div>
           <Card id="auth-realms" title={sections[0].label} summary={sections[0].sum} dirty={dirty.has('realms')} onSave={() => save('realms')} saving={saving === 'realms'} disabled={!canWrite}>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12 }}>
+            <div style={{ fontSize: 12, color: 'var(--hlk-text-secondary)', marginBottom: 10 }}>{t('auth.realmsHint2', 'On login the realms are tried from top to bottom; the first one that accepts the password wins. Drag to reorder.')}</div>
+            <div style={{ maxWidth: 520 }}>
               {realms.map((r, i) => (
-                <Tag key={r} style={{ padding: '4px 8px', display: 'inline-flex', gap: 6, alignItems: 'center' }}>
-                  <span className="hlk-mono">{i + 1} · {r}</span>
-                  <a onClick={() => moveRealm(i, -1)}><ArrowUpOutlined /></a><a onClick={() => moveRealm(i, 1)}><ArrowDownOutlined /></a>
-                  {r !== 'local' && <a onClick={() => mark('realms', { realms: realms.filter((x) => x !== r) })}><DeleteOutlined /></a>}
-                </Tag>
+                <div
+                  key={r}
+                  className={`hlk-realm${dragOver === i ? ' over' : ''}`}
+                  draggable={canWrite}
+                  onDragStart={() => setDragFrom(i)}
+                  onDragOver={(e) => { e.preventDefault(); setDragOver(i) }}
+                  onDragLeave={() => setDragOver((v) => (v === i ? null : v))}
+                  onDragEnd={() => { setDragFrom(null); setDragOver(null) }}
+                  onDrop={(e) => {
+                    e.preventDefault()
+                    if (dragFrom !== null && dragFrom !== i) {
+                      const next = [...realms]
+                      const [moved] = next.splice(dragFrom, 1)
+                      next.splice(i, 0, moved)
+                      mark('realms', { realms: next })
+                    }
+                    setDragFrom(null); setDragOver(null)
+                  }}
+                >
+                  <HolderOutlined className="hlk-realm-grip" />
+                  <span className="hlk-realm-no">{i + 1}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div className="hlk-mono" style={{ fontSize: 13, fontWeight: 500 }}>{r}</div>
+                    <div style={{ fontSize: 11, color: 'var(--hlk-text-tertiary)' }}>{t(`auth.realmDesc.${r}`, r === 'local' ? 'Local accounts stored in Holiaokho' : 'Accounts from the LDAP directory')}</div>
+                  </div>
+                  <Button type="text" size="small" disabled={!canWrite || i === 0} icon={<ArrowUpOutlined />} onClick={() => moveRealm(i, -1)} />
+                  <Button type="text" size="small" disabled={!canWrite || i === realms.length - 1} icon={<ArrowDownOutlined />} onClick={() => moveRealm(i, 1)} />
+                  <Button type="text" size="small" danger disabled={!canWrite || r === 'local'} icon={<DeleteOutlined />} onClick={() => mark('realms', { realms: realms.filter((x) => x !== r) })} />
+                </div>
               ))}
-              {!realms.includes('ldap') && <Button size="small" onClick={() => mark('realms', { realms: [...realms, 'ldap'] })}>{t('auth.addLdapRealm', '+ ldap')}</Button>}
+              {!realms.includes('ldap') && (
+                <Button size="small" type="dashed" block icon={<PlusOutlined />} disabled={!canWrite} onClick={() => mark('realms', { realms: [...realms, 'ldap'] })} style={{ marginTop: 6 }}>
+                  {t('auth.addLdapRealm2', 'Add the LDAP realm')}
+                </Button>
+              )}
             </div>
-            <div style={{ fontSize: 12, color: 'var(--hlk-text-secondary)' }}>{t('auth.realmsHint', 'Login tries each realm in this order. OIDC and Rut Auth are separate flows and do not appear here.')}</div>
             {draft.ldap.enabled && !realms.includes('ldap') && <Alert type="warning" showIcon style={{ marginTop: 10 }} message={t('auth.ldapNotInRealms', 'LDAP is enabled but not in the realm order, so it will not be used for login.')} />}
-            <div style={{ marginTop: 14, fontSize: 13 }}>
-              {t('auth.anonymous', 'Anonymous access')}: <Tag color={methods?.anonymous ? 'success' : 'default'}>{methods?.anonymous ? t('common.enabled', 'enabled') : t('common.off', 'off')}</Tag>
-              <span style={{ fontSize: 12, color: 'var(--hlk-text-tertiary)' }}>{t('auth.anonymousHint', 'Set in the config file (auth.anonymous_enabled). Permissions come from the')} <Link to="/admin/roles">anonymous</Link> {t('auth.role', 'role')}.</span>
+            <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--hlk-row)' }}>
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                <Switch checked={anon} disabled={!canWrite} onChange={(v) => mark('realms', { anonymous: v })} />
+                <span style={{ fontSize: 13 }}>{t('auth.anonymous', 'Anonymous access')}</span>
+                <Tag color={anon ? 'success' : 'default'} style={{ margin: 0 }}>{anon ? t('common.enabled', 'enabled') : t('common.off', 'off')}</Tag>
+                <Link to="/admin/roles" style={{ fontSize: 12 }}>{t('auth.viewAnonRole', 'View the anonymous role →')}</Link>
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--hlk-text-tertiary)', marginTop: 6 }}>{t('auth.anonymousHint', 'Lets clients read without logging in. What they may do comes from the anonymous role.')}</div>
             </div>
           </Card>
 
@@ -182,7 +222,7 @@ export default function AuthSettings() {
           </Card>
 
           <Card id="auth-password" title={sections[2].label} summary={sections[2].sum} dirty={dirty.has('password')} onSave={() => save('password')} saving={saving === 'password'} disabled={!canWrite}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24 }}>
+            <div className="hlk-side-grid">
               <div>
                 <div style={grid2}>
                   <F label={t('auth.minLength', 'Minimum length')}><InputNumber min={8} max={128} value={draft.password.minLength} onChange={(v) => setP({ minLength: v ?? 12 })} /></F>
@@ -205,7 +245,7 @@ export default function AuthSettings() {
           </Card>
 
           <Card id="auth-ldap" title="LDAP" summary={sections[3].sum} dirty={dirty.has('ldap')} onSave={() => save('ldap')} saving={saving === 'ldap'} disabled={!canWrite || (draft.ldap.enabled && (!draft.ldap.url || !draft.ldap.userBaseDn))}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24 }}>
+            <div className="hlk-side-grid">
               <div>
                 <div style={{ marginBottom: 14 }}><Switch checked={draft.ldap.enabled} onChange={(v) => setL({ enabled: v })} /> <span style={{ marginLeft: 8 }}>{draft.ldap.enabled ? t('common.enabled', 'enabled') : t('common.off', 'off')}</span></div>
                 <div style={grid2}>

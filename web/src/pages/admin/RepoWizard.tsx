@@ -73,7 +73,7 @@ export default function RepoWizard() {
   return (
     <>
       <PageHeader title={<span><span style={{ color: 'var(--hlk-text-tertiary)', fontWeight: 400 }}>{t('nav.repositories', 'Repositories')} / </span>{t('wizard.title', 'Create')}</span>} extra={<Button onClick={() => navigate('/admin/repositories')}>{t('common.cancel', 'Cancel')}</Button>} />
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,720px) minmax(0,1fr)', gap: 40, alignItems: 'start' }}>
+      <div className="hlk-wizard-grid">
         <div>
           <Steps
             current={step} size="small" style={{ marginBottom: 24 }}

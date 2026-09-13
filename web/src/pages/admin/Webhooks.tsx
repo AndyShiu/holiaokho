@@ -48,7 +48,7 @@ const ok = crypto.timingSafeEqual(Buffer.from(sig.slice(7)), Buffer.from(mac))`
       <PageHeader title={t('nav.webhooks', 'Webhooks')} count={hooks.data?.length} extra={canWrite && <Button type="primary" icon={<PlusOutlined />} onClick={() => { form.resetFields(); setDrawer('new') }}>{t('webhooks.create', 'Create webhook')}</Button>} />
       <div className="hlk-card" style={{ padding: 0, marginBottom: 16 }}>
         <Table<Webhook>
-          rowKey="id" loading={hooks.isLoading} dataSource={hooks.data ?? []} className="hlk-table hlk-clickable" pagination={false} size="middle"
+          rowKey="id" loading={hooks.isLoading} dataSource={hooks.data ?? []} className="hlk-table hlk-clickable" scroll={{ x: 1050 }} pagination={false} size="middle"
           onRow={(h) => ({ onClick: () => { form.setFieldsValue({ ...h, secret: h.secret ? '***' : '' }); setDrawer(h) } })}
           columns={[
             { title: t('common.name', 'Name'), dataIndex: 'name', width: 180, render: (x: string) => <span style={{ fontWeight: 500 }}>{x}</span> },

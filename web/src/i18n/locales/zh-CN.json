@@ -1,1 +1,781 @@
-{}
+{
+  "asset": {
+    "cacheExpires": "缓存到期",
+    "cacheForever": "永不过期（永久缓存）",
+    "contentType": "内容类型",
+    "deleteNeedsLogin": "删除需要权限",
+    "deleteTitle": "删除这个文件？",
+    "downloadUrl": "下载地址",
+    "lastDownloaded": "最后下载",
+    "negative": "负缓存",
+    "negativeHint": "上游返回 404",
+    "package": "包",
+    "path": "路径",
+    "sha256": "sha256",
+    "size": "大小",
+    "viewPackage": "查看包"
+  },
+  "audit": {
+    "asset": {
+      "delete": "删除文件",
+      "upload": "上传文件"
+    },
+    "auth": {
+      "settings": "修改认证设置"
+    },
+    "cleanup": {
+      "create": "创建清理策略"
+    },
+    "content_selector": {
+      "create": "创建内容选择器"
+    },
+    "email": {
+      "update": "修改邮件设置"
+    },
+    "last": "最近",
+    "login": "登录",
+    "package": {
+      "delete": "删除包"
+    },
+    "repository": {
+      "create": "创建仓库",
+      "delete": "删除仓库",
+      "invalidate_cache": "清除缓存",
+      "update": "更新仓库"
+    },
+    "role": {
+      "create": "创建角色",
+      "update": "更新角色"
+    },
+    "routing_rule": {
+      "create": "创建路由规则"
+    },
+    "storage": {
+      "create": "创建存储"
+    },
+    "system": {
+      "backup": "下载备份",
+      "log_level": "修改日志级别",
+      "pgp_key": "生成 PGP 密钥",
+      "restore": "从备份还原",
+      "rsa_key": "生成 RSA 密钥"
+    },
+    "task": {
+      "run": "执行任务",
+      "schedule": "修改计划"
+    },
+    "token": {
+      "create": "创建访问令牌"
+    },
+    "user": {
+      "create": "创建用户",
+      "delete": "删除用户",
+      "password": "修改密码",
+      "update": "更新用户"
+    },
+    "webhook": {
+      "create": "创建 webhook"
+    }
+  },
+  "auth": {
+    "addLdapRealm": "＋ ldap",
+    "addLdapRealm2": "添加 LDAP 认证源",
+    "addMapping": "新增映射",
+    "anonymous": "匿名访问",
+    "anonymousHint": "此处仅供查看，开关在配置文件的 auth.anonymous_enabled。匿名用户能做什么，由 anonymous 角色决定。",
+    "autoCreate": "自动创建用户",
+    "bindPassword": "Bind 密码",
+    "connOk": "连接成功",
+    "defaultRoles": "默认角色",
+    "defaultRolesHint": "除用户自身的角色外，额外授予每位已登录的用户。",
+    "disallowCommon": "拒绝常见密码（内置列表）",
+    "ldapDefaultRoles": "LDAP 用户的默认角色",
+    "ldapNotInRealms": "LDAP 已启用，但不在认证源顺序中，因此不会用于登录。",
+    "loginOk": "登录成功",
+    "maxLength": "最大长度",
+    "minLength": "最小长度",
+    "oidcDefaultRoles": "OIDC 用户的默认角色",
+    "options": "选项",
+    "password": "密码策略",
+    "pwExample": "合格的密码示例",
+    "pwHint": "适用于创建用户、管理员重置与用户自行修改。已有密码不会重新检查。",
+    "realmDesc": {
+      "ldap": "来自 LDAP 目录的账号",
+      "local": "保存在好料库本地的账号"
+    },
+    "realms": "认证源与匿名",
+    "realmsHint": "登录时按此顺序尝试各认证源。OIDC 与 Rut Auth 是独立流程，不在此列。",
+    "realmsHint2": "登录时由上而下依次尝试，第一个通过验证的就采用。可拖拽调整顺序。",
+    "redirect": "重定向地址（请在 IdP 注册）",
+    "role": "角色",
+    "roleMapping": "角色映射",
+    "rutWarn": "仅在反向代理会剥除该 header，且已配置 server.trusted_proxies 时才可启用。",
+    "saved": "已保存 — 最多 30 秒内生效",
+    "skipIssuer": "跳过 issuer 校验",
+    "skipVerify": "跳过 TLS 证书校验",
+    "testConn": "测试连接",
+    "testHint": "使用上方尚未保存的表单内容。",
+    "testLogin": "测试连接／登录",
+    "testLoginBtn": "测试登录",
+    "timeout": "超时（秒）",
+    "userSubtree": "搜索子树",
+    "viewAnonRole": "查看 anonymous 角色 →"
+  },
+  "backup": {
+    "c1": "所有仓库、用户、角色、设置与内容索引都会被替换。",
+    "c2": "归档中的 blob 会写入默认存储。",
+    "c3": "可能需要数分钟，请勿关闭此页面。",
+    "cfgHint": "在配置文件中设置（backup.*），以「backup」任务执行。",
+    "confirm1": "还原会覆盖所有数据",
+    "confirm2": "输入 RESTORE 以确认",
+    "dir": "目录",
+    "download": "立即下载备份",
+    "downloadHint": "一个 tar.gz，包含数据库（每张表一份 CSV），并可选择包含所有 blob。",
+    "drop": "将备份 .tar.gz 拖到这里",
+    "includeBlobs": "包含 blob",
+    "keep": "保留份数",
+    "notConfigured": "尚未配置",
+    "restore": "还原",
+    "restoreBtn": "从这个文件还原…",
+    "restoreNow": "立即还原",
+    "restoreWarn": "还原会用归档内容替换整个数据库与 blob 存储。请先停止客户端流量，完成后所有人都会被登出。",
+    "restored": "还原完成 — 请重新登录",
+    "restoring": "还原中… 这可能需要一段时间。",
+    "scheduled": "定时备份"
+  },
+  "browse": {
+    "allowOnce": "该仓库不允许重新部署已存在的路径（写入策略：allow_once）。",
+    "content": "内容",
+    "deny": "该仓库为只读（写入策略：deny）。",
+    "dropHint": "将文件拖到这里，或点击选择",
+    "empty": "该仓库尚无内容",
+    "emptyHosted": "上传文件，或从客户端推送。",
+    "emptyProxy": "第一次通过代理下载后，内容就会出现在这里。",
+    "filterPackages": "按名称或命名空间筛选",
+    "filterRepos": "筛选仓库",
+    "groupHint": "合并自 {{n}} 个成员：",
+    "noRepos": "尚无仓库",
+    "noReposHint": "创建第一个仓库开始使用。",
+    "notFound": "找不到仓库",
+    "offline": "该仓库已离线：客户端请求会被拒绝。",
+    "overwrite": "若路径已存在则覆盖",
+    "packages": "包",
+    "pick": "请在左侧选择一个仓库",
+    "proxyHint": "这里只列出已缓存的内容 — 不代表上游的完整清单。",
+    "upload": "上传",
+    "uploadTo": "上传到 {{name}}",
+    "uploaded": "已上传 {{path}}"
+  },
+  "cleanup": {
+    "assignTo": "应用到仓库",
+    "assigned": "仓库",
+    "create": "创建策略",
+    "criteria": "条件",
+    "criteriaHint": "任一时间条件命中就会删除该包；keepLatest 始终保护最新的版本",
+    "deleteHint": "会从 {{n}} 个仓库取消应用。已删除的内容不会恢复。",
+    "deleteTitle": "删除策略「{{name}}」？",
+    "edit": "编辑策略",
+    "keep": "每个名称保留最新 N 版",
+    "lastDl": "未被下载达（天）",
+    "lastUpd": "创建超过（天）",
+    "nameRegex": "名称正则",
+    "nextRun": "由 cleanup-policies 任务应用 · 下次执行",
+    "preAny": "不限",
+    "preExclude": "仅正式版",
+    "preOnly": "仅预发布版",
+    "prerelease": "预发布版",
+    "preview": "预览",
+    "previewSaveFirst": "请先保存策略，再预览会删除哪些内容。",
+    "runPreview": "预览将删除的内容",
+    "sumDl": "{{n}} 天未下载",
+    "sumKeep": "每个名称保留最新 {{n}} 版",
+    "sumPre": "仅预发布版",
+    "sumRel": "仅正式版",
+    "sumUpd": "创建超过 {{n}} 天",
+    "versionRegex": "版本正则",
+    "wouldDelete": "将删除 {{n}} 个包"
+  },
+  "common": {
+    "all": "全部",
+    "back": "上一步",
+    "cancel": "取消",
+    "close": "关闭",
+    "continue": "继续",
+    "copied": "已复制",
+    "copy": "复制",
+    "create": "创建",
+    "created": "创建时间",
+    "dangerZone": "危险操作",
+    "delete": "删除",
+    "deleted": "已删除",
+    "description": "说明",
+    "details": "详细信息",
+    "download": "下载",
+    "edit": "编辑",
+    "enabled": "已启用",
+    "format": "格式",
+    "min": "分",
+    "name": "名称",
+    "never": "从未",
+    "noMatch": "没有匹配的项目",
+    "none": "无",
+    "nothingYet": "暂无数据",
+    "off": "关闭",
+    "revert": "撤销更改",
+    "save": "保存",
+    "saved": "已保存",
+    "search": "搜索",
+    "secretKeep": "留空（或保持 ***）即保留原本已保存的值",
+    "status": "状态",
+    "test": "测试",
+    "time": "时间",
+    "type": "类型",
+    "typeToConfirm": "请输入",
+    "typeToConfirmSuffix": "以确认",
+    "unsaved": "尚未保存的更改",
+    "updated": "更新时间",
+    "viewAll": "查看全部 →"
+  },
+  "config": {
+    "hint": "只读。机密已遮蔽。请在配置文件或 HOLIAOKHO_* 环境变量中修改后重启。"
+  },
+  "cron": {
+    "daily": "每天 {{time}}",
+    "everyNMin": "每 {{n}} 分钟",
+    "hint": "分 时 日 月 星期",
+    "hourly": "每小时",
+    "invalid": "表达式格式错误",
+    "monthly": "每月 {{dom}} 日 {{time}}",
+    "next5": "接下来 5 次执行",
+    "tplDaily": "每天 02:00",
+    "tplHourly": "每小时",
+    "tplSunday": "每周日 03:00",
+    "weekly": "每周星期 {{dow}} {{time}}"
+  },
+  "dashboard": {
+    "activity": "最近活动",
+    "allGood": "所有服务正常",
+    "assets": "文件",
+    "attention": "{{n}} 项需要注意",
+    "dedup": "内容寻址，已去重",
+    "devHint": "在「浏览」或「搜索」中找包，并在「我的访问令牌」创建 CI 用的个人令牌。",
+    "packages": "包",
+    "refresh": "每 30 秒刷新",
+    "repos": "仓库",
+    "size": "总大小",
+    "step1": "修改 admin 密码",
+    "step1a": "立即修改",
+    "step2": "创建第一个代理缓存",
+    "step2a": "例如 Maven Central",
+    "step3": "复制客户端配置",
+    "step3a": "在仓库的「使用方式」标签页",
+    "welcome": "欢迎使用好料库",
+    "welcomeHint": "三个步骤让第一个仓库开始服务。"
+  },
+  "email": {
+    "encryption": "加密方式",
+    "recipients": "通知收件人",
+    "recipientsHint": "会收到任务失败与存储配额告警。",
+    "sendTest": "发送测试邮件",
+    "sub": "用于任务失败与配额通知的外发 SMTP。",
+    "testHint": "测试会使用已保存的设置 — 请先保存。",
+    "testSent": "测试邮件已发送"
+  },
+  "errors": {
+    "auth": {
+      "forbidden": "你没有执行该操作的权限",
+      "invalid": "凭证无效",
+      "rate_limited": "登录失败次数过多，请稍后再试",
+      "required": "请先登录才能继续"
+    },
+    "body": {
+      "invalid": "无法读取请求内容"
+    },
+    "conflict": "该项目已经存在",
+    "email": {
+      "failed": "发送邮件失败"
+    },
+    "format": {
+      "unsupported": "该格式不支持这项操作"
+    },
+    "internal": "服务器内部错误",
+    "ldap": {
+      "failed": "LDAP 请求失败"
+    },
+    "nexus": {
+      "unsupported": "Nexus 兼容层不支持这项操作"
+    },
+    "not_found": "找不到项目",
+    "oidc": {
+      "failed": "OIDC 登录失败"
+    },
+    "password": {
+      "common": "该密码过于常见",
+      "contains_username": "密码不能包含用户名",
+      "need_digit": "密码必须包含数字",
+      "need_lower": "密码必须包含小写字母",
+      "need_symbol": "密码必须包含符号",
+      "need_upper": "密码必须包含大写字母",
+      "too_long": "密码长度最多 {{p0}} 个字符",
+      "too_short": "密码长度至少需 {{p0}} 个字符"
+    },
+    "path": {
+      "invalid": "路径不合法"
+    },
+    "repo": {
+      "invalid": "仓库配置不正确",
+      "not_found": "找不到仓库",
+      "not_proxy": "这不是代理缓存类型的仓库",
+      "read_only": "该仓库为只读",
+      "redeploy_denied": "该仓库不允许重复部署同一个版本"
+    },
+    "restore": {
+      "failed": "还原失败"
+    },
+    "storage": {
+      "invalid": "存储配置不正确",
+      "unknown": "未知的存储"
+    },
+    "task": {
+      "unknown": "未知的任务"
+    },
+    "upload": {
+      "failed": "上传失败"
+    },
+    "user": {
+      "exists": "这个账号已存在",
+      "invalid": "用户不正确"
+    },
+    "validation": "请检查输入的内容"
+  },
+  "health": {
+    "changeNow": "立即修改",
+    "check": "检查项",
+    "message": "消息",
+    "ok": "正常",
+    "problems": "检测到问题",
+    "recheck": "重新检查",
+    "unhealthy": "异常"
+  },
+  "info": {
+    "copy": "复制为文本",
+    "database": "数据库",
+    "runtime": "运行环境",
+    "version": "版本"
+  },
+  "login": {
+    "badCredentials": "账号或密码错误",
+    "browseAnon": "不登录，先浏览包 →",
+    "forgot": "忘记密码？请联系管理员重置。",
+    "or": "或",
+    "password": "密码",
+    "passwordRequired": "请输入密码",
+    "rateLimited": "登录失败次数过多，请等待 30 秒。",
+    "retryIn": "{{s}} 秒后可重试",
+    "sp1": "26 种格式，一个地址",
+    "sp2": "单一 binary，内存占用低",
+    "sp3": "换掉 Nexus，CI 不改配置",
+    "sso": "使用 SSO 登录",
+    "ssoFailed": "SSO 登录失败：{{reason}}",
+    "submit": "登录",
+    "title": "登录 Holiaokho",
+    "unreachable": "无法连接到服务器",
+    "username": "账号",
+    "usernameRequired": "请输入账号"
+  },
+  "logs": {
+    "auto": "自动刷新",
+    "copyAll": "复制全部",
+    "filter": "筛选",
+    "levelSet": "日志级别已设为 {{v}}（重启后回到配置文件的值）",
+    "wrap": "自动换行"
+  },
+  "nav": {
+    "anonymous": "匿名",
+    "auth": "认证设置",
+    "backup": "备份／还原",
+    "browse": "浏览",
+    "changePassword": "修改密码",
+    "cleanup": "清理策略",
+    "clickToLogin": "点击以登录",
+    "dashboard": "概览",
+    "email": "邮件",
+    "group": {
+      "maintenance": "运维",
+      "manage": "管理",
+      "more": "其他",
+      "security": "安全"
+    },
+    "login": "登录",
+    "logout": "退出登录",
+    "repositories": "仓库",
+    "roles": "角色",
+    "routing": "路由规则",
+    "search": "搜索",
+    "selectors": "内容选择器",
+    "storages": "存储",
+    "system": "系统",
+    "tasks": "定时任务",
+    "tokens": "我的访问令牌",
+    "users": "用户",
+    "webhooks": "Webhook"
+  },
+  "notify": {
+    "none": "暂无需要注意的事项"
+  },
+  "package": {
+    "assets": "文件",
+    "deleteHint": "该版本的 {{n}} 个文件都会被移除。Blob 会在下次 blob-gc 执行时回收。",
+    "deleteTitle": "删除 {{name}}？",
+    "deleteVersion": "删除这个版本",
+    "namespace": "命名空间",
+    "version": "版本"
+  },
+  "password": {
+    "changed": "密码已修改",
+    "confirm": "确认新密码",
+    "current": "当前密码",
+    "currentRequired": "请输入当前密码",
+    "currentWrong": "当前密码不正确",
+    "forcedHint": "admin 账号仍在使用默认密码，请先设置新密码再继续。",
+    "forcedTitle": "请先更换默认密码",
+    "hint": "为 {{user}} 设置新密码。",
+    "mismatch": "两次输入的密码不一致",
+    "new": "新密码",
+    "rule": {
+      "digit": "包含数字",
+      "lower": "包含小写字母",
+      "symbol": "包含符号",
+      "upper": "包含大写字母",
+      "username": "不能包含账号"
+    },
+    "submit": "修改密码",
+    "title": "修改密码"
+  },
+  "priv": {
+    "add": "新增一行",
+    "allActions": "完全控制",
+    "allAreas": "全部",
+    "allRepos": "所有仓库",
+    "kind": {
+      "all": "整个系统",
+      "app": "应用区域",
+      "format": "某格式的所有仓库",
+      "repo": "仓库",
+      "selector": "内容选择器"
+    },
+    "noSelectors": "请先创建内容选择器",
+    "sumAll": "对整个系统拥有 {{acts}} 权限",
+    "sumApp": "{{acts}}：管理 {{area}}",
+    "sumFormat": "对所有 {{format}} 仓库拥有 {{acts}} 权限",
+    "sumRepo": "对仓库 {{name}} 拥有 {{acts}} 权限",
+    "sumSelector": "对匹配选择器 {{sel}} 的内容拥有 {{acts}} 权限",
+    "value": "值"
+  },
+  "repos": {
+    "browseContent": "浏览内容",
+    "create": "创建仓库",
+    "created": "已创建仓库 {{name}}",
+    "d": {
+      "forceBasic": "强制基本认证（不允许匿名 pull）",
+      "indexType": "索引类型",
+      "path": "路径模式",
+      "port": "HTTP 端口",
+      "subdomain": "子域名",
+      "tls": "HTTPS 端口"
+    },
+    "deleteCi": "使用该地址的客户端会收到 404。",
+    "deleteConfirm": "删除仓库",
+    "deleteGroups": "会从这些组中移除：{{list}}",
+    "deleteSize": "{{n}} 个包、{{size}} 的内容。Blob 会在下次 blob-gc 执行时回收。",
+    "deleteTitle": "删除仓库",
+    "deleted": "已删除仓库 {{name}}",
+    "empty": "尚无仓库",
+    "emptyHint": "先创建一个 Maven Central 或 npm 的代理缓存来开始。",
+    "f": {
+      "autoBlock": "上游无法连接时自动阻断",
+      "blocked": "已阻断（只提供缓存内容）",
+      "cacheForever": "永久缓存",
+      "downloadUrlHint": "留空则使用默认值",
+      "flat": "上游是 flat repository（没有 dists/）",
+      "keyNameHint": "客户端会安装到 /etc/apk/keys/ 下",
+      "metadataHint": "索引／版本列表会在这段时间后重新向上游确认。",
+      "negativeHint": "记住上游 404 的时长，0 表示禁用。",
+      "repodataHint": "生成 repodata/ 的目录深度（0 表示根目录）。"
+    },
+    "g": {
+      "available": "可选择",
+      "members": "成员",
+      "moveUp": "点击上移",
+      "order": "解析顺序："
+    },
+    "genKey": "生成密钥",
+    "genKeyDone": "私钥已填入。公钥（保存后也可从 <仓库地址>/repository-key.gpg 获取）：",
+    "genKeyHint": "私钥会加密后与仓库一起保存。客户端需要公钥，可从仓库地址获取。",
+    "genKeyTitle": "生成签名密钥",
+    "invalidate": "清除缓存",
+    "invalidated": "已清除缓存",
+    "nameExists": "名称 {{name}} 已存在。",
+    "nameInvalid": "只能使用英文字母、数字与 . _ -",
+    "online": "在线",
+    "onlineHint": "离线的仓库会拒绝所有客户端请求。",
+    "sec": {
+      "basic": "基本",
+      "docker": "Docker · 访问方式（可多选）",
+      "group": "组 · 成员（顺序即解析顺序）",
+      "hosted": "自有 · 写入策略",
+      "optional": "可选",
+      "proxy": "代理缓存 · 上游"
+    },
+    "tab": {
+      "settings": "设置",
+      "stats": "统计"
+    },
+    "usage": "使用方式",
+    "usageTitle": "如何使用",
+    "wp": {
+      "allow": "已存在的路径可以被覆盖。",
+      "allowOnce": "同一路径只能写入一次；重新部署相同版本会被拒绝（Maven SNAPSHOT 除外）。推荐使用。",
+      "deny": "只读，不允许上传。"
+    }
+  },
+  "roles": {
+    "adminLocked": "admin 角色始终拥有完整权限，其权限无法修改。",
+    "builtin": "内置",
+    "create": "创建角色",
+    "deleteHint": "有 {{u}} 位用户正在使用，他们会立即失去这些权限。",
+    "deleteTitle": "删除角色",
+    "edit": "编辑角色",
+    "idHint": "留空则由名称自动生成",
+    "summary": "这个角色可以做什么",
+    "summaryEmpty": "暂无内容 — 请至少添加一项权限。",
+    "usedBy": "{{u}} 位用户、{{m}} 组 LDAP/OIDC 映射正在使用"
+  },
+  "routing": {
+    "addMatcher": "新增匹配条件",
+    "allowHint": "只有匹配条件的路径会被提供",
+    "allowed": "允许",
+    "blockHint": "匹配任一条件的路径会被拒绝",
+    "blocked": "阻断",
+    "create": "创建规则",
+    "deleteTitle": "删除规则「{{name}}」？",
+    "deleteUsed": "使用这条规则的仓库（{{list}}）之后将不应用任何路由规则。",
+    "edit": "编辑规则",
+    "hitHint": "匹配的条件会以琥珀色标示。",
+    "matchers": "匹配条件",
+    "matchersHint": "与请求路径匹配",
+    "mode": "模式",
+    "sub": "针对每个仓库阻断或允许请求路径，例如避免代理缓存到外网去抓公司内部的 group ID。",
+    "testPath": "测试路径",
+    "usedBy": "使用中的仓库"
+  },
+  "search": {
+    "emptyHint": "试试",
+    "emptyTitle": "跨所有仓库搜索",
+    "noResults": "没有匹配的包",
+    "placeholder": "搜索包… 例如 gson、@babel/core、library/alpine"
+  },
+  "selectors": {
+    "create": "创建选择器",
+    "deleteTitle": "删除选择器",
+    "deleteUsed": "引用它的角色：{{list}}。这些角色的选择器权限将不再匹配任何内容。",
+    "edit": "编辑选择器",
+    "expression": "表达式",
+    "match": "匹配",
+    "noMatch": "不匹配",
+    "prefix": "开头为",
+    "runTest": "求值",
+    "sub": "用表达式挑出仓库的一部分内容，可作为权限目标使用（selector:<名称>@<仓库>）。",
+    "usedBy": "使用中的角色"
+  },
+  "storages": {
+    "create": "创建存储",
+    "dedupHint": "同一份文件即使存在于多个仓库也只会保存一份。删除的内容由 blob-gc 任务释放，compact-blobs 才会真正回收磁盘空间。",
+    "dedupTitle": "内容寻址存储",
+    "edit": "编辑 {{name}}",
+    "endpointHint": "留空表示使用 AWS",
+    "fs": "本地文件系统",
+    "location": "位置",
+    "noQuota": "未设置配额",
+    "path": "路径",
+    "pathHint": "服务器上的绝对路径（以 Docker／K8s 部署时为容器内的路径）。",
+    "pathStyle": "Path-style 寻址（MinIO 与多数自建 S3 需要）",
+    "quota": "配额",
+    "quotaHint": "0 表示不限制。超过时上传会返回 507，超过 90% 会显示告警。",
+    "s3": "S3 兼容对象存储",
+    "test": "测试连接",
+    "testOk": "正常 · {{ms}} 毫秒",
+    "usage": "使用量"
+  },
+  "support": {
+    "download": "下载支持诊断 zip",
+    "hint": "一个包含诊断问题所需信息的 zip，不含用户数据与 blob：",
+    "i1": "系统信息与健康检查",
+    "i2": "配置内容（机密已遮蔽）",
+    "i3": "最近的日志",
+    "i4": "仓库、存储与任务定义"
+  },
+  "system": {
+    "audit": "审计日志",
+    "config": "配置",
+    "health": "健康状态",
+    "info": "系统信息"
+  },
+  "tasks": {
+    "cleanupNote": "清理策略只有在这个任务执行时才会生效。",
+    "defaultInterval": "默认间隔（{{i}}）",
+    "duration": "耗时",
+    "every": "每隔",
+    "failedNotice": "任务 {{name}} 执行失败",
+    "idle": "空闲中",
+    "lastRun": "上次执行",
+    "name": {
+      "backup": "备份",
+      "blob-gc": "Blob 回收",
+      "cleanup-policies": "应用清理策略",
+      "compact-blobs": "压实 blob 存储",
+      "prune-expired": "清除过期项",
+      "re-encrypt-secrets": "重新加密机密",
+      "rebuild-indexes": "重建索引"
+    },
+    "nextRun": "下次执行",
+    "noLog": "（无输出）",
+    "runNow": "立即执行",
+    "running": "{{n}} 个执行中 · 每 3 秒刷新",
+    "runningNow": "执行中…",
+    "runs": "执行记录",
+    "saveSchedule": "保存计划",
+    "schedule": "计划",
+    "scheduleBtn": "设置计划",
+    "scheduleTitle": "计划",
+    "started": "任务 {{name}} 已开始",
+    "summary": "摘要",
+    "task": "任务"
+  },
+  "theme": {
+    "dark": "深色主题",
+    "light": "浅色主题"
+  },
+  "tokens": {
+    "create": "创建令牌",
+    "createdTitle": "令牌「{{name}}」已创建",
+    "custom": "自定义",
+    "d30": "30 天",
+    "d365": "1 年",
+    "d90": "90 天",
+    "date": "日期",
+    "expired": "已过期",
+    "expires": "到期",
+    "expiresOn": "到期日 {{date}}",
+    "lastUsed": "最后使用",
+    "nameHint": "例如「gitlab-ci」、「笔记本」",
+    "never": "永不过期",
+    "neverExpires": "永不过期",
+    "prefix": "前缀",
+    "revoke": "吊销",
+    "revokeHint": "正在使用它的客户端会立即开始失败。",
+    "revokeTitle": "吊销令牌「{{name}}」？",
+    "revoked": "令牌已吊销",
+    "saved": "我已经保存了",
+    "secretLabel": "SECRET · 只显示这一次",
+    "secretWarn": "关闭后就无法再看到这组 secret，请立即保存，例如存成 CI 的 secret 变量（HLK_TOKEN）。",
+    "sub": "给 CI 与命令行客户端使用的个人访问令牌，权限等同 {{user}}。",
+    "useBasic": "Basic（任何客户端）",
+    "useBasicHint": "账号 ＋ 用令牌作为密码。"
+  },
+  "type": {
+    "blocked": "已阻断",
+    "group": "组",
+    "hosted": "自有",
+    "offline": "离线",
+    "proxy": "代理缓存"
+  },
+  "usage": {
+    "apt": {
+      "sources": "软件源",
+      "upload": "上传 .deb"
+    },
+    "createToken": "创建我的令牌 →",
+    "cred": "凭证：使用 User Token（账号 ＋ 令牌当密码）。",
+    "credNote": "# 凭证：你的账号 ＋ User Token 作为密码",
+    "docker": {
+      "mirror": "Docker daemon registry mirror",
+      "path": "路径模式（主端口）",
+      "port": "端口",
+      "subdomain": "子域名",
+      "tls": "TLS 端口"
+    },
+    "helm": {
+      "push": "上传 chart"
+    },
+    "maven": {
+      "deploy": "部署",
+      "mirror": "作为 mirror 使用"
+    },
+    "npm": {
+      "publish": "发布",
+      "registry": "Registry",
+      "scope": "只用于某个 scope"
+    },
+    "nuget": {
+      "push": "推送"
+    },
+    "raw": {
+      "download": "下载",
+      "upload": "上传"
+    },
+    "tf": {
+      "mirror": "Provider network mirror",
+      "module": "Module 来源"
+    },
+    "yum": {
+      "upload": "上传 .rpm"
+    }
+  },
+  "users": {
+    "active": "启用",
+    "create": "创建用户",
+    "deleteHint": "他们的访问令牌会立即失效。",
+    "deleteTitle": "删除用户",
+    "displayName": "显示名称",
+    "edit": "编辑 {{name}}",
+    "exists": "这个账号已存在",
+    "externalHint": "由 {{source}} 同步。登录时会应用映射表的角色；在这里设置的角色会额外附加。",
+    "pwReset": "密码已更新",
+    "resetPw": "重置密码",
+    "resetPwTitle": "重置 {{name}} 的密码",
+    "selfAdminHint": "你会立即失去访问该页面的权限。",
+    "selfAdminTitle": "要移除自己的 admin 角色吗？",
+    "source": "来源",
+    "tokensOf": "{{name}} 的令牌"
+  },
+  "webhooks": {
+    "create": "创建 webhook",
+    "deleteTitle": "删除 webhook「{{name}}」？",
+    "edit": "编辑 webhook",
+    "events": "事件",
+    "httpsHint": "建议使用 https://",
+    "payload": "Payload 示例",
+    "queued": "测试事件已加入队列 — 请到 Logs 查看发送结果",
+    "repoHint": "留空表示所有仓库",
+    "sendTest": "发送测试事件",
+    "signature": "签名：X-Holiaokho-Signature（内容的 HMAC-SHA256）"
+  },
+  "wizard": {
+    "configure": "配置 {{format}} {{type}}",
+    "create": "创建 {{name}}",
+    "filterFormats": "筛选格式",
+    "groupDesc": "用一个地址合并多个自有与代理缓存仓库。",
+    "groupNeedsMembers": "请先创建一个自有或代理缓存的 {{format}} 仓库。",
+    "groupWhen": "让客户端只需配置一个地址。",
+    "hostedDesc": "你自己的制品，由开发者或 CI 上传。",
+    "hostedWhen": "内部库、release 版本、自己构建的 image。",
+    "preview": "创建后，客户端会这样使用",
+    "proxyDesc": "缓存远端 registry，第一次下载后就由本地提供。",
+    "proxyWhen": "Maven Central、npmjs、Docker Hub、PyPI…",
+    "step1": "格式",
+    "step2": "类型",
+    "step3": "设置",
+    "title": "创建"
+  }
+}

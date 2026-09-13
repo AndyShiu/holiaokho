@@ -63,7 +63,7 @@ export default function Search() {
       ) : (
         <div className="hlk-card" style={{ padding: 0 }}>
           <Table<SearchHit>
-            rowKey="id" loading={results.isLoading} dataSource={results.data ?? []} className="hlk-table hlk-clickable" size="middle"
+            rowKey="id" loading={results.isLoading} dataSource={results.data ?? []} className="hlk-table hlk-clickable" scroll={{ x: 1000 }} size="middle"
             onRow={(r) => ({ onClick: () => setPkg(r.id) })}
             locale={{ emptyText: <EmptyState title={t('search.noResults', 'No packages match')} /> }}
             pagination={{ current: page + 1, pageSize: 50, total: (results.data?.length ?? 0) < 50 ? page * 50 + (results.data?.length ?? 0) : (page + 2) * 50, onChange: (p) => setPage(p - 1), showSizeChanger: false }}

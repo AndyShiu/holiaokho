@@ -1,1 +1,781 @@
-{}
+{
+  "asset": {
+    "cacheExpires": "キャッシュ有効期限",
+    "cacheForever": "無期限（永続キャッシュ）",
+    "contentType": "コンテンツタイプ",
+    "deleteNeedsLogin": "削除には権限が必要です",
+    "deleteTitle": "このファイルを削除しますか？",
+    "downloadUrl": "ダウンロード URL",
+    "lastDownloaded": "最終ダウンロード",
+    "negative": "ネガティブキャッシュ",
+    "negativeHint": "アップストリームが 404 を返しました",
+    "package": "パッケージ",
+    "path": "パス",
+    "sha256": "sha256",
+    "size": "サイズ",
+    "viewPackage": "パッケージを表示"
+  },
+  "audit": {
+    "asset": {
+      "delete": "ファイルを削除",
+      "upload": "ファイルをアップロード"
+    },
+    "auth": {
+      "settings": "認証設定を変更"
+    },
+    "cleanup": {
+      "create": "クリーンアップポリシーを作成"
+    },
+    "content_selector": {
+      "create": "コンテンツセレクターを作成"
+    },
+    "email": {
+      "update": "メール設定を変更"
+    },
+    "last": "直近",
+    "login": "ログイン",
+    "package": {
+      "delete": "パッケージを削除"
+    },
+    "repository": {
+      "create": "リポジトリを作成",
+      "delete": "リポジトリを削除",
+      "invalidate_cache": "キャッシュを破棄",
+      "update": "リポジトリを更新"
+    },
+    "role": {
+      "create": "ロールを作成",
+      "update": "ロールを更新"
+    },
+    "routing_rule": {
+      "create": "ルーティングルールを作成"
+    },
+    "storage": {
+      "create": "ストレージを作成"
+    },
+    "system": {
+      "backup": "バックアップをダウンロード",
+      "log_level": "ログレベルを変更",
+      "pgp_key": "PGP 鍵を生成",
+      "restore": "バックアップからリストア",
+      "rsa_key": "RSA 鍵を生成"
+    },
+    "task": {
+      "run": "タスクを実行",
+      "schedule": "スケジュールを変更"
+    },
+    "token": {
+      "create": "トークンを作成"
+    },
+    "user": {
+      "create": "ユーザーを作成",
+      "delete": "ユーザーを削除",
+      "password": "パスワードを変更",
+      "update": "ユーザーを更新"
+    },
+    "webhook": {
+      "create": "webhook を作成"
+    }
+  },
+  "auth": {
+    "addLdapRealm": "＋ ldap",
+    "addLdapRealm2": "LDAP 認証元を追加",
+    "addMapping": "マッピングを追加",
+    "anonymous": "匿名アクセス",
+    "anonymousHint": "ここでは表示のみです。設定ファイルの auth.anonymous_enabled で切り替えます。匿名ユーザーができることは anonymous ロールで決まります。",
+    "autoCreate": "ユーザーを自動作成",
+    "bindPassword": "Bind パスワード",
+    "connOk": "接続しました",
+    "defaultRoles": "デフォルトロール",
+    "defaultRolesHint": "ログイン済みの全ユーザーに、本人のロールに加えて付与されます。",
+    "disallowCommon": "よくあるパスワードを拒否（内蔵リスト）",
+    "ldapDefaultRoles": "LDAP ユーザーのデフォルトロール",
+    "ldapNotInRealms": "LDAP は有効ですが認証元の順序に含まれていないため、ログインには使われません。",
+    "loginOk": "ログインに成功しました",
+    "maxLength": "最大長",
+    "minLength": "最小長",
+    "oidcDefaultRoles": "OIDC ユーザーのデフォルトロール",
+    "options": "オプション",
+    "password": "パスワードポリシー",
+    "pwExample": "有効なパスワードの例",
+    "pwHint": "ユーザー作成・管理者によるリセット・本人による変更に適用されます。既存のパスワードは再検査されません。",
+    "realmDesc": {
+      "ldap": "LDAP ディレクトリのアカウント",
+      "local": "Holiaokho に保存されたローカルアカウント"
+    },
+    "realms": "認証元と匿名アクセス",
+    "realmsHint": "ログイン時にこの順序で各認証元を試します。OIDC と Rut Auth は別フローのため、ここには表示されません。",
+    "realmsHint2": "ログイン時は上から順に試し、最初に認証できた認証元が使われます。ドラッグで並べ替えできます。",
+    "redirect": "リダイレクト URL（IdP に登録してください）",
+    "role": "ロール",
+    "roleMapping": "ロールのマッピング",
+    "rutWarn": "このヘッダーをクライアント要求から取り除くリバースプロキシの背後で、かつ server.trusted_proxies を設定済みの場合にのみ有効にしてください。",
+    "saved": "保存しました — 反映まで最大 30 秒",
+    "skipIssuer": "issuer の検証をスキップ",
+    "skipVerify": "TLS 証明書の検証をスキップ",
+    "testConn": "接続をテスト",
+    "testHint": "上の未保存のフォーム内容を使用します。",
+    "testLogin": "接続／ログインをテスト",
+    "testLoginBtn": "ログインをテスト",
+    "timeout": "タイムアウト（秒）",
+    "userSubtree": "サブツリーを検索",
+    "viewAnonRole": "anonymous ロールを表示 →"
+  },
+  "backup": {
+    "c1": "すべてのリポジトリ・ユーザー・ロール・設定・コンテンツ索引が置き換わります。",
+    "c2": "アーカイブ内の blob はデフォルトストレージに書き込まれます。",
+    "c3": "数分かかる場合があります。このページを閉じないでください。",
+    "cfgHint": "設定ファイル（backup.*）で指定し、「backup」タスクとして実行されます。",
+    "confirm1": "リストアはすべてのデータを上書きします",
+    "confirm2": "確認のため RESTORE と入力してください",
+    "dir": "ディレクトリ",
+    "download": "今すぐバックアップをダウンロード",
+    "downloadHint": "データベース（テーブルごとの CSV）を含む tar.gz。blob を含めることもできます。",
+    "drop": "バックアップの .tar.gz をここにドロップ",
+    "includeBlobs": "blob を含める",
+    "keep": "保持世代数",
+    "notConfigured": "未設定",
+    "restore": "リストア",
+    "restoreBtn": "このファイルからリストア…",
+    "restoreNow": "今すぐリストア",
+    "restoreWarn": "リストアはデータベースと blob ストア全体をアーカイブの内容で置き換えます。先にクライアントの通信を止めてください。完了後は全員がログアウトされます。",
+    "restored": "リストアが完了しました — 再度ログインしてください",
+    "restoring": "リストア中… しばらくお待ちください。",
+    "scheduled": "スケジュールバックアップ"
+  },
+  "browse": {
+    "allowOnce": "このリポジトリは既存パスへの再デプロイを許可していません（書き込みポリシー：allow_once）。",
+    "content": "コンテンツ",
+    "deny": "このリポジトリは読み取り専用です（書き込みポリシー：deny）。",
+    "dropHint": "ファイルをここにドロップ、またはクリックして選択",
+    "empty": "このリポジトリにはまだコンテンツがありません",
+    "emptyHosted": "アップロードするか、クライアントから push してください。",
+    "emptyProxy": "プロキシ経由で初めてダウンロードされると、ここに表示されます。",
+    "filterPackages": "名前または名前空間で絞り込み",
+    "filterRepos": "リポジトリを絞り込み",
+    "groupHint": "{{n}} 件のメンバーをマージ：",
+    "noRepos": "リポジトリがありません",
+    "noReposHint": "最初のリポジトリを作成して始めましょう。",
+    "notFound": "リポジトリが見つかりません",
+    "offline": "このリポジトリはオフラインです：クライアント要求は拒否されます。",
+    "overwrite": "パスが存在する場合は上書き",
+    "packages": "パッケージ",
+    "pick": "左側でリポジトリを選択してください",
+    "proxyHint": "ここにはキャッシュ済みのコンテンツのみ表示されます — アップストリーム全体の一覧ではありません。",
+    "upload": "アップロード",
+    "uploadTo": "{{name}} にアップロード",
+    "uploaded": "{{path}} をアップロードしました"
+  },
+  "cleanup": {
+    "assignTo": "適用するリポジトリ",
+    "assigned": "リポジトリ",
+    "create": "ポリシーを作成",
+    "criteria": "条件",
+    "criteriaHint": "いずれかの期間条件に合致したパッケージが削除されます。keepLatest は常に最新バージョンを保護します",
+    "deleteHint": "{{n}} 件のリポジトリから適用が解除されます。削除済みの内容は復元されません。",
+    "deleteTitle": "ポリシー「{{name}}」を削除しますか？",
+    "edit": "ポリシーを編集",
+    "keep": "名前ごとに最新 N 件を保持",
+    "lastDl": "ダウンロードされていない日数",
+    "lastUpd": "作成からの経過日数",
+    "nameRegex": "名前の正規表現",
+    "nextRun": "cleanup-policies タスクが適用 · 次回実行",
+    "preAny": "指定なし",
+    "preExclude": "正式版のみ",
+    "preOnly": "プレリリースのみ",
+    "prerelease": "プレリリース",
+    "preview": "プレビュー",
+    "previewSaveFirst": "先にポリシーを保存してから、削除対象をプレビューしてください。",
+    "runPreview": "削除対象をプレビュー",
+    "sumDl": "{{n}} 日間ダウンロードなし",
+    "sumKeep": "名前ごとに最新 {{n}} 件を保持",
+    "sumPre": "プレリリースのみ",
+    "sumRel": "正式版のみ",
+    "sumUpd": "作成から {{n}} 日以上",
+    "versionRegex": "バージョンの正規表現",
+    "wouldDelete": "{{n}} 件のパッケージが削除されます"
+  },
+  "common": {
+    "all": "すべて",
+    "back": "戻る",
+    "cancel": "キャンセル",
+    "close": "閉じる",
+    "continue": "続行",
+    "copied": "コピーしました",
+    "copy": "コピー",
+    "create": "作成",
+    "created": "作成日時",
+    "dangerZone": "危険な操作",
+    "delete": "削除",
+    "deleted": "削除しました",
+    "description": "説明",
+    "details": "詳細",
+    "download": "ダウンロード",
+    "edit": "編集",
+    "enabled": "有効",
+    "format": "フォーマット",
+    "min": "分",
+    "name": "名前",
+    "never": "なし",
+    "noMatch": "一致する項目がありません",
+    "none": "なし",
+    "nothingYet": "まだデータがありません",
+    "off": "無効",
+    "revert": "変更を取り消す",
+    "save": "保存",
+    "saved": "保存しました",
+    "search": "検索",
+    "secretKeep": "空欄（または *** のまま）にすると保存済みの値を保持します",
+    "status": "状態",
+    "test": "テスト",
+    "time": "時刻",
+    "type": "タイプ",
+    "typeToConfirm": "確認のため",
+    "typeToConfirmSuffix": "と入力してください",
+    "unsaved": "未保存の変更があります",
+    "updated": "更新日時",
+    "viewAll": "すべて表示 →"
+  },
+  "config": {
+    "hint": "読み取り専用です。機密情報はマスクされています。設定ファイルまたは HOLIAOKHO_* 環境変数で変更し、再起動してください。"
+  },
+  "cron": {
+    "daily": "毎日 {{time}}",
+    "everyNMin": "{{n}} 分ごと",
+    "hint": "分 時 日 月 曜日",
+    "hourly": "1 時間ごと",
+    "invalid": "式の形式が不正です",
+    "monthly": "毎月 {{dom}} 日 {{time}}",
+    "next5": "次の 5 回の実行",
+    "tplDaily": "毎日 02:00",
+    "tplHourly": "1 時間ごと",
+    "tplSunday": "毎週日曜 03:00",
+    "weekly": "毎週 曜日 {{dow}} {{time}}"
+  },
+  "dashboard": {
+    "activity": "最近のアクティビティ",
+    "allGood": "すべてのサービスが正常です",
+    "assets": "ファイル",
+    "attention": "{{n}} 件の要確認",
+    "dedup": "コンテンツアドレス指定・重複排除済み",
+    "devHint": "「ブラウズ」や「検索」でパッケージを探し、「マイトークン」で CI 用の個人トークンを作成できます。",
+    "packages": "パッケージ",
+    "refresh": "30 秒ごとに更新",
+    "repos": "リポジトリ",
+    "size": "合計サイズ",
+    "step1": "admin のパスワードを変更",
+    "step1a": "今すぐ変更",
+    "step2": "最初のプロキシを作成",
+    "step2a": "例：Maven Central",
+    "step3": "クライアント設定をコピー",
+    "step3a": "リポジトリの「使い方」タブから",
+    "welcome": "Holiaokho へようこそ",
+    "welcomeHint": "3 ステップで最初のリポジトリを稼働させましょう。"
+  },
+  "email": {
+    "encryption": "暗号化方式",
+    "recipients": "通知の宛先",
+    "recipientsHint": "タスクの失敗とストレージ容量の警告を受け取ります。",
+    "sendTest": "テストメールを送信",
+    "sub": "タスク失敗と容量通知に使う送信用 SMTP。",
+    "testHint": "テストは保存済みの設定を使います — 先に保存してください。",
+    "testSent": "テストメールを送信しました"
+  },
+  "errors": {
+    "auth": {
+      "forbidden": "この操作を行う権限がありません",
+      "invalid": "認証情報が正しくありません",
+      "rate_limited": "ログインの失敗が多すぎます。しばらくしてからお試しください",
+      "required": "続けるにはログインしてください"
+    },
+    "body": {
+      "invalid": "リクエスト本文を読み取れませんでした"
+    },
+    "conflict": "既に存在します",
+    "email": {
+      "failed": "メールの送信に失敗しました"
+    },
+    "format": {
+      "unsupported": "このフォーマットではサポートされていない操作です"
+    },
+    "internal": "サーバー内部エラー",
+    "ldap": {
+      "failed": "LDAP リクエストに失敗しました"
+    },
+    "nexus": {
+      "unsupported": "Nexus 互換レイヤーではサポートされていません"
+    },
+    "not_found": "見つかりません",
+    "oidc": {
+      "failed": "OIDC ログインに失敗しました"
+    },
+    "password": {
+      "common": "よくあるパスワードのため使用できません",
+      "contains_username": "パスワードにユーザー名を含めないでください",
+      "need_digit": "パスワードに数字を含めてください",
+      "need_lower": "パスワードに小文字を含めてください",
+      "need_symbol": "パスワードに記号を含めてください",
+      "need_upper": "パスワードに大文字を含めてください",
+      "too_long": "パスワードは {{p0}} 文字以下にしてください",
+      "too_short": "パスワードは {{p0}} 文字以上にしてください"
+    },
+    "path": {
+      "invalid": "パスが不正です"
+    },
+    "repo": {
+      "invalid": "リポジトリ設定が正しくありません",
+      "not_found": "リポジトリが見つかりません",
+      "not_proxy": "プロキシリポジトリではありません",
+      "read_only": "このリポジトリは読み取り専用です",
+      "redeploy_denied": "このリポジトリでは同じバージョンの再デプロイはできません"
+    },
+    "restore": {
+      "failed": "リストアに失敗しました"
+    },
+    "storage": {
+      "invalid": "ストレージ設定が正しくありません",
+      "unknown": "不明なストレージです"
+    },
+    "task": {
+      "unknown": "不明なタスクです"
+    },
+    "upload": {
+      "failed": "アップロードに失敗しました"
+    },
+    "user": {
+      "exists": "そのユーザー名は既に存在します",
+      "invalid": "ユーザーが正しくありません"
+    },
+    "validation": "入力内容を確認してください"
+  },
+  "health": {
+    "changeNow": "今すぐ変更",
+    "check": "チェック項目",
+    "message": "メッセージ",
+    "ok": "正常",
+    "problems": "問題が見つかりました",
+    "recheck": "再チェック",
+    "unhealthy": "異常"
+  },
+  "info": {
+    "copy": "テキストとしてコピー",
+    "database": "データベース",
+    "runtime": "実行環境",
+    "version": "バージョン"
+  },
+  "login": {
+    "badCredentials": "ユーザー名またはパスワードが違います",
+    "browseAnon": "ログインせずにパッケージを見る →",
+    "forgot": "パスワードをお忘れですか？管理者にリセットを依頼してください。",
+    "or": "または",
+    "password": "パスワード",
+    "passwordRequired": "パスワードを入力してください",
+    "rateLimited": "ログインの失敗が多すぎます。30 秒お待ちください。",
+    "retryIn": "{{s}} 秒後に再試行できます",
+    "sp1": "26 フォーマットを 1 つのアドレスで",
+    "sp2": "単一バイナリ、低メモリ",
+    "sp3": "CI を変えずに Nexus を置き換え",
+    "sso": "SSO でログイン",
+    "ssoFailed": "SSO ログインに失敗しました：{{reason}}",
+    "submit": "ログイン",
+    "title": "Holiaokho にログイン",
+    "unreachable": "サーバーに接続できません",
+    "username": "ユーザー名",
+    "usernameRequired": "ユーザー名を入力してください"
+  },
+  "logs": {
+    "auto": "自動更新",
+    "copyAll": "すべてコピー",
+    "filter": "絞り込み",
+    "levelSet": "ログレベルを {{v}} に設定しました（再起動で設定ファイルの値に戻ります）",
+    "wrap": "折り返し"
+  },
+  "nav": {
+    "anonymous": "匿名",
+    "auth": "認証設定",
+    "backup": "バックアップ／リストア",
+    "browse": "ブラウズ",
+    "changePassword": "パスワードを変更",
+    "cleanup": "クリーンアップポリシー",
+    "clickToLogin": "クリックしてログイン",
+    "dashboard": "ダッシュボード",
+    "email": "メール",
+    "group": {
+      "maintenance": "メンテナンス",
+      "manage": "管理",
+      "more": "その他",
+      "security": "セキュリティ"
+    },
+    "login": "ログイン",
+    "logout": "ログアウト",
+    "repositories": "リポジトリ",
+    "roles": "ロール",
+    "routing": "ルーティングルール",
+    "search": "検索",
+    "selectors": "コンテンツセレクター",
+    "storages": "ストレージ",
+    "system": "システム",
+    "tasks": "タスク",
+    "tokens": "マイトークン",
+    "users": "ユーザー",
+    "webhooks": "Webhook"
+  },
+  "notify": {
+    "none": "対応が必要な項目はありません"
+  },
+  "package": {
+    "assets": "ファイル",
+    "deleteHint": "このバージョンの {{n}} 件のファイルが削除されます。blob は次回の blob-gc で回収されます。",
+    "deleteTitle": "{{name}} を削除しますか？",
+    "deleteVersion": "このバージョンを削除",
+    "namespace": "名前空間",
+    "version": "バージョン"
+  },
+  "password": {
+    "changed": "パスワードを変更しました",
+    "confirm": "新しいパスワード（確認）",
+    "current": "現在のパスワード",
+    "currentRequired": "現在のパスワードを入力してください",
+    "currentWrong": "現在のパスワードが正しくありません",
+    "forcedHint": "admin アカウントが初期パスワードのままです。続行する前に新しいパスワードを設定してください。",
+    "forcedTitle": "まず初期パスワードを変更してください",
+    "hint": "{{user}} の新しいパスワードを設定します。",
+    "mismatch": "パスワードが一致しません",
+    "new": "新しいパスワード",
+    "rule": {
+      "digit": "数字を含む",
+      "lower": "小文字を含む",
+      "symbol": "記号を含む",
+      "upper": "大文字を含む",
+      "username": "ユーザー名を含まない"
+    },
+    "submit": "パスワードを変更",
+    "title": "パスワードを変更"
+  },
+  "priv": {
+    "add": "行を追加",
+    "allActions": "フルコントロール",
+    "allAreas": "すべて",
+    "allRepos": "すべてのリポジトリ",
+    "kind": {
+      "all": "システム全体",
+      "app": "アプリケーション領域",
+      "format": "特定フォーマットの全リポジトリ",
+      "repo": "リポジトリ",
+      "selector": "コンテンツセレクター"
+    },
+    "noSelectors": "先にコンテンツセレクターを作成してください",
+    "sumAll": "システム全体に対する {{acts}} 権限",
+    "sumApp": "{{acts}}：{{area}} の管理",
+    "sumFormat": "すべての {{format}} リポジトリに対する {{acts}} 権限",
+    "sumRepo": "リポジトリ {{name}} に対する {{acts}} 権限",
+    "sumSelector": "セレクター {{sel}} に一致するコンテンツへの {{acts}} 権限",
+    "value": "値"
+  },
+  "repos": {
+    "browseContent": "コンテンツを見る",
+    "create": "リポジトリを作成",
+    "created": "リポジトリ {{name}} を作成しました",
+    "d": {
+      "forceBasic": "Basic 認証を必須にする（匿名 pull を禁止）",
+      "indexType": "インデックスタイプ",
+      "path": "パスモード",
+      "port": "HTTP ポート",
+      "subdomain": "サブドメイン",
+      "tls": "HTTPS ポート"
+    },
+    "deleteCi": "この URL を使うクライアントは 404 になります。",
+    "deleteConfirm": "リポジトリを削除",
+    "deleteGroups": "次のグループから外れます：{{list}}",
+    "deleteSize": "{{n}} 件のパッケージ、{{size}} のコンテンツ。blob は次回の blob-gc で回収されます。",
+    "deleteTitle": "リポジトリを削除",
+    "deleted": "リポジトリ {{name}} を削除しました",
+    "empty": "リポジトリがありません",
+    "emptyHint": "まずは Maven Central や npm のプロキシを作成しましょう。",
+    "f": {
+      "autoBlock": "アップストリームに接続できないとき自動でブロック",
+      "blocked": "ブロック中（キャッシュのみ提供）",
+      "cacheForever": "永続キャッシュ",
+      "downloadUrlHint": "空欄でデフォルトを使用",
+      "flat": "アップストリームは flat repository（dists/ なし）",
+      "keyNameHint": "クライアントの /etc/apk/keys/ に配置されます",
+      "metadataHint": "インデックス／バージョン一覧はこの時間が過ぎるとアップストリームに再確認します。",
+      "negativeHint": "アップストリームの 404 を記憶する時間。0 で無効。",
+      "repodataHint": "repodata/ を生成するディレクトリ階層（0 はルート）。"
+    },
+    "g": {
+      "available": "選択可能",
+      "members": "メンバー",
+      "moveUp": "クリックで上に移動",
+      "order": "解決順序："
+    },
+    "genKey": "鍵を生成",
+    "genKeyDone": "秘密鍵を入力しました。公開鍵（保存後は <リポジトリ URL>/repository-key.gpg からも取得できます）：",
+    "genKeyHint": "秘密鍵は暗号化してリポジトリと共に保存されます。クライアントにはリポジトリ URL から配信される公開鍵が必要です。",
+    "genKeyTitle": "署名鍵を生成",
+    "invalidate": "キャッシュを破棄",
+    "invalidated": "キャッシュを破棄しました",
+    "nameExists": "名前 {{name}} は既に使われています。",
+    "nameInvalid": "英数字と . _ - のみ使用できます",
+    "online": "オンライン",
+    "onlineHint": "オフラインのリポジトリはすべてのクライアント要求を拒否します。",
+    "sec": {
+      "basic": "基本",
+      "docker": "Docker · アクセス方法（複数選択可）",
+      "group": "グループ · メンバー（順序＝解決順序）",
+      "hosted": "ホスト · 書き込みポリシー",
+      "optional": "任意",
+      "proxy": "プロキシ · アップストリーム"
+    },
+    "tab": {
+      "settings": "設定",
+      "stats": "統計"
+    },
+    "usage": "使い方",
+    "usageTitle": "使い方",
+    "wp": {
+      "allow": "既存のパスを上書きできます。",
+      "allowOnce": "同じパスへの書き込みは 1 回のみ。同一バージョンの再デプロイは拒否されます（Maven SNAPSHOT は除く）。推奨。",
+      "deny": "読み取り専用。アップロードできません。"
+    }
+  },
+  "roles": {
+    "adminLocked": "admin ロールは常に完全な権限を持ち、権限は変更できません。",
+    "builtin": "組み込み",
+    "create": "ロールを作成",
+    "deleteHint": "{{u}} 人のユーザーが使用中です。ただちにこれらの権限を失います。",
+    "deleteTitle": "ロールを削除",
+    "edit": "ロールを編集",
+    "idHint": "空欄なら名前から自動生成します",
+    "summary": "このロールでできること",
+    "summaryEmpty": "まだありません — 権限を 1 つ以上追加してください。",
+    "usedBy": "{{u}} 人のユーザー、{{m}} 件の LDAP/OIDC マッピングが使用中"
+  },
+  "routing": {
+    "addMatcher": "マッチャーを追加",
+    "allowHint": "マッチャーに一致するパスのみ配信します",
+    "allowed": "許可",
+    "blockHint": "いずれかのマッチャーに一致するパスを拒否します",
+    "blocked": "ブロック",
+    "create": "ルールを作成",
+    "deleteTitle": "ルール「{{name}}」を削除しますか？",
+    "deleteUsed": "このルールを使うリポジトリ（{{list}}）は、以降ルーティングルールなしになります。",
+    "edit": "ルールを編集",
+    "hitHint": "一致したマッチャーは琥珀色で表示されます。",
+    "matchers": "マッチャー",
+    "matchersHint": "リクエストパスと照合します",
+    "mode": "モード",
+    "sub": "リポジトリごとにリクエストパスを許可／拒否します。例えばプロキシが社内 group ID を外部に取りに行かないようにできます。",
+    "testPath": "パスをテスト",
+    "usedBy": "使用中のリポジトリ"
+  },
+  "search": {
+    "emptyHint": "例：",
+    "emptyTitle": "すべてのリポジトリを横断検索",
+    "noResults": "一致するパッケージがありません",
+    "placeholder": "パッケージを検索… 例：gson、@babel/core、library/alpine"
+  },
+  "selectors": {
+    "create": "セレクターを作成",
+    "deleteTitle": "セレクターを削除",
+    "deleteUsed": "参照しているロール：{{list}}。これらのセレクター権限は一致しなくなります。",
+    "edit": "セレクターを編集",
+    "expression": "式",
+    "match": "一致します",
+    "noMatch": "一致しません",
+    "prefix": "前方一致",
+    "runTest": "評価",
+    "sub": "リポジトリの一部を式で抽出し、権限のターゲットとして使えます（selector:<名前>@<リポジトリ>）。",
+    "usedBy": "使用中のロール"
+  },
+  "storages": {
+    "create": "ストレージを作成",
+    "dedupHint": "複数のリポジトリに同じファイルがあっても 1 つだけ保存されます。削除された内容は blob-gc タスクで解放され、compact-blobs で実際にディスク容量が戻ります。",
+    "dedupTitle": "コンテンツアドレス指定ストレージ",
+    "edit": "{{name}} を編集",
+    "endpointHint": "空欄で AWS",
+    "fs": "ローカルファイルシステム",
+    "location": "場所",
+    "noQuota": "容量制限なし",
+    "path": "パス",
+    "pathHint": "サーバー上の絶対パス（Docker／K8s ではコンテナ内のパス）。",
+    "pathStyle": "Path-style アドレッシング（MinIO や多くの自己ホスト S3 で必要）",
+    "quota": "容量制限",
+    "quotaHint": "0 は無制限。超過するとアップロードは 507 を返し、90% を超えると警告が出ます。",
+    "s3": "S3 互換オブジェクトストレージ",
+    "test": "接続をテスト",
+    "testOk": "正常 · {{ms}} ミリ秒",
+    "usage": "使用量"
+  },
+  "support": {
+    "download": "サポート用 zip をダウンロード",
+    "hint": "問題の診断に必要な情報をまとめた zip です。ユーザーデータと blob は含みません：",
+    "i1": "システム情報とヘルスチェック",
+    "i2": "設定内容（機密はマスク済み）",
+    "i3": "直近のログ",
+    "i4": "リポジトリ・ストレージ・タスクの定義"
+  },
+  "system": {
+    "audit": "監査ログ",
+    "config": "設定",
+    "health": "ヘルス",
+    "info": "システム情報"
+  },
+  "tasks": {
+    "cleanupNote": "クリーンアップポリシーは、このタスクが実行されたときにのみ適用されます。",
+    "defaultInterval": "デフォルト間隔（{{i}}）",
+    "duration": "所要時間",
+    "every": "間隔",
+    "failedNotice": "タスク {{name}} が失敗しました",
+    "idle": "待機中",
+    "lastRun": "前回の実行",
+    "name": {
+      "backup": "バックアップ",
+      "blob-gc": "Blob GC",
+      "cleanup-policies": "クリーンアップポリシーの適用",
+      "compact-blobs": "blob ストアの最適化",
+      "prune-expired": "期限切れエントリの削除",
+      "re-encrypt-secrets": "機密の再暗号化",
+      "rebuild-indexes": "インデックスの再構築"
+    },
+    "nextRun": "次回の実行",
+    "noLog": "（出力なし）",
+    "runNow": "今すぐ実行",
+    "running": "{{n}} 件実行中 · 3 秒ごとに更新",
+    "runningNow": "実行中…",
+    "runs": "実行履歴",
+    "saveSchedule": "スケジュールを保存",
+    "schedule": "スケジュール",
+    "scheduleBtn": "スケジュール設定",
+    "scheduleTitle": "スケジュール",
+    "started": "タスク {{name}} を開始しました",
+    "summary": "概要",
+    "task": "タスク"
+  },
+  "theme": {
+    "dark": "ダークテーマ",
+    "light": "ライトテーマ"
+  },
+  "tokens": {
+    "create": "トークンを作成",
+    "createdTitle": "トークン「{{name}}」を作成しました",
+    "custom": "カスタム",
+    "d30": "30 日",
+    "d365": "1 年",
+    "d90": "90 日",
+    "date": "日付",
+    "expired": "期限切れ",
+    "expires": "有効期限",
+    "expiresOn": "有効期限 {{date}}",
+    "lastUsed": "最終使用",
+    "nameHint": "例：「gitlab-ci」「ノート PC」",
+    "never": "無期限",
+    "neverExpires": "無期限",
+    "prefix": "プレフィックス",
+    "revoke": "失効",
+    "revokeHint": "使用中のクライアントはただちに失敗し始めます。",
+    "revokeTitle": "トークン「{{name}}」を失効させますか？",
+    "revoked": "トークンを失効しました",
+    "saved": "保存しました",
+    "secretLabel": "SECRET · 表示はこの一度だけ",
+    "secretWarn": "閉じるとこの secret は二度と表示されません。今すぐ保存してください（例：CI の secret 変数 HLK_TOKEN）。",
+    "sub": "CI やコマンドラインクライアント用の個人アクセストークンです。権限は {{user}} と同じです。",
+    "useBasic": "Basic（任意のクライアント）",
+    "useBasicHint": "ユーザー名 ＋ トークンをパスワードとして使用。"
+  },
+  "type": {
+    "blocked": "ブロック中",
+    "group": "グループ",
+    "hosted": "ホスト",
+    "offline": "オフライン",
+    "proxy": "プロキシ"
+  },
+  "usage": {
+    "apt": {
+      "sources": "ソース",
+      "upload": ".deb をアップロード"
+    },
+    "createToken": "トークンを作成 →",
+    "cred": "認証情報：User Token を使用します（ユーザー名 ＋ トークンをパスワードに）。",
+    "credNote": "# 認証情報：ユーザー名 ＋ User Token をパスワードとして",
+    "docker": {
+      "mirror": "Docker daemon registry mirror",
+      "path": "パスモード（メインポート）",
+      "port": "ポート",
+      "subdomain": "サブドメイン",
+      "tls": "TLS ポート"
+    },
+    "helm": {
+      "push": "chart をアップロード"
+    },
+    "maven": {
+      "deploy": "デプロイ",
+      "mirror": "ミラーとして使う"
+    },
+    "npm": {
+      "publish": "publish",
+      "registry": "レジストリ",
+      "scope": "特定の scope のみ"
+    },
+    "nuget": {
+      "push": "push"
+    },
+    "raw": {
+      "download": "ダウンロード",
+      "upload": "アップロード"
+    },
+    "tf": {
+      "mirror": "Provider network mirror",
+      "module": "Module ソース"
+    },
+    "yum": {
+      "upload": ".rpm をアップロード"
+    }
+  },
+  "users": {
+    "active": "有効",
+    "create": "ユーザーを作成",
+    "deleteHint": "そのユーザーのトークンはただちに無効になります。",
+    "deleteTitle": "ユーザーを削除",
+    "displayName": "表示名",
+    "edit": "{{name}} を編集",
+    "exists": "そのユーザー名は既に存在します",
+    "externalHint": "{{source}} から同期されています。マッピングのロールはログイン時に適用され、ここで設定したロールは追加で付与されます。",
+    "pwReset": "パスワードを更新しました",
+    "resetPw": "パスワードをリセット",
+    "resetPwTitle": "{{name}} のパスワードをリセット",
+    "selfAdminHint": "このページへのアクセス権をただちに失います。",
+    "selfAdminTitle": "自分の admin ロールを外しますか？",
+    "source": "ソース",
+    "tokensOf": "{{name}} のトークン"
+  },
+  "webhooks": {
+    "create": "webhook を作成",
+    "deleteTitle": "webhook「{{name}}」を削除しますか？",
+    "edit": "webhook を編集",
+    "events": "イベント",
+    "httpsHint": "https:// を推奨",
+    "payload": "ペイロード例",
+    "queued": "テストイベントをキューに入れました — 送信結果は Logs で確認してください",
+    "repoHint": "空欄ですべてのリポジトリ",
+    "sendTest": "テスト送信",
+    "signature": "署名：X-Holiaokho-Signature（本文の HMAC-SHA256）"
+  },
+  "wizard": {
+    "configure": "{{format}} {{type}} の設定",
+    "create": "{{name}} を作成",
+    "filterFormats": "フォーマットを絞り込み",
+    "groupDesc": "複数のホスト／プロキシリポジトリを 1 つの URL にまとめます。",
+    "groupNeedsMembers": "先にホストまたはプロキシの {{format}} リポジトリを作成してください。",
+    "groupWhen": "クライアントに 1 つのアドレスだけ設定させたいとき。",
+    "hostedDesc": "開発者や CI がアップロードする自分たちの成果物。",
+    "hostedWhen": "社内ライブラリ、リリースビルド、自作イメージ。",
+    "preview": "作成後、クライアントはこのように使います",
+    "proxyDesc": "リモートレジストリをキャッシュします。一度ダウンロードすれば以降はローカルから配信します。",
+    "proxyWhen": "Maven Central、npmjs、Docker Hub、PyPI…",
+    "step1": "フォーマット",
+    "step2": "タイプ",
+    "step3": "設定",
+    "title": "作成"
+  }
+}

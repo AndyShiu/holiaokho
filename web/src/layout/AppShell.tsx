@@ -140,8 +140,11 @@ export default function AppShell() {
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Sider width={232} collapsedWidth={56} collapsible collapsed={collapsed} trigger={null} style={{ borderRight: '1px solid var(--hlk-border)', position: 'sticky', top: 0, height: '100vh', overflow: 'auto' }}>
-        <div style={{ padding: collapsed ? '14px 12px' : '14px 12px 8px', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }} onClick={() => setCollapsed(!collapsed)}>
+      <Sider
+        width={232} collapsedWidth={56} collapsible collapsed={collapsed} trigger={null}
+        style={{ borderRight: '1px solid var(--hlk-border)', position: 'sticky', top: 0, height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+      >
+        <div style={{ padding: collapsed ? '14px 12px' : '14px 12px 8px', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', flex: 'none' }} onClick={() => setCollapsed(!collapsed)}>
           <LogoMark size={22} ink={'var(--hlk-text)'} />
           {!collapsed && (
             <>
@@ -150,8 +153,10 @@ export default function AppShell() {
             </>
           )}
         </div>
-        <Menu mode="inline" items={items} selectedKeys={selected} style={{ background: 'transparent', padding: '0 12px', fontSize: 13 }} inlineIndent={10} />
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: 12, borderTop: '1px solid var(--hlk-border)' }}>
+        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden' }}>
+          <Menu mode="inline" items={items} selectedKeys={selected} style={{ background: 'transparent', padding: '0 12px 8px', fontSize: 13 }} inlineIndent={10} />
+        </div>
+        <div style={{ flex: 'none', padding: 12, borderTop: '1px solid var(--hlk-border)' }}>
           <Dropdown menu={{ items: userMenu }} trigger={['click']} placement="topLeft">
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: 4 }}>
               <Avatar size={26} style={{ background: 'var(--hlk-ink)', color: '#F3EFE7', fontSize: 12, flex: 'none' }} icon={isAnonymous ? <UserOutlined /> : undefined}>

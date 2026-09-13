@@ -47,4 +47,4 @@ export interface LDAPConfig { enabled: boolean; url: string; startTls: boolean; 
 export interface OIDCConfig { enabled: boolean; issuer: string; clientId: string; clientSecret?: string; scopes: string[]; usernameClaim: string; groupsClaim: string; roleMapping: Record<string, string>; defaultRoles: string[]; redirectUrl: string; insecureSkipIssuerVerify: boolean }
 export interface RutConfig { enabled: boolean; header: string; trustedProxies: string[]; autoCreate: boolean; defaultRoles: string[] }
 export interface SearchHit extends Package { repository: string; format: string }
-export interface AuthSettings { realms: string[]; defaultRoles: string[]; password: PasswordPolicy; ldap: LDAPConfig; oidc: OIDCConfig; rut: RutConfig }
+export interface AuthSettings { realms: string[]; defaultRoles: string[]; password: PasswordPolicy; anonymous?: boolean | null; ldap: LDAPConfig; oidc: OIDCConfig; rut: RutConfig }

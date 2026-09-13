@@ -372,9 +372,18 @@ func (s *Service) principalFor(ctx context.Context, u *model.User, via string) (
 	return p, nil
 }
 
+// AnonymousEnabled reports whether unauthenticated access is allowed. The
+// stored setting wins; the config file is the fallback before it is set.
+func (s *Service) AnonymousEnabled(ctx context.Context) bool {
+	if v := s.Settings(ctx).Anonymous; v != nil {
+		return *v
+	}
+	return s.Cfg.AnonymousEnabled
+}
+
 // Anonymous returns the anonymous principal (or an empty one when disabled).
 func (s *Service) Anonymous(ctx context.Context) *Principal {
-	if !s.Cfg.AnonymousEnabled {
+	if !s.AnonymousEnabled(ctx) {
 		return &Principal{Username: UserAnonymous, Anonymous: true, Via: "anonymous"}
 	}
 	u, err := s.User(ctx, UserAnonymous)

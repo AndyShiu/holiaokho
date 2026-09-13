@@ -64,7 +64,7 @@ export default function Selectors() {
       </div>
       <Drawer open={!!drawer} onClose={() => setDrawer(null)} width={820} title={drawer === 'new' ? t('selectors.create', 'Create selector') : t('selectors.edit', 'Edit selector')} destroyOnClose>
         {save.error ? <Alert type="error" showIcon message={errText(save.error)} style={{ marginBottom: 16 }} /> : null}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 24 }}>
+        <div className="hlk-side-grid">
           <Form form={form} layout="vertical" onFinish={(v) => save.mutate(v)} disabled={!canWrite}>
             <Form.Item name="name" label={t('common.name', 'Name')} rules={[{ required: true }, { pattern: /^[A-Za-z0-9._-]+$/, message: t('repos.nameInvalid', 'Only letters, digits, . _ -') }]}><Input className="hlk-mono" disabled={!!editing} /></Form.Item>
             <Form.Item name="description" label={t('common.description', 'Description')}><Input /></Form.Item>

@@ -79,9 +79,10 @@
   },
   "auth": {
     "addLdapRealm": "＋ ldap",
+    "addLdapRealm2": "加入 LDAP 認證來源",
     "addMapping": "新增對應",
     "anonymous": "匿名存取",
-    "anonymousHint": "於設定檔設定（auth.anonymous_enabled）。權限來自",
+    "anonymousHint": "此處僅供檢視，開關在設定檔的 auth.anonymous_enabled。匿名使用者能做什麼，由 anonymous 角色決定。",
     "autoCreate": "自動建立使用者",
     "bindPassword": "Bind 密碼",
     "connOk": "連線成功",
@@ -98,8 +99,13 @@
     "password": "密碼政策",
     "pwExample": "合格的密碼長這樣",
     "pwHint": "套用於建立使用者、管理員重設與使用者自行變更。既有密碼不會重新檢查。",
+    "realmDesc": {
+      "ldap": "來自 LDAP 目錄的帳號",
+      "local": "儲存在好料庫本機的帳號"
+    },
     "realms": "認證來源與匿名",
     "realmsHint": "登入時依此順序嘗試各認證來源。OIDC 與 Rut Auth 是獨立流程，不在此列。",
+    "realmsHint2": "登入時由上而下依序嘗試，第一個通過驗證的就採用。可拖曳調整順序。",
     "redirect": "重新導向網址（請在 IdP 註冊）",
     "role": "角色",
     "roleMapping": "角色對應",
@@ -112,7 +118,8 @@
     "testLogin": "測試連線／登入",
     "testLoginBtn": "測試登入",
     "timeout": "逾時（秒）",
-    "userSubtree": "搜尋子樹"
+    "userSubtree": "搜尋子樹",
+    "viewAnonRole": "查看 anonymous 角色 →"
   },
   "backup": {
     "c1": "所有 repository、使用者、角色、設定與內容索引都會被取代。",

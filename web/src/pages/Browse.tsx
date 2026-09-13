@@ -218,7 +218,7 @@ export default function Browse() {
   }, [sp])
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '280px minmax(0,1fr)', gap: 16, alignItems: 'start' }}>
+    <div className="hlk-browse-grid">
       <div style={{ background: 'var(--hlk-card-alt)', border: '1px solid var(--hlk-border)', borderRadius: 10, padding: 10, position: 'sticky', top: 76, maxHeight: 'calc(100vh - 100px)', overflow: 'auto' }}>
         <Input size="small" prefix={<SearchOutlined />} placeholder={t('browse.filterRepos', 'Filter repositories')} value={filter} onChange={(e) => setFilter(e.target.value)} allowClear style={{ marginBottom: 8 }} />
         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 8 }}>

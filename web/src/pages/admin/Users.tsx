@@ -60,7 +60,7 @@ export default function Users() {
       </>} />
       <div className="hlk-card" style={{ padding: 0 }}>
         <Table<User>
-          rowKey="id" loading={users.isLoading} dataSource={list} className="hlk-table" size="middle" pagination={{ pageSize: 25, showSizeChanger: false }}
+          rowKey="id" loading={users.isLoading} dataSource={list} className="hlk-table" scroll={{ x: 1100 }} size="middle" pagination={{ pageSize: 25, showSizeChanger: false }}
           columns={[
             { title: t('login.username', 'Username'), dataIndex: 'username', sorter: (a, b) => a.username.localeCompare(b.username), render: (x: string) => <span className="hlk-mono" style={{ fontWeight: 500 }}>{x}</span> },
             { title: t('users.displayName', 'Display name'), dataIndex: 'displayName' },

@@ -30,6 +30,12 @@ for i in $(seq 1 30); do curl -sf $H/healthz >/dev/null && break; sleep 1; done
 check curl -sf $H/readyz
 
 echo "== repositories"
+# A fresh install now ships starter repositories (like Nexus); drop them so
+# this script owns the whole repository set.
+for r in $(api $H/api/v1/repositories | grep -o '"name":"[^"]*"' | cut -d'"' -f4); do
+  api -X DELETE "$H/api/v1/repositories/$r" >/dev/null || true
+done
+check test "$(api $H/api/v1/repositories | grep -o '"name"' | wc -l)" -eq 0
 mk() { api -X POST $H/api/v1/repositories -d "$1" >/dev/null; }
 mk '{"name":"maven-central","format":"maven","type":"proxy","attributes":{"proxy":{"remoteUrl":"https://repo1.maven.org/maven2/","contentMaxAge":-1},"maven":{"layoutPolicy":"PERMISSIVE","versionPolicy":"RELEASE"}}}'
 mk '{"name":"maven-releases","format":"maven","type":"hosted","attributes":{"hosted":{"writePolicy":"allow_once"},"maven":{"versionPolicy":"RELEASE"}}}'

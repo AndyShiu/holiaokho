@@ -79,9 +79,10 @@
   },
   "auth": {
     "addLdapRealm": "+ ldap",
+    "addLdapRealm2": "Add the LDAP realm",
     "addMapping": "Add mapping",
     "anonymous": "Anonymous access",
-    "anonymousHint": "Set in the config file (auth.anonymous_enabled). Permissions come from the",
+    "anonymousHint": "Read-only here: set it in the config file as auth.anonymous_enabled. What anonymous users may do comes from the anonymous role.",
     "autoCreate": "Auto-create users",
     "bindPassword": "Bind password",
     "connOk": "Connected",
@@ -98,8 +99,13 @@
     "password": "Password policy",
     "pwExample": "A valid password looks like",
     "pwHint": "Applies to user creation, admin resets and self-service changes. Existing passwords are not re-checked.",
+    "realmDesc": {
+      "ldap": "Accounts from the LDAP directory",
+      "local": "Local accounts stored in Holiaokho"
+    },
     "realms": "Realms & anonymous",
     "realmsHint": "Login tries each realm in this order. OIDC and Rut Auth are separate flows and do not appear here.",
+    "realmsHint2": "On login the realms are tried from top to bottom; the first one that accepts the password wins. Drag to reorder.",
     "redirect": "Redirect URL (register at the IdP)",
     "role": "role",
     "roleMapping": "Role mapping",
@@ -112,7 +118,8 @@
     "testLogin": "Test connection / login",
     "testLoginBtn": "Test login",
     "timeout": "Timeout (s)",
-    "userSubtree": "Search subtree"
+    "userSubtree": "Search subtree",
+    "viewAnonRole": "View the anonymous role →"
   },
   "backup": {
     "c1": "All repositories, users, roles, settings and content indexes are replaced.",

@@ -61,7 +61,7 @@ export default function Repositories() {
       />
       <div className="hlk-card" style={{ padding: 0 }}>
         <Table<Repository>
-          rowKey="name" loading={repos.isLoading} dataSource={list} className="hlk-table" size="middle" pagination={{ pageSize: 20, showSizeChanger: false, showTotal: (total, r) => `${r[0]}–${r[1]} / ${total}` }}
+          rowKey="name" loading={repos.isLoading} dataSource={list} className="hlk-table" scroll={{ x: 1160 }} size="middle" pagination={{ pageSize: 20, showSizeChanger: false, showTotal: (total, r) => `${r[0]}–${r[1]} / ${total}` }}
           locale={{ emptyText: <EmptyState title={t('repos.empty', 'No repositories yet')} hint={t('repos.emptyHint', 'Create a proxy for Maven Central or npm to get started.')} action={canWrite && <Button type="primary" onClick={() => navigate('/admin/repositories/new')}>{t('repos.create', 'Create Repository')}</Button>} /> }}
           columns={[
             { title: t('common.name', 'Name'), dataIndex: 'name', sorter: (a, b) => a.name.localeCompare(b.name), render: (x: string) => <Link to={`/admin/repositories/${x}`} className="hlk-mono" style={{ fontSize: 12.5, fontWeight: 500 }}>{x}</Link> },

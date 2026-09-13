@@ -7,6 +7,7 @@ interface AuthState {
   session: Session | null
   loading: boolean
   refresh: () => Promise<Session | null>
+  refreshMethods: () => Promise<void>
   login: (username: string, password: string) => Promise<Session>
   logout: () => Promise<void>
   can: (target: string, action: string) => boolean
@@ -49,18 +50,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  const refreshMethods = useCallback(async () => {
+    try {
+      setMethods(await api<AuthMethods>('auth/methods'))
+    } catch {
+      /* keep the previous value */
+    }
+  }, [])
+
   useEffect(() => {
     ;(async () => {
-      try {
-        const m = await api<AuthMethods>('auth/methods')
-        setMethods(m)
-      } catch {
-        setMethods(null)
-      }
+      await refreshMethods()
       await refresh()
       setLoading(false)
     })()
-  }, [refresh])
+  }, [refresh, refreshMethods])
 
   useEffect(() => onUnauthorized(() => setSession((s) => (s && !s.anonymous ? null : s))), [])
 
@@ -84,11 +88,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AuthState>(() => {
     const { can, canRepo } = makeCan(session)
     return {
-      methods, session, loading, refresh, login, logout, can, canRepo,
+      methods, session, loading, refresh, refreshMethods, login, logout, can, canRepo,
       isAnonymous: !session || session.anonymous,
       isLocalUser: !!session && !session.anonymous && (session.via === 'session' || session.via === 'basic' || session.via === 'local'),
     }
-  }, [methods, session, loading, refresh, login, logout])
+  }, [methods, session, loading, refresh, refreshMethods, login, logout])
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }

@@ -80,7 +80,7 @@ export default function Tasks() {
       <PageHeader title={t('nav.tasks', 'Tasks')} sub={<span style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}><StatusDot status={running ? 'running' : 'idle'} />{running ? t('tasks.running', '{{n}} running · refreshes every 3 s', { n: running }) : t('tasks.idle', 'idle')}</span>} />
       <div className="hlk-card" style={{ padding: 0, marginBottom: 16 }}>
         <Table<Task>
-          rowKey="name" loading={tasks.isLoading} dataSource={tasks.data ?? []} className="hlk-table" pagination={false} size="middle"
+          rowKey="name" loading={tasks.isLoading} dataSource={tasks.data ?? []} className="hlk-table" scroll={{ x: 1120 }} pagination={false} size="middle"
           columns={[
             { title: t('tasks.task', 'Task'), dataIndex: 'name', width: 190, render: (n: string) => <div><div style={{ fontWeight: 500 }}>{t(`tasks.name.${n}`, n)}</div><div className="hlk-mono" style={{ fontSize: 11, color: 'var(--hlk-text-tertiary)' }}>{n}</div></div> },
             { title: t('common.description', 'Description'), dataIndex: 'description', render: (x: string) => <span style={{ fontSize: 12, color: 'var(--hlk-text-secondary)' }}>{x}</span> },

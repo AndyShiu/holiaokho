@@ -297,7 +297,9 @@ func (s *Server) middleware(next http.Handler) http.Handler {
 				return
 			}
 			if presented {
-				sw.Header().Set("WWW-Authenticate", `Basic realm="Holiaokho"`)
+				if !strings.HasPrefix(r.URL.Path, "/api/") {
+					sw.Header().Set("WWW-Authenticate", `Basic realm="Holiaokho"`)
+				}
 				format.WriteError(sw, 401, "auth.invalid", "invalid credentials")
 				return
 			}

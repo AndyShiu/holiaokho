@@ -67,7 +67,7 @@ func (a *API) Router() http.Handler {
 	r.Delete("/session", a.logout)
 
 	r.Route("/repositories", func(r chi.Router) {
-		r.Get("/", a.need("app:repositories", auth.Read, a.listRepos))
+		r.Get("/", a.listRepos)
 		r.Post("/", a.need("app:repositories", auth.Write, a.createRepo))
 		r.Get("/{name}", a.need("app:repositories", auth.Read, a.getRepo))
 		r.Put("/{name}", a.need("app:repositories", auth.Write, a.updateRepo))
@@ -196,7 +196,10 @@ func (a *API) need(target, action string, h http.HandlerFunc) http.HandlerFunc {
 		p := auth.PrincipalFrom(r.Context())
 		if p == nil || !p.Can(target, action) {
 			if p == nil || p.Anonymous {
-				w.Header().Set("WWW-Authenticate", `Basic realm="Holiaokho"`)
+				// No WWW-Authenticate here: this API is consumed by the Web UI,
+				// and the header makes browsers pop up their native Basic-auth
+				// dialog. Package clients authenticate on /repository and /v2,
+				// which still send a challenge.
 				writeErr(w, 401, "auth.required", "authentication required")
 				return
 			}
@@ -212,7 +215,6 @@ func (a *API) authed(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		p := auth.PrincipalFrom(r.Context())
 		if p == nil || p.Anonymous {
-			w.Header().Set("WWW-Authenticate", `Basic realm="Holiaokho"`)
 			writeErr(w, 401, "auth.required", "authentication required")
 			return
 		}
@@ -391,14 +393,21 @@ func keepRedacted(existing json.RawMessage, attrs map[string]json.RawMessage) {
 	}
 }
 
+// listRepos is open to anyone (Browse works anonymously) but only returns the
+// repositories the caller may read. Managers with app:repositories see all.
 func (a *API) listRepos(w http.ResponseWriter, r *http.Request) {
 	repos, err := a.Content.ListRepos(r.Context())
 	if err != nil {
 		a.fail(w, err)
 		return
 	}
+	p := auth.PrincipalFrom(r.Context())
+	manager := p != nil && p.Can("app:repositories", auth.Read)
 	out := make([]repoView, 0, len(repos))
 	for _, rp := range repos {
+		if !manager && (p == nil || !p.CanRepo(rp.Name, rp.Format, auth.Read)) {
+			continue
+		}
 		st, _ := a.Content.RepoStats(r.Context(), rp.ID)
 		out = append(out, repoView{redactRepo(rp), st, a.repoURL(r, rp.Name)})
 	}

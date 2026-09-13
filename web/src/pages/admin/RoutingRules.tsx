@@ -61,7 +61,7 @@ export default function RoutingRules() {
       </div>
       <Drawer open={!!drawer} onClose={() => setDrawer(null)} width={820} title={drawer === 'new' ? t('routing.create', 'Create rule') : t('routing.edit', 'Edit rule')} destroyOnClose>
         {save.error ? <Alert type="error" showIcon message={errText(save.error)} style={{ marginBottom: 16 }} /> : null}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 24 }}>
+        <div className="hlk-side-grid">
           <Form form={form} layout="vertical" initialValues={{ mode: 'block' }} onFinish={(v) => save.mutate(v)} disabled={!canWrite}>
             <Form.Item name="name" label={t('common.name', 'Name')} rules={[{ required: true }]}><Input /></Form.Item>
             <Form.Item name="description" label={t('common.description', 'Description')}><Input /></Form.Item>

@@ -117,3 +117,46 @@ a { color: inherit; }
   .hlk-face { animation: none !important; opacity: .4; }
   .hlk-pulse { animation: none !important; }
 }
+
+/* Sider: logo / scrollable menu / user footer as three flex rows, so the
+   footer never covers the last nav items. */
+.ant-layout-sider-children { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+
+/* Auth realms: draggable priority list */
+.hlk-realm {
+  display: flex; align-items: center; gap: 10px; padding: 8px 10px; margin-bottom: 6px;
+  border: 1px solid var(--hlk-border); border-radius: 8px; background: var(--hlk-card);
+  transition: border-color .15s ease, background .15s ease, transform .15s ease;
+}
+.hlk-realm[draggable="true"] { cursor: grab; }
+.hlk-realm[draggable="true"]:active { cursor: grabbing; }
+.hlk-realm:hover { border-color: var(--hlk-border-strong); background: var(--hlk-card-alt); }
+.hlk-realm.over { border-color: var(--hlk-amber); background: var(--hlk-card-alt); }
+.hlk-realm-grip { color: var(--hlk-text-quaternary); font-size: 14px; }
+.hlk-realm-no {
+  display: grid; place-items: center; width: 20px; height: 20px; border-radius: 5px;
+  background: var(--hlk-selected); color: var(--hlk-text-secondary);
+  font-family: var(--hlk-mono); font-size: 11px; font-weight: 600; flex: none;
+}
+
+/* ---- Responsive page grids ---- */
+.hlk-browse-grid { display: grid; grid-template-columns: 280px minmax(0,1fr); gap: 16px; align-items: start; }
+.hlk-auth-grid { display: grid; grid-template-columns: 200px minmax(0,1fr); gap: 28px; align-items: start; }
+.hlk-wizard-grid { display: grid; grid-template-columns: minmax(0,720px) minmax(0,1fr); gap: 40px; align-items: start; }
+.hlk-side-grid { display: grid; grid-template-columns: minmax(0,1fr) 320px; gap: 24px; }
+@media (max-width: 1180px) {
+  .hlk-auth-grid { grid-template-columns: 1fr; gap: 16px; }
+  .hlk-auth-grid > div:first-child { position: static !important; display: flex; gap: 6px; flex-wrap: wrap; }
+  .hlk-wizard-grid { grid-template-columns: 1fr; gap: 20px; }
+  .hlk-wizard-grid > div:last-child { position: static !important; }
+}
+@media (max-width: 900px) {
+  .hlk-browse-grid { grid-template-columns: 1fr; }
+  .hlk-browse-grid > div:first-child { position: static !important; max-height: 320px; }
+  .hlk-side-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 720px) {
+  /* Two-column form rows collapse to one on phones. */
+  .ant-drawer-body [style*="grid-template-columns: 1fr 1fr"],
+  .ant-modal-body [style*="grid-template-columns: 1fr 1fr"] { grid-template-columns: 1fr !important; }
+}

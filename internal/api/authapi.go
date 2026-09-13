@@ -24,7 +24,7 @@ func (a *API) authMethods(w http.ResponseWriter, r *http.Request) {
 	st := a.Auth.Settings(r.Context())
 	writeJSON(w, 200, map[string]any{
 		"local": true, "ldap": st.LDAP.Enabled, "oidc": st.OIDC.Enabled,
-		"oidcLoginUrl": "/api/v1/auth/oidc/login", "anonymous": a.Auth.Cfg.AnonymousEnabled,
+		"oidcLoginUrl": "/api/v1/auth/oidc/login", "anonymous": a.Auth.AnonymousEnabled(r.Context()),
 		"passwordPolicy": st.Password,
 	})
 }
@@ -43,6 +43,9 @@ func (a *API) putAuthSettings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	cur := a.Auth.Settings(r.Context())
+	if in.Anonymous == nil {
+		in.Anonymous = cur.Anonymous
+	}
 	if in.Password.MinLength == 0 {
 		// password block omitted: keep the current policy
 		in.Password = cur.Password

@@ -17,6 +17,9 @@ type Settings struct {
 	DefaultRoles []string `json:"defaultRoles"`
 	// Password is the complexity policy for local passwords.
 	Password PasswordPolicy `json:"password"`
+	// Anonymous enables unauthenticated access. nil means "not set here", in
+	// which case auth.anonymous_enabled from the config file applies.
+	Anonymous *bool `json:"anonymous,omitempty"`
 	LDAP     LDAPConfig     `json:"ldap"`
 	OIDC     OIDCConfig     `json:"oidc"`
 	Rut      RutConfig      `json:"rut"`
