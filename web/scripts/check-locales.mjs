@@ -20,5 +20,29 @@ for (const [lang, m] of Object.entries(locales)) {
   if (missing.length) { console.error(`${lang}: ${missing.length} missing -> ${missing.slice(0, 8).join(', ')}`); bad++ }
   if (extra.length) { console.error(`${lang}: ${extra.length} extra -> ${extra.slice(0, 8).join(', ')}`); bad++ }
 }
+
+// Catch keys referenced in source but absent from en.json. Covers t('a.b')
+// calls and key literals kept in arrays/consts, which a t()-only scan misses.
+const srcDir = new URL('../src/', import.meta.url).pathname
+const walk = (d) => readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(join(d, e.name)) : [join(d, e.name)]))
+const known = new Set(Object.keys(en))
+const prefixes = new Set(Object.keys(en).map((k) => k.split('.')[0]))
+const unknown = new Set()
+const skip = ['pages/admin/Webhooks.tsx'] // holds backend event names like asset.created
+for (const f of walk(srcDir).filter((f) => /\.tsx?$/.test(f) && !skip.some((s) => f.endsWith(s)))) {
+  const src = readFileSync(f, 'utf8')
+  for (const m of src.matchAll(/['"`]([a-z][a-zA-Z0-9]*(?:\.[a-zA-Z0-9_-]+)+)['"`]/g)) {
+    const key = m[1]
+    // Only consider strings whose first segment is an existing namespace, and
+    // skip dynamic keys (template literals are handled by their prefix).
+    if (!prefixes.has(key.split('.')[0])) continue
+    if (known.has(key)) continue
+    unknown.add(`${f.replace(srcDir, '')}: ${key}`)
+  }
+}
+if (unknown.size) {
+  console.error(`keys used in source but missing from en.json:\n  ${[...unknown].join('\n  ')}`)
+  bad++
+}
 console.log(`locales ok: ${Object.keys(locales).join(', ')} (${Object.keys(en).length} keys)`)
 process.exit(bad ? 1 : 0)
