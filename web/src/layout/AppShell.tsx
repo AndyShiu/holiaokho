@@ -12,6 +12,7 @@ import { useAuth } from '@/auth/AuthContext'
 import { useTheme } from '@/theme/ThemeContext'
 import { LANGS, setLanguage } from '@/i18n'
 import { LogoMark, Wordmark } from '@/components/Logo'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { get } from '@/api/client'
 import type { Health, Status, Task } from '@/api/types'
 
@@ -231,7 +232,9 @@ export default function AppShell() {
           <Notifications />
         </Header>
         <Content style={{ padding: mobile ? 16 : 24, minWidth: 0 }}>
-          <Outlet />
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
         </Content>
       </Layout>
     </Layout>

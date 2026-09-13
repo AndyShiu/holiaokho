@@ -14,24 +14,25 @@ export function copyText(text: string) {
   return Promise.resolve()
 }
 
-export function Copyable({ text, display, mono = true, maxWidth, style, block }: { text: string; display?: string; mono?: boolean; maxWidth?: number | string; style?: React.CSSProperties; block?: boolean }) {
+export function Copyable({ text, display, mono = true, maxWidth, style, block }: { text?: string | null; display?: string; mono?: boolean; maxWidth?: number | string; style?: React.CSSProperties; block?: boolean }) {
   const { t } = useTranslation()
   const { message } = App.useApp()
   const [done, setDone] = useState(false)
+  const value = text ?? ''
   const onCopy = async (e: React.MouseEvent) => {
     e.stopPropagation()
-    await copyText(text)
+    await copyText(value)
     setDone(true)
     message.success(t('common.copied', 'Copied'))
     setTimeout(() => setDone(false), 1500)
   }
   return (
-    <Tooltip title={text.length > 40 ? text : undefined}>
+    <Tooltip title={value.length > 40 ? value : undefined}>
       <span
         onClick={onCopy}
         style={{ display: block ? 'flex' : 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontFamily: mono ? 'var(--hlk-mono)' : undefined, maxWidth, minWidth: 0, ...style }}
       >
-        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{display ?? text}</span>
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{display ?? value ?? '—'}</span>
         {done ? <CheckOutlined style={{ color: 'var(--hlk-success)', fontSize: 13, flex: 'none' }} /> : <CopyOutlined style={{ color: 'var(--hlk-text-tertiary)', fontSize: 13, flex: 'none' }} />}
       </span>
     </Tooltip>

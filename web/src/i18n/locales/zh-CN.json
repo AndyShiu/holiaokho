@@ -301,6 +301,11 @@
     "testHint": "测试会使用已保存的设置 — 请先保存。",
     "testSent": "测试邮件已发送"
   },
+  "error": {
+    "boundaryHint": "其他页面仍可正常使用。重新加载通常就会恢复；下方信息可以帮我们找出原因。",
+    "boundaryTitle": "这个页面发生错误",
+    "reload": "重新加载"
+  },
   "errors": {
     "auth": {
       "forbidden": "你没有执行该操作的权限",

@@ -11,17 +11,25 @@ import { Copyable } from './Copyable'
 import { fmtBytes, AbsTime, RelTime } from './Format'
 import { repoBase } from './UsageSnippets'
 
+// GET /assets/{id} answers with the asset plus its repository and a ready-made
+// download URL, not a bare asset.
+interface AssetView {
+  asset: Asset
+  repository: string
+  downloadUrl: string
+}
+
 export function AssetDrawer({ assetId, repo: repoProp, onClose, onDeleted }: { assetId: string | null; repo?: Repository; onClose: () => void; onDeleted?: () => void }) {
   const { t } = useTranslation()
   const { canRepo } = useAuth()
   const { message } = App.useApp()
   const errText = useErrorText()
   const [confirm, setConfirm] = useState(false)
-  const q = useQuery({ queryKey: ['asset', assetId], queryFn: () => get<Asset>(`assets/${assetId}`), enabled: !!assetId })
+  const q = useQuery({ queryKey: ['asset', assetId], queryFn: () => get<AssetView>(`assets/${assetId}`), enabled: !!assetId })
   const repos = useQuery({ queryKey: ['repositories'], queryFn: () => get<Repository[]>('repositories'), enabled: !!assetId && !repoProp })
-  const a = q.data
-  const repo = repoProp ?? repos.data?.find((r) => r.id === a?.repoId)
-  const url = repo && a ? `${repoBase(repo)}/${a.path}` : ''
+  const a = q.data?.asset
+  const repo = repoProp ?? repos.data?.find((r) => r.name === q.data?.repository)
+  const url = q.data?.downloadUrl ?? (repo && a ? `${repoBase(repo)}/${a.path}` : '')
   const canDelete = repo ? canRepo(repo.name, repo.format, 'delete') : false
   const doDelete = useMutation({
     mutationFn: () => del(`assets/${assetId}`),
@@ -55,7 +63,7 @@ export function AssetDrawer({ assetId, repo: repoProp, onClose, onDeleted }: { a
             <div style={{ flex: 1 }} />
             {canDelete ? <Button danger onClick={() => setConfirm(true)}>{t('common.delete', 'Delete')}</Button> : <span style={{ fontSize: 12, color: 'var(--hlk-text-tertiary)' }}>{t('asset.deleteNeedsLogin', 'Deleting requires permission')}</span>}
           </div>
-          <ConfirmDelete open={confirm} name={a.path.split('/').pop() ?? a.path} typeToConfirm={false} title={t('asset.deleteTitle', 'Delete this file?')} description={a.path} onCancel={() => setConfirm(false)} onConfirm={() => doDelete.mutate()} loading={doDelete.isPending} />
+          <ConfirmDelete open={confirm} name={a.path?.split('/').pop() || a.path || ''} typeToConfirm={false} title={t('asset.deleteTitle', 'Delete this file?')} description={a.path} onCancel={() => setConfirm(false)} onConfirm={() => doDelete.mutate()} loading={doDelete.isPending} />
         </>
       )}
     </Drawer>

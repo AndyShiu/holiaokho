@@ -301,6 +301,11 @@
     "testHint": "測試會使用已儲存的設定 — 請先儲存。",
     "testSent": "測試信已寄出"
   },
+  "error": {
+    "boundaryHint": "其他頁面仍可正常使用。重新載入通常就會恢復;下方訊息可以幫我們找出原因。",
+    "boundaryTitle": "這個頁面發生錯誤",
+    "reload": "重新載入"
+  },
   "errors": {
     "auth": {
       "forbidden": "你沒有執行這項操作的權限",

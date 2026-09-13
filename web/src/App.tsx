@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-route
 import { Spin } from 'antd'
 import { useAuth } from './auth/AuthContext'
 import AppShell from './layout/AppShell'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import Login from './pages/Login'
 import ChangePassword from './pages/ChangePassword'
 
@@ -56,6 +57,7 @@ export default function App() {
   return (
     <BrowserRouter basename="/ui">
       <Suspense fallback={<Center><Spin /></Center>}>
+        <ErrorBoundary>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/change-password" element={<Guard authed><ChangePassword /></Guard>} />
@@ -85,6 +87,7 @@ export default function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
+        </ErrorBoundary>
       </Suspense>
     </BrowserRouter>
   )

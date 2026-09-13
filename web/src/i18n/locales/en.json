@@ -301,6 +301,11 @@
     "testHint": "The test uses the saved settings — save first.",
     "testSent": "Test email sent"
   },
+  "error": {
+    "boundaryHint": "The rest of the app still works. Reloading usually clears it; the message below helps us fix the cause.",
+    "boundaryTitle": "Something went wrong on this page",
+    "reload": "Reload"
+  },
   "errors": {
     "auth": {
       "forbidden": "You do not have permission to do this",

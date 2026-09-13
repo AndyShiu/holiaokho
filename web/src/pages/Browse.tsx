@@ -40,7 +40,13 @@ export function RepoContent({ repo, path, onNavigate, showPackages = true, initi
   const rows = useMemo(() => {
     const d = browse.data
     if (!d) return []
-    const dirs = (d.directories ?? []).map((x) => ({ key: 'd:' + x, dir: true, name: dirName(x), path: x, file: undefined as Asset | undefined }))
+    // The API returns directory names relative to the directory being listed,
+    // while file paths are absolute within the repository. Join the former so
+    // navigating into a nested directory keeps its parents.
+    const dirs = (d.directories ?? []).map((x) => {
+      const full = d.path ? `${d.path.replace(/\/$/, '')}/${x}` : x
+      return { key: 'd:' + full, dir: true, name: dirName(x), path: full, file: undefined as Asset | undefined }
+    })
     const files = (d.files ?? []).map((f) => ({ key: 'f:' + f.id, dir: false, name: dirName(f.path), path: f.path, file: f }))
     return [...dirs, ...files]
   }, [browse.data])
