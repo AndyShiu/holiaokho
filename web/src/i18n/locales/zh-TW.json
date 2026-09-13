@@ -1,1 +1,774 @@
-{}
+{
+  "asset": {
+    "cacheExpires": "快取到期",
+    "cacheForever": "永不過期（永久快取）",
+    "contentType": "內容類型",
+    "deleteNeedsLogin": "刪除需要權限",
+    "deleteTitle": "刪除這個檔案？",
+    "downloadUrl": "下載網址",
+    "lastDownloaded": "最後下載",
+    "negative": "負快取",
+    "negativeHint": "上游回應 404",
+    "package": "套件",
+    "path": "路徑",
+    "sha256": "sha256",
+    "size": "大小",
+    "viewPackage": "查看套件"
+  },
+  "audit": {
+    "asset": {
+      "delete": "刪除檔案",
+      "upload": "上傳檔案"
+    },
+    "auth": {
+      "settings": "變更認證設定"
+    },
+    "cleanup": {
+      "create": "建立清理規則"
+    },
+    "content_selector": {
+      "create": "建立內容選擇器"
+    },
+    "email": {
+      "update": "變更郵件設定"
+    },
+    "last": "最近",
+    "login": "登入",
+    "package": {
+      "delete": "刪除套件"
+    },
+    "repository": {
+      "create": "建立 repository",
+      "delete": "刪除 repository",
+      "invalidate_cache": "清除快取",
+      "update": "更新 repository"
+    },
+    "role": {
+      "create": "建立角色",
+      "update": "更新角色"
+    },
+    "routing_rule": {
+      "create": "建立路由規則"
+    },
+    "storage": {
+      "create": "建立儲存空間"
+    },
+    "system": {
+      "backup": "下載備份",
+      "log_level": "變更記錄層級",
+      "pgp_key": "產生 PGP 金鑰",
+      "restore": "從備份還原",
+      "rsa_key": "產生 RSA 金鑰"
+    },
+    "task": {
+      "run": "執行任務",
+      "schedule": "變更排程"
+    },
+    "token": {
+      "create": "建立存取權杖"
+    },
+    "user": {
+      "create": "建立使用者",
+      "delete": "刪除使用者",
+      "password": "變更密碼",
+      "update": "更新使用者"
+    },
+    "webhook": {
+      "create": "建立 webhook"
+    }
+  },
+  "auth": {
+    "addLdapRealm": "＋ ldap",
+    "addMapping": "新增對應",
+    "anonymous": "匿名存取",
+    "anonymousHint": "於設定檔設定（auth.anonymous_enabled）。權限來自",
+    "autoCreate": "自動建立使用者",
+    "bindPassword": "Bind 密碼",
+    "connOk": "連線成功",
+    "defaultRoles": "預設角色",
+    "defaultRolesHint": "除了使用者自己的角色外，額外授予每位已登入的使用者。",
+    "disallowCommon": "拒絕常見密碼（內建清單）",
+    "ldapDefaultRoles": "LDAP 使用者的預設角色",
+    "ldapNotInRealms": "LDAP 已啟用，但不在認證來源順序中，因此不會用於登入。",
+    "loginOk": "登入成功",
+    "maxLength": "最大長度",
+    "minLength": "最小長度",
+    "oidcDefaultRoles": "OIDC 使用者的預設角色",
+    "options": "選項",
+    "password": "密碼政策",
+    "pwExample": "合格的密碼長這樣",
+    "pwHint": "套用於建立使用者、管理員重設與使用者自行變更。既有密碼不會重新檢查。",
+    "realms": "認證來源與匿名",
+    "realmsHint": "登入時依此順序嘗試各認證來源。OIDC 與 Rut Auth 是獨立流程，不在此列。",
+    "redirect": "重新導向網址（請在 IdP 註冊）",
+    "role": "角色",
+    "roleMapping": "角色對應",
+    "rutWarn": "僅在反向代理會剝除此 header，且已設定 server.trusted_proxies 時才可啟用。",
+    "saved": "已儲存 — 最多 30 秒內生效",
+    "skipIssuer": "略過 issuer 驗證",
+    "skipVerify": "略過 TLS 憑證驗證",
+    "testConn": "測試連線",
+    "testHint": "使用上方尚未儲存的表單內容。",
+    "testLogin": "測試連線／登入",
+    "testLoginBtn": "測試登入",
+    "timeout": "逾時（秒）",
+    "userSubtree": "搜尋子樹"
+  },
+  "backup": {
+    "c1": "所有 repository、使用者、角色、設定與內容索引都會被取代。",
+    "c2": "封存檔中的 blob 會寫入預設儲存空間。",
+    "c3": "可能需要數分鐘，請勿關閉此頁面。",
+    "cfgHint": "於設定檔設定（backup.*），以「backup」任務執行。",
+    "confirm1": "還原會覆寫所有資料",
+    "confirm2": "輸入 RESTORE 以確認",
+    "dir": "目錄",
+    "download": "立即下載備份",
+    "downloadHint": "一個 tar.gz，內含資料庫（每個資料表一份 CSV），並可選擇包含所有 blob。",
+    "drop": "將備份 .tar.gz 拖曳到這裡",
+    "includeBlobs": "包含 blob",
+    "keep": "保留份數",
+    "notConfigured": "尚未設定",
+    "restore": "還原",
+    "restoreBtn": "從這個檔案還原…",
+    "restoreNow": "立即還原",
+    "restoreWarn": "還原會以封存檔內容取代整個資料庫與 blob 儲存空間。請先停止用戶端流量，完成後所有人都會被登出。",
+    "restored": "還原完成 — 請重新登入",
+    "restoring": "還原中… 這可能需要一段時間。",
+    "scheduled": "排程備份"
+  },
+  "browse": {
+    "allowOnce": "此 repository 不允許重新部署已存在的路徑（寫入政策：allow_once）。",
+    "content": "內容",
+    "deny": "此 repository 為唯讀（寫入政策：deny）。",
+    "dropHint": "將檔案拖曳到這裡，或點擊選擇",
+    "empty": "此 repository 尚無內容",
+    "emptyHosted": "上傳檔案，或從用戶端推送。",
+    "emptyProxy": "第一次透過代理下載後，內容就會出現在這裡。",
+    "filterPackages": "以名稱或命名空間篩選",
+    "filterRepos": "篩選 repository",
+    "groupHint": "合併自 {{n}} 個成員：",
+    "noRepos": "尚無 repository",
+    "noReposHint": "建立第一個 repository 開始使用。",
+    "notFound": "找不到 repository",
+    "offline": "此 repository 已離線：用戶端請求會被拒絕。",
+    "overwrite": "若路徑已存在則覆寫",
+    "packages": "套件",
+    "pick": "請在左側選擇一個 repository",
+    "proxyHint": "這裡只列出已快取的內容 — 不代表上游的完整清單。",
+    "upload": "上傳",
+    "uploadTo": "上傳到 {{name}}",
+    "uploaded": "已上傳 {{path}}"
+  },
+  "cleanup": {
+    "assignTo": "套用到 repository",
+    "assigned": "Repository",
+    "create": "建立規則",
+    "criteria": "條件",
+    "criteriaHint": "任一時間條件符合就會刪除該套件；keepLatest 一律保護最新的版本",
+    "deleteHint": "會從 {{n}} 個 repository 取消套用。已刪除的內容不會還原。",
+    "deleteTitle": "刪除規則「{{name}}」？",
+    "edit": "編輯規則",
+    "keep": "每個名稱保留最新 N 版",
+    "lastDl": "未被下載達（天）",
+    "lastUpd": "建立超過（天）",
+    "nameRegex": "名稱正規表示式",
+    "nextRun": "由 cleanup-policies 任務套用 · 下次執行",
+    "preAny": "不限",
+    "preExclude": "僅正式版",
+    "preOnly": "僅預先發行版",
+    "prerelease": "預先發行版",
+    "preview": "預覽",
+    "previewSaveFirst": "請先儲存規則，再預覽會刪除哪些內容。",
+    "runPreview": "預覽將刪除的內容",
+    "sumDl": "{{n}} 天未下載",
+    "sumKeep": "每個名稱保留最新 {{n}} 版",
+    "sumPre": "僅預先發行版",
+    "sumRel": "僅正式版",
+    "sumUpd": "建立超過 {{n}} 天",
+    "versionRegex": "版本正規表示式",
+    "wouldDelete": "將刪除 {{n}} 個套件"
+  },
+  "common": {
+    "all": "全部",
+    "back": "上一步",
+    "cancel": "取消",
+    "close": "關閉",
+    "continue": "繼續",
+    "copied": "已複製",
+    "copy": "複製",
+    "create": "建立",
+    "created": "建立時間",
+    "dangerZone": "危險操作",
+    "delete": "刪除",
+    "deleted": "已刪除",
+    "description": "說明",
+    "details": "詳細資料",
+    "download": "下載",
+    "edit": "編輯",
+    "enabled": "已啟用",
+    "format": "格式",
+    "min": "分",
+    "name": "名稱",
+    "never": "從未",
+    "noMatch": "沒有符合的項目",
+    "none": "無",
+    "nothingYet": "目前沒有資料",
+    "off": "關閉",
+    "revert": "還原變更",
+    "save": "儲存",
+    "saved": "已儲存",
+    "search": "搜尋",
+    "secretKeep": "留空（或維持 ***）即保留原本已儲存的值",
+    "status": "狀態",
+    "test": "測試",
+    "time": "時間",
+    "type": "型態",
+    "typeToConfirm": "請輸入",
+    "typeToConfirmSuffix": "以確認",
+    "unsaved": "尚未儲存的變更",
+    "updated": "更新時間",
+    "viewAll": "查看全部 →"
+  },
+  "config": {
+    "hint": "唯讀。機密已遮蔽。請於設定檔或 HOLIAOKHO_* 環境變數修改後重新啟動。"
+  },
+  "cron": {
+    "daily": "每天 {{time}}",
+    "everyNMin": "每 {{n}} 分鐘",
+    "hint": "分 時 日 月 星期",
+    "hourly": "每小時",
+    "invalid": "表示式格式錯誤",
+    "monthly": "每月 {{dom}} 日 {{time}}",
+    "next5": "接下來 5 次執行",
+    "tplDaily": "每天 02:00",
+    "tplHourly": "每小時",
+    "tplSunday": "每週日 03:00",
+    "weekly": "每週星期 {{dow}} {{time}}"
+  },
+  "dashboard": {
+    "activity": "最近活動",
+    "allGood": "所有服務正常",
+    "assets": "檔案",
+    "attention": "{{n}} 項需要注意",
+    "dedup": "內容定址，已去除重複",
+    "devHint": "在「瀏覽」或「搜尋」找套件，並在「我的存取權杖」建立 CI 用的個人權杖。",
+    "packages": "套件",
+    "refresh": "每 30 秒更新",
+    "repos": "Repository",
+    "size": "總大小",
+    "step1": "更改 admin 密碼",
+    "step1a": "立即更改",
+    "step2": "建立第一個代理快取",
+    "step2a": "例如 Maven Central",
+    "step3": "複製用戶端設定",
+    "step3a": "在 repository 的「使用方式」分頁",
+    "welcome": "歡迎使用好料庫",
+    "welcomeHint": "三個步驟讓第一個 repository 開始服務。"
+  },
+  "email": {
+    "encryption": "加密方式",
+    "recipients": "通知收件人",
+    "recipientsHint": "會收到任務失敗與儲存空間配額警告。",
+    "sendTest": "寄送測試信",
+    "sub": "用於任務失敗與配額通知的外寄 SMTP。",
+    "testHint": "測試會使用已儲存的設定 — 請先儲存。",
+    "testSent": "測試信已寄出"
+  },
+  "errors": {
+    "auth": {
+      "forbidden": "你沒有執行這項操作的權限",
+      "invalid": "憑證無效",
+      "rate_limited": "登入失敗次數過多，請稍後再試",
+      "required": "請先登入才能繼續"
+    },
+    "body": {
+      "invalid": "無法讀取請求內容"
+    },
+    "conflict": "這個項目已經存在",
+    "email": {
+      "failed": "寄送郵件失敗"
+    },
+    "format": {
+      "unsupported": "此格式不支援這項操作"
+    },
+    "internal": "伺服器內部錯誤",
+    "ldap": {
+      "failed": "LDAP 請求失敗"
+    },
+    "nexus": {
+      "unsupported": "Nexus 相容層不支援這項操作"
+    },
+    "not_found": "找不到項目",
+    "oidc": {
+      "failed": "OIDC 登入失敗"
+    },
+    "password": {
+      "common": "此密碼過於常見",
+      "contains_username": "密碼不可包含使用者名稱",
+      "need_digit": "密碼必須包含數字",
+      "need_lower": "密碼必須包含小寫字母",
+      "need_symbol": "密碼必須包含符號",
+      "need_upper": "密碼必須包含大寫字母",
+      "too_long": "密碼長度最多 {{p0}} 個字元",
+      "too_short": "密碼長度至少需 {{p0}} 個字元"
+    },
+    "path": {
+      "invalid": "路徑不合法"
+    },
+    "repo": {
+      "invalid": "Repository 設定不正確",
+      "not_found": "找不到 repository",
+      "not_proxy": "這不是代理快取型的 repository",
+      "read_only": "此 repository 為唯讀",
+      "redeploy_denied": "此 repository 不允許重複部署同一個版本"
+    },
+    "restore": {
+      "failed": "還原失敗"
+    },
+    "storage": {
+      "invalid": "儲存空間設定不正確",
+      "unknown": "未知的儲存空間"
+    },
+    "task": {
+      "unknown": "未知的任務"
+    },
+    "upload": {
+      "failed": "上傳失敗"
+    },
+    "user": {
+      "exists": "這個帳號已存在",
+      "invalid": "使用者不正確"
+    },
+    "validation": "請檢查輸入的內容"
+  },
+  "health": {
+    "changeNow": "立即更改",
+    "check": "檢查項目",
+    "message": "訊息",
+    "ok": "正常",
+    "problems": "偵測到問題",
+    "recheck": "重新檢查",
+    "unhealthy": "異常"
+  },
+  "info": {
+    "copy": "複製為文字",
+    "database": "資料庫",
+    "runtime": "執行環境",
+    "version": "版本"
+  },
+  "login": {
+    "badCredentials": "帳號或密碼錯誤",
+    "browseAnon": "不登入，先瀏覽套件 →",
+    "forgot": "忘記密碼？請聯絡管理員重設。",
+    "or": "或",
+    "password": "密碼",
+    "passwordRequired": "請輸入密碼",
+    "rateLimited": "登入失敗次數過多，請等待 30 秒。",
+    "retryIn": "{{s}} 秒後可重試",
+    "sp1": "26 種格式，一個位址",
+    "sp2": "單一 binary，記憶體用量低",
+    "sp3": "換掉 Nexus，CI 不改設定",
+    "sso": "使用 SSO 登入",
+    "ssoFailed": "SSO 登入失敗：{{reason}}",
+    "submit": "登入",
+    "title": "登入 Holiaokho",
+    "unreachable": "無法連線到伺服器",
+    "username": "帳號",
+    "usernameRequired": "請輸入帳號"
+  },
+  "logs": {
+    "auto": "自動更新",
+    "copyAll": "複製全部",
+    "filter": "篩選",
+    "levelSet": "記錄層級已設為 {{v}}（重新啟動後回到設定檔的值）",
+    "wrap": "自動換行"
+  },
+  "nav": {
+    "anonymous": "匿名",
+    "auth": "認證設定",
+    "backup": "備份／還原",
+    "browse": "瀏覽",
+    "changePassword": "變更密碼",
+    "cleanup": "清理規則",
+    "clickToLogin": "點擊以登入",
+    "dashboard": "總覽",
+    "email": "電子郵件",
+    "group": {
+      "maintenance": "維運",
+      "manage": "管理",
+      "more": "其他",
+      "security": "安全性"
+    },
+    "login": "登入",
+    "logout": "登出",
+    "repositories": "Repository",
+    "roles": "角色",
+    "routing": "路由規則",
+    "search": "搜尋",
+    "selectors": "內容選擇器",
+    "storages": "儲存空間",
+    "system": "系統",
+    "tasks": "排程任務",
+    "tokens": "我的存取權杖",
+    "users": "使用者",
+    "webhooks": "Webhook"
+  },
+  "notify": {
+    "none": "目前沒有需要注意的事項"
+  },
+  "package": {
+    "assets": "檔案",
+    "deleteHint": "此版本的 {{n}} 個檔案都會被移除。Blob 會在下次 blob-gc 執行時回收。",
+    "deleteTitle": "刪除 {{name}}？",
+    "deleteVersion": "刪除這個版本",
+    "namespace": "命名空間",
+    "version": "版本"
+  },
+  "password": {
+    "changed": "密碼已變更",
+    "confirm": "確認新密碼",
+    "current": "目前密碼",
+    "currentRequired": "請輸入目前密碼",
+    "currentWrong": "目前密碼不正確",
+    "forcedHint": "admin 帳號仍使用預設密碼，請先設定新密碼再繼續。",
+    "forcedTitle": "請先更換預設密碼",
+    "hint": "為 {{user}} 設定新密碼。",
+    "mismatch": "兩次輸入的密碼不一致",
+    "new": "新密碼",
+    "rule": {
+      "digit": "包含數字",
+      "lower": "包含小寫字母",
+      "symbol": "包含符號",
+      "upper": "包含大寫字母",
+      "username": "不可包含帳號"
+    },
+    "submit": "變更密碼",
+    "title": "變更密碼"
+  },
+  "priv": {
+    "add": "新增一列",
+    "allActions": "完整控制",
+    "allAreas": "全部",
+    "allRepos": "所有 repository",
+    "kind": {
+      "all": "整個系統",
+      "app": "應用區域",
+      "format": "某格式的所有 repository",
+      "repo": "Repository",
+      "selector": "內容選擇器"
+    },
+    "noSelectors": "請先建立內容選擇器",
+    "sumAll": "對整個系統有 {{acts}} 權限",
+    "sumApp": "{{acts}}：管理 {{area}}",
+    "sumFormat": "對所有 {{format}} repository 有 {{acts}} 權限",
+    "sumRepo": "對 repository {{name}} 有 {{acts}} 權限",
+    "sumSelector": "對符合選擇器 {{sel}} 的內容有 {{acts}} 權限",
+    "value": "值"
+  },
+  "repos": {
+    "browseContent": "瀏覽內容",
+    "create": "建立 Repository",
+    "created": "已建立 repository {{name}}",
+    "d": {
+      "forceBasic": "強制基本認證（不允許匿名 pull）",
+      "indexType": "索引類型",
+      "path": "路徑模式",
+      "port": "HTTP 連接埠",
+      "subdomain": "子網域",
+      "tls": "HTTPS 連接埠"
+    },
+    "deleteCi": "使用此網址的用戶端會收到 404。",
+    "deleteConfirm": "刪除 repository",
+    "deleteGroups": "會從這些群組移除：{{list}}",
+    "deleteSize": "{{n}} 個套件、{{size}} 的內容。Blob 會在下次 blob-gc 執行時回收。",
+    "deleteTitle": "刪除 repository",
+    "deleted": "已刪除 repository {{name}}",
+    "empty": "尚無 repository",
+    "emptyHint": "先建立一個 Maven Central 或 npm 的代理快取來開始。",
+    "f": {
+      "autoBlock": "上游無法連線時自動封鎖",
+      "blocked": "已封鎖（只提供快取內容）",
+      "cacheForever": "永久快取",
+      "downloadUrlHint": "留空則使用預設值",
+      "flat": "上游是 flat repository（沒有 dists/）",
+      "keyNameHint": "用戶端會安裝到 /etc/apk/keys/ 之下",
+      "metadataHint": "索引／版本清單會在這段時間後重新向上游確認。",
+      "negativeHint": "記住上游 404 的時間長度，0 表示停用。",
+      "repodataHint": "產生 repodata/ 的目錄深度（0 表示根目錄）。"
+    },
+    "g": {
+      "available": "可選擇",
+      "members": "成員",
+      "moveUp": "點擊以上移",
+      "order": "解析順序："
+    },
+    "genKey": "產生金鑰",
+    "genKeyDone": "私鑰已填入。公鑰（儲存後也可從 <repo 網址>/repository-key.gpg 取得）：",
+    "genKeyHint": "私鑰會加密後與 repository 一起儲存。用戶端需要公鑰，可從 repository 網址取得。",
+    "genKeyTitle": "產生簽章金鑰",
+    "invalidate": "清除快取",
+    "invalidated": "已清除快取",
+    "nameExists": "名稱 {{name}} 已存在。",
+    "nameInvalid": "只能使用英文字母、數字與 . _ -",
+    "online": "上線",
+    "onlineHint": "離線的 repository 會拒絕所有用戶端請求。",
+    "sec": {
+      "basic": "基本",
+      "docker": "Docker · 存取方式（可多選）",
+      "group": "群組 · 成員（順序即解析順序）",
+      "hosted": "自有 · 寫入政策",
+      "optional": "選填",
+      "proxy": "代理快取 · 上游"
+    },
+    "tab": {
+      "settings": "設定",
+      "stats": "統計"
+    },
+    "usage": "使用方式",
+    "usageTitle": "如何使用",
+    "wp": {
+      "allow": "已存在的路徑可以被覆寫。",
+      "allowOnce": "同一路徑只能寫入一次；重新部署相同版本會被拒絕（Maven SNAPSHOT 除外）。建議使用。",
+      "deny": "唯讀，不允許上傳。"
+    }
+  },
+  "roles": {
+    "adminLocked": "admin 角色永遠擁有完整權限，其權限無法修改。",
+    "builtin": "內建",
+    "create": "建立角色",
+    "deleteHint": "有 {{u}} 位使用者正在使用，他們會立即失去這些權限。",
+    "deleteTitle": "刪除角色",
+    "edit": "編輯角色",
+    "idHint": "留空則由名稱自動產生",
+    "summary": "這個角色可以做什麼",
+    "summaryEmpty": "目前沒有內容 — 請至少新增一項權限。",
+    "usedBy": "{{u}} 位使用者、{{m}} 組 LDAP/OIDC 對應正在使用"
+  },
+  "routing": {
+    "addMatcher": "新增比對條件",
+    "allowHint": "只有符合比對條件的路徑會被提供",
+    "allowed": "允許",
+    "blockHint": "符合任一比對條件的路徑會被拒絕",
+    "blocked": "封鎖",
+    "create": "建立規則",
+    "deleteTitle": "刪除規則「{{name}}」？",
+    "deleteUsed": "使用這條規則的 repository（{{list}}）之後將不套用任何路由規則。",
+    "edit": "編輯規則",
+    "hitHint": "符合的比對條件會以琥珀色標示。",
+    "matchers": "比對條件",
+    "matchersHint": "與請求路徑比對",
+    "mode": "模式",
+    "sub": "針對每個 repository 封鎖或允許請求路徑，例如避免代理快取到外網去抓公司內部的 group ID。",
+    "testPath": "測試路徑",
+    "usedBy": "使用中的 repository"
+  },
+  "search": {
+    "emptyHint": "試試",
+    "emptyTitle": "跨所有 repository 搜尋",
+    "noResults": "沒有符合的套件",
+    "placeholder": "搜尋套件… 例如 gson、@babel/core、library/alpine"
+  },
+  "selectors": {
+    "create": "建立選擇器",
+    "deleteTitle": "刪除選擇器",
+    "deleteUsed": "引用它的角色：{{list}}。這些角色的選擇器權限將不再符合任何內容。",
+    "edit": "編輯選擇器",
+    "expression": "表示式",
+    "match": "符合",
+    "noMatch": "不符合",
+    "prefix": "開頭為",
+    "runTest": "評估",
+    "sub": "用表示式挑出 repository 的一部分內容，可作為權限目標使用（selector:<名稱>@<repo>）。",
+    "usedBy": "使用中的角色"
+  },
+  "storages": {
+    "create": "建立儲存空間",
+    "dedupHint": "同一份檔案即使存在於多個 repository 也只會儲存一份。刪除的內容由 blob-gc 任務釋放，compact-blobs 才會真正回收磁碟空間。",
+    "dedupTitle": "內容定址儲存",
+    "edit": "編輯 {{name}}",
+    "endpointHint": "留空表示使用 AWS",
+    "fs": "本機檔案系統",
+    "location": "位置",
+    "noQuota": "未設定配額",
+    "path": "路徑",
+    "pathHint": "伺服器上的絕對路徑（以 Docker／K8s 部署時為容器內的路徑）。",
+    "pathStyle": "Path-style 定址（MinIO 與多數自架 S3 需要）",
+    "quota": "配額",
+    "quotaHint": "0 表示不限制。超過時上傳會回應 507，超過 90% 會顯示警告。",
+    "s3": "S3 相容物件儲存",
+    "test": "測試連線",
+    "testOk": "正常 · {{ms}} 毫秒",
+    "usage": "使用量"
+  },
+  "support": {
+    "download": "下載支援診斷 zip",
+    "hint": "一個包含診斷問題所需資訊的 zip，不含使用者資料與 blob：",
+    "i1": "系統資訊與健康檢查",
+    "i2": "設定內容（機密已遮蔽）",
+    "i3": "最近的記錄",
+    "i4": "repository、儲存空間與任務定義"
+  },
+  "system": {
+    "audit": "稽核記錄",
+    "config": "設定",
+    "health": "健康狀態",
+    "info": "系統資訊"
+  },
+  "tasks": {
+    "cleanupNote": "清理規則只有在這個任務執行時才會生效。",
+    "defaultInterval": "預設間隔（{{i}}）",
+    "duration": "耗時",
+    "every": "每隔",
+    "failedNotice": "任務 {{name}} 執行失敗",
+    "idle": "閒置中",
+    "lastRun": "上次執行",
+    "name": {
+      "backup": "備份",
+      "blob-gc": "Blob 回收",
+      "cleanup-policies": "套用清理規則",
+      "compact-blobs": "壓實 blob 儲存",
+      "prune-expired": "清除過期項目",
+      "re-encrypt-secrets": "重新加密機密",
+      "rebuild-indexes": "重建索引"
+    },
+    "nextRun": "下次執行",
+    "noLog": "（無輸出）",
+    "runNow": "立即執行",
+    "running": "{{n}} 個執行中 · 每 3 秒更新",
+    "runningNow": "執行中…",
+    "runs": "執行記錄",
+    "saveSchedule": "儲存排程",
+    "schedule": "排程",
+    "scheduleBtn": "設定排程",
+    "scheduleTitle": "排程",
+    "started": "任務 {{name}} 已開始",
+    "summary": "摘要",
+    "task": "任務"
+  },
+  "theme": {
+    "dark": "深色主題",
+    "light": "淺色主題"
+  },
+  "tokens": {
+    "create": "建立權杖",
+    "createdTitle": "權杖「{{name}}」已建立",
+    "custom": "自訂",
+    "d30": "30 天",
+    "d365": "1 年",
+    "d90": "90 天",
+    "date": "日期",
+    "expired": "已過期",
+    "expires": "到期",
+    "expiresOn": "到期日 {{date}}",
+    "lastUsed": "最後使用",
+    "nameHint": "例如「gitlab-ci」、「筆電」",
+    "never": "永不過期",
+    "neverExpires": "永不過期",
+    "prefix": "前綴",
+    "revoke": "撤銷",
+    "revokeHint": "正在使用它的用戶端會立即開始失敗。",
+    "revokeTitle": "撤銷權杖「{{name}}」？",
+    "revoked": "權杖已撤銷",
+    "saved": "我已經保存了",
+    "secretLabel": "SECRET · 只顯示這一次",
+    "secretWarn": "關閉後就無法再看到這組 secret，請立即保存，例如存成 CI 的 secret 變數（HLK_TOKEN）。",
+    "sub": "給 CI 與命令列用戶端使用的個人存取權杖，權限等同 {{user}}。",
+    "useBasic": "Basic（任何用戶端）",
+    "useBasicHint": "帳號 ＋ 以權杖當作密碼。"
+  },
+  "type": {
+    "blocked": "已封鎖",
+    "group": "群組",
+    "hosted": "自有",
+    "offline": "離線",
+    "proxy": "代理快取"
+  },
+  "usage": {
+    "apt": {
+      "sources": "套件來源",
+      "upload": "上傳 .deb"
+    },
+    "createToken": "建立我的權杖 →",
+    "cred": "憑證：使用 User Token（帳號 ＋ 權杖當密碼）。",
+    "credNote": "# 憑證：你的帳號 ＋ User Token 當作密碼",
+    "docker": {
+      "mirror": "Docker daemon registry mirror",
+      "path": "路徑模式（主連接埠）",
+      "port": "連接埠",
+      "subdomain": "子網域",
+      "tls": "TLS 連接埠"
+    },
+    "helm": {
+      "push": "上傳 chart"
+    },
+    "maven": {
+      "deploy": "部署",
+      "mirror": "作為 mirror 使用"
+    },
+    "npm": {
+      "publish": "發布",
+      "registry": "Registry",
+      "scope": "只用於某個 scope"
+    },
+    "nuget": {
+      "push": "推送"
+    },
+    "raw": {
+      "download": "下載",
+      "upload": "上傳"
+    },
+    "tf": {
+      "mirror": "Provider network mirror",
+      "module": "Module 來源"
+    },
+    "yum": {
+      "upload": "上傳 .rpm"
+    }
+  },
+  "users": {
+    "active": "啟用",
+    "create": "建立使用者",
+    "deleteHint": "他們的存取權杖會立即失效。",
+    "deleteTitle": "刪除使用者",
+    "displayName": "顯示名稱",
+    "edit": "編輯 {{name}}",
+    "exists": "這個帳號已存在",
+    "externalHint": "由 {{source}} 同步。登入時會套用對應表的角色；在這裡設定的角色會額外附加。",
+    "pwReset": "密碼已更新",
+    "resetPw": "重設密碼",
+    "resetPwTitle": "重設 {{name}} 的密碼",
+    "selfAdminHint": "你會立即失去存取這個頁面的權限。",
+    "selfAdminTitle": "要移除自己的 admin 角色嗎？",
+    "source": "來源",
+    "tokensOf": "{{name}} 的權杖"
+  },
+  "webhooks": {
+    "create": "建立 webhook",
+    "deleteTitle": "刪除 webhook「{{name}}」？",
+    "edit": "編輯 webhook",
+    "events": "事件",
+    "httpsHint": "建議使用 https://",
+    "payload": "Payload 範例",
+    "queued": "測試事件已排入佇列 — 請到 Logs 查看送出結果",
+    "repoHint": "留空表示所有 repository",
+    "sendTest": "送測試事件",
+    "signature": "簽章：X-Holiaokho-Signature（內容的 HMAC-SHA256）"
+  },
+  "wizard": {
+    "configure": "設定 {{format}} {{type}}",
+    "create": "建立 {{name}}",
+    "filterFormats": "篩選格式",
+    "groupDesc": "用一個網址合併多個自有與代理快取 repository。",
+    "groupNeedsMembers": "請先建立一個自有或代理快取的 {{format}} repository。",
+    "groupWhen": "讓用戶端只需設定一個位址。",
+    "hostedDesc": "你自己的成品，由開發者或 CI 上傳。",
+    "hostedWhen": "內部函式庫、release 版本、自己建的 image。",
+    "preview": "建立後，用戶端會這樣使用",
+    "proxyDesc": "快取遠端 registry，第一次下載後就由本機提供。",
+    "proxyWhen": "Maven Central、npmjs、Docker Hub、PyPI…",
+    "step1": "格式",
+    "step2": "型態",
+    "step3": "設定",
+    "title": "建立"
+  }
+}

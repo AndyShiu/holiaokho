@@ -19,6 +19,7 @@
   --hlk-code-bg: #0E131B; --hlk-code-fg: #C9CFD8; --hlk-code-accent: #F0B66B;
   --hlk-unsaved: #F0B66B;
 }
+*, *::before, *::after { box-sizing: border-box; }
 html, body, #root { height: 100%; margin: 0; }
 body { background: var(--hlk-bg); color: var(--hlk-text); -webkit-font-smoothing: antialiased; }
 a { color: inherit; }
@@ -45,14 +46,6 @@ a { color: inherit; }
 .hlk-table .ant-table { font-size: 13px; }
 .hlk-num { font-variant-numeric: tabular-nums; }
 .hlk-unsaved { color: var(--hlk-unsaved); font-size: 12px; }
-.hlk-tile { position: absolute; width: 30px; height: 30px; border-radius: 7px; display: grid; place-items: center; font-family: var(--hlk-mono); font-weight: 700; font-size: 9px; color: #131923; animation: hlk-twinkle var(--dur, 4s) ease-in-out var(--delay, 0s) infinite; transition: transform 180ms ease, opacity 180ms ease, filter 180ms ease; cursor: default; }
-.hlk-tile-label { position: absolute; top: 40px; left: 50%; transform: translate(-50%, 4px); background: #E9E6DF; color: #131923; font-size: 11px; font-family: var(--hlk-mono); border-radius: 4px; padding: 2px 6px; white-space: nowrap; opacity: 0; transition: opacity 150ms, transform 150ms; pointer-events: none; }
-.hlk-tiles:hover .hlk-tile { filter: saturate(.5); }
-.hlk-tile:hover { animation-play-state: paused; opacity: 1 !important; transform: scale(1.35); filter: none !important; box-shadow: 0 0 0 4px rgba(19,25,35,.9), 0 0 24px var(--tile); z-index: 2; }
-.hlk-tile:hover .hlk-tile-label { opacity: 1; transform: translate(-50%, 0); }
-@keyframes hlk-twinkle { 0% { opacity: .10; transform: scale(.92) } 40% { opacity: .55; transform: scale(1) } 70% { opacity: .35 } 100% { opacity: .10; transform: scale(.92) } }
-@keyframes hlk-breathe { 0%,100% { opacity: .9 } 50% { opacity: .6 } }
-@media (prefers-reduced-motion: reduce) { .hlk-tile, .hlk-pulse { animation: none !important; opacity: .35; } }
 .hlk-privchip { font-family: var(--hlk-mono); font-size: 11px; padding: 5px 8px; border-radius: 4px; border: 1px solid var(--hlk-border-strong); background: transparent; color: var(--hlk-text-secondary); cursor: pointer; }
 .hlk-privchip.on { background: var(--hlk-ink); color: #F3EFE7; border-color: var(--hlk-ink); }
 [data-theme="dark"] .hlk-privchip.on { background: #E9E6DF; color: #131923; border-color: #E9E6DF; }
@@ -70,3 +63,57 @@ a { color: inherit; }
 .hlk-list-row.active { background: var(--hlk-card); box-shadow: inset 0 0 0 1px var(--hlk-border); }
 .hlk-list-row.active::before { content: ""; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; border-radius: 2px; background: var(--hlk-amber); }
 @media (max-width: 1024px) { .hlk-hide-md { display: none !important; } }
+
+/* ---- Login (two-tone split: dark brand left, light form right) ---- */
+.hlk-login { min-height: 100vh; min-height: 100dvh; display: grid; grid-template-columns: minmax(0,1fr) 520px; background: #F6F4EF; }
+.hlk-login-brand {
+  background: #131923; position: relative; overflow: hidden; padding: 56px 64px;
+  display: flex; flex-direction: column; justify-content: space-between; min-height: 100vh; min-height: 100dvh;
+  background-image: linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+.hlk-login-bar { position: absolute; top: 0; left: 64px; width: 160px; height: 3px; background: #E8963A; border-radius: 0 0 2px 2px; }
+.hlk-login-field { position: absolute; top: 24px; bottom: 24px; right: 40px; width: 46%; min-width: 360px; z-index: 1; }
+.hlk-tiles { position: relative; width: 100%; height: 100%; }
+.hlk-tile { position: absolute; width: 36px; height: 36px; z-index: 1; cursor: default; }
+.hlk-tile:hover { z-index: 3; }
+.hlk-face {
+  display: grid; place-items: center; width: 36px; height: 36px; border-radius: 8px;
+  font-family: var(--hlk-mono); font-weight: 700; font-size: 10px; letter-spacing: -.02em;
+  animation: hlk-twinkle var(--dur, 4s) ease-in-out var(--delay, 0s) infinite;
+  transition: transform .18s ease, opacity .18s ease, box-shadow .18s ease, filter .18s ease;
+}
+.hlk-tile-hero .hlk-face { animation: hlk-breathe 4s ease-in-out infinite; opacity: .9; }
+.hlk-tiles:hover .hlk-tile:not(:hover) .hlk-face { filter: saturate(.45); }
+.hlk-tile:hover .hlk-face { animation: none !important; opacity: 1 !important; transform: scale(1.55); box-shadow: 0 0 0 4px rgba(19,25,35,.95), 0 0 28px 4px var(--c); }
+.hlk-lab {
+  position: absolute; top: 48px; left: 50%; transform: translate(-50%, -4px);
+  background: #E9E6DF; color: #131923; font-size: 11px; font-family: var(--hlk-mono);
+  border-radius: 4px; padding: 2px 6px; white-space: nowrap; opacity: 0; pointer-events: none;
+  transition: opacity .15s ease, transform .15s ease; z-index: 4;
+}
+.hlk-tile:hover .hlk-lab { opacity: 1; transform: translate(-50%, 0); }
+@keyframes hlk-twinkle { 0%,100% { opacity: .14; transform: scale(.92) } 45% { opacity: .62; transform: scale(1) } 60% { opacity: .4 } }
+@keyframes hlk-breathe { 0%,100% { opacity: .9 } 50% { opacity: .6 } }
+.hlk-login-tag { }
+.hlk-login-form { background: #F6F4EF; position: relative; display: flex; flex-direction: column; justify-content: center; padding: 0 64px; min-height: 100vh; min-height: 100dvh; }
+.hlk-login-form-inner { width: 100%; max-width: 392px; margin: 0 auto; }
+.hlk-login-brandsm { display: none; align-items: center; gap: 10px; margin-bottom: 24px; }
+.hlk-login-foot { position: absolute; left: 64px; right: 64px; bottom: 24px; display: flex; justify-content: space-between; align-items: center; }
+@media (max-width: 1024px) {
+  .hlk-login { grid-template-columns: 1fr; }
+  .hlk-login-brand { min-height: auto; padding: 22px 32px; flex-direction: row; align-items: center; gap: 16px; }
+  .hlk-login-brand .hlk-login-field, .hlk-login-brand .hlk-login-tag, .hlk-login-brand .hlk-login-bar { display: none; }
+  .hlk-login-brand > div:last-child { display: none; }
+  .hlk-login-form { min-height: auto; padding: 40px 24px 64px; }
+  .hlk-login-form-inner { max-width: 420px; }
+  .hlk-login-foot { position: static; margin-top: 32px; padding: 0; max-width: 420px; margin-left: auto; margin-right: auto; }
+}
+@media (max-width: 480px) {
+  .hlk-login-brand { padding: 18px 20px; }
+  .hlk-login-brandsm { display: flex; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hlk-face { animation: none !important; opacity: .4; }
+  .hlk-pulse { animation: none !important; }
+}

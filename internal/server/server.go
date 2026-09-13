@@ -121,6 +121,9 @@ func New(ctx context.Context, cfg config.Config, log *slog.Logger, sys *System) 
 	if err := c.LoadStorages(ctx); err != nil {
 		return nil, err
 	}
+	if err := c.EnsureDefaultRepos(ctx); err != nil {
+		return nil, fmt.Errorf("default repositories: %w", err)
+	}
 	a := auth.New(d, log, auth.Config{AnonymousEnabled: cfg.Auth.AnonymousEnabled, SessionTTL: cfg.Auth.SessionTTL,
 		LoginMaxFailures: cfg.Auth.LoginMaxFailures, LoginWindow: cfg.Auth.LoginWindow})
 	if err := a.Bootstrap(ctx, cfg.Auth.AdminPassword); err != nil {

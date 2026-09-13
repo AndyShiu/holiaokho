@@ -1,1 +1,774 @@
-{}
+{
+  "asset": {
+    "cacheExpires": "Cache expires",
+    "cacheForever": "never (cached forever)",
+    "contentType": "Content type",
+    "deleteNeedsLogin": "Deleting requires permission",
+    "deleteTitle": "Delete this file?",
+    "downloadUrl": "Download URL",
+    "lastDownloaded": "Last downloaded",
+    "negative": "Negative cache",
+    "negativeHint": "upstream returned 404",
+    "package": "Package",
+    "path": "Path",
+    "sha256": "sha256",
+    "size": "Size",
+    "viewPackage": "View package"
+  },
+  "audit": {
+    "asset": {
+      "delete": "deleted a file",
+      "upload": "uploaded a file"
+    },
+    "auth": {
+      "settings": "changed authentication settings"
+    },
+    "cleanup": {
+      "create": "created a cleanup policy"
+    },
+    "content_selector": {
+      "create": "created a content selector"
+    },
+    "email": {
+      "update": "changed email settings"
+    },
+    "last": "last",
+    "login": "logged in",
+    "package": {
+      "delete": "deleted a package"
+    },
+    "repository": {
+      "create": "created repository",
+      "delete": "deleted repository",
+      "invalidate_cache": "invalidated the cache of",
+      "update": "updated repository"
+    },
+    "role": {
+      "create": "created role",
+      "update": "updated role"
+    },
+    "routing_rule": {
+      "create": "created a routing rule"
+    },
+    "storage": {
+      "create": "created storage"
+    },
+    "system": {
+      "backup": "downloaded a backup",
+      "log_level": "changed the log level",
+      "pgp_key": "generated a PGP key",
+      "restore": "restored from a backup",
+      "rsa_key": "generated an RSA key"
+    },
+    "task": {
+      "run": "ran task",
+      "schedule": "changed the schedule of"
+    },
+    "token": {
+      "create": "created a token"
+    },
+    "user": {
+      "create": "created user",
+      "delete": "deleted user",
+      "password": "changed the password of",
+      "update": "updated user"
+    },
+    "webhook": {
+      "create": "created a webhook"
+    }
+  },
+  "auth": {
+    "addLdapRealm": "+ ldap",
+    "addMapping": "Add mapping",
+    "anonymous": "Anonymous access",
+    "anonymousHint": "Set in the config file (auth.anonymous_enabled). Permissions come from the",
+    "autoCreate": "Auto-create users",
+    "bindPassword": "Bind password",
+    "connOk": "Connected",
+    "defaultRoles": "Default roles",
+    "defaultRolesHint": "Granted to every authenticated user in addition to their own roles.",
+    "disallowCommon": "Reject common passwords (built-in list)",
+    "ldapDefaultRoles": "Default roles for LDAP users",
+    "ldapNotInRealms": "LDAP is enabled but not in the realm order, so it will not be used for login.",
+    "loginOk": "Login succeeded",
+    "maxLength": "Maximum length",
+    "minLength": "Minimum length",
+    "oidcDefaultRoles": "Default roles for OIDC users",
+    "options": "Options",
+    "password": "Password policy",
+    "pwExample": "A valid password looks like",
+    "pwHint": "Applies to user creation, admin resets and self-service changes. Existing passwords are not re-checked.",
+    "realms": "Realms & anonymous",
+    "realmsHint": "Login tries each realm in this order. OIDC and Rut Auth are separate flows and do not appear here.",
+    "redirect": "Redirect URL (register at the IdP)",
+    "role": "role",
+    "roleMapping": "Role mapping",
+    "rutWarn": "Enable only behind a reverse proxy that strips this header from client requests, and only when server.trusted_proxies is configured.",
+    "saved": "Saved — takes effect within 30 seconds",
+    "skipIssuer": "Skip issuer verification",
+    "skipVerify": "Skip TLS verify",
+    "testConn": "Test connection",
+    "testHint": "Uses the unsaved form values above.",
+    "testLogin": "Test connection / login",
+    "testLoginBtn": "Test login",
+    "timeout": "Timeout (s)",
+    "userSubtree": "Search subtree"
+  },
+  "backup": {
+    "c1": "All repositories, users, roles, settings and content indexes are replaced.",
+    "c2": "Blobs in the archive are written into the default storage.",
+    "c3": "This can take several minutes; do not close the page.",
+    "cfgHint": "Configured in the config file (backup.*). Runs as the \"backup\" task.",
+    "confirm1": "Restore will overwrite everything",
+    "confirm2": "Type RESTORE to confirm",
+    "dir": "Directory",
+    "download": "Download a backup now",
+    "downloadHint": "A tar.gz with the database (CSV per table) and, optionally, every blob.",
+    "drop": "Drop a backup .tar.gz here",
+    "includeBlobs": "Include blobs",
+    "keep": "Keep",
+    "notConfigured": "not configured",
+    "restore": "Restore",
+    "restoreBtn": "Restore from this file…",
+    "restoreNow": "Restore now",
+    "restoreWarn": "Restoring replaces the entire database and blob store with the archive contents. Stop client traffic first. Everyone is logged out afterwards.",
+    "restored": "Restore complete — please log in again",
+    "restoring": "Restoring… this may take a while.",
+    "scheduled": "Scheduled backup"
+  },
+  "browse": {
+    "allowOnce": "This repository does not allow redeploying an existing path (write policy: allow_once).",
+    "content": "Content",
+    "deny": "This repository is read-only (write policy: deny).",
+    "dropHint": "Drop a file here or click to choose",
+    "empty": "This repository has no content yet",
+    "emptyHosted": "Upload something or push from a client.",
+    "emptyProxy": "Content appears here after the first download through the proxy.",
+    "filterPackages": "Filter by name or namespace",
+    "filterRepos": "Filter repositories",
+    "groupHint": "Merged from {{n}} members:",
+    "noRepos": "No repositories yet",
+    "noReposHint": "Create your first repository to start.",
+    "notFound": "Repository not found",
+    "offline": "This repository is offline: client requests are rejected.",
+    "overwrite": "Overwrite if the path exists",
+    "packages": "Packages",
+    "pick": "Pick a repository on the left",
+    "proxyHint": "Only cached content is listed here — this is not the full upstream catalogue.",
+    "upload": "Upload",
+    "uploadTo": "Upload to {{name}}",
+    "uploaded": "Uploaded {{path}}"
+  },
+  "cleanup": {
+    "assignTo": "Apply to repositories",
+    "assigned": "Repositories",
+    "create": "Create policy",
+    "criteria": "Criteria",
+    "criteriaHint": "a package is removed when ANY age criterion matches; keepLatest always protects the newest versions",
+    "deleteHint": "It is unassigned from {{n}} repositories. Nothing already deleted is restored.",
+    "deleteTitle": "Delete policy \"{{name}}\"?",
+    "edit": "Edit policy",
+    "keep": "Keep newest N per name",
+    "lastDl": "Not downloaded for (days)",
+    "lastUpd": "Older than (days)",
+    "nameRegex": "Name regex",
+    "nextRun": "Applied by the cleanup-policies task · next run",
+    "preAny": "Any",
+    "preExclude": "Only releases",
+    "preOnly": "Only prereleases",
+    "prerelease": "Prerelease",
+    "preview": "Preview",
+    "previewSaveFirst": "Save the policy first, then preview what it would delete.",
+    "runPreview": "Preview deletions",
+    "sumDl": "not downloaded in {{n}} days",
+    "sumKeep": "keep newest {{n}} per name",
+    "sumPre": "prereleases only",
+    "sumRel": "releases only",
+    "sumUpd": "older than {{n}} days",
+    "versionRegex": "Version regex",
+    "wouldDelete": "Would delete {{n}} packages"
+  },
+  "common": {
+    "all": "All",
+    "back": "Back",
+    "cancel": "Cancel",
+    "close": "Close",
+    "continue": "Continue",
+    "copied": "Copied",
+    "copy": "Copy",
+    "create": "Create",
+    "created": "Created",
+    "dangerZone": "Danger zone",
+    "delete": "Delete",
+    "deleted": "Deleted",
+    "description": "Description",
+    "details": "Details",
+    "download": "Download",
+    "edit": "Edit",
+    "enabled": "Enabled",
+    "format": "Format",
+    "min": "min",
+    "name": "Name",
+    "never": "never",
+    "noMatch": "No match",
+    "none": "None",
+    "nothingYet": "Nothing yet",
+    "off": "off",
+    "revert": "Revert",
+    "save": "Save",
+    "saved": "Saved",
+    "search": "Search",
+    "secretKeep": "Leave empty (or ***) to keep the stored value",
+    "status": "Status",
+    "test": "Test",
+    "time": "Time",
+    "type": "Type",
+    "typeToConfirm": "Type",
+    "typeToConfirmSuffix": "to confirm",
+    "unsaved": "Unsaved changes",
+    "updated": "Updated",
+    "viewAll": "View all →"
+  },
+  "config": {
+    "hint": "Read-only. Secrets are masked. Change values in the config file or with HOLIAOKHO_* environment variables, then restart."
+  },
+  "cron": {
+    "daily": "every day at {{time}}",
+    "everyNMin": "every {{n}} minutes",
+    "hint": "minute hour day-of-month month day-of-week",
+    "hourly": "every hour",
+    "invalid": "invalid expression",
+    "monthly": "day {{dom}} of every month at {{time}}",
+    "next5": "Next 5 runs",
+    "tplDaily": "Daily 02:00",
+    "tplHourly": "Hourly",
+    "tplSunday": "Sunday 03:00",
+    "weekly": "every week on day {{dow}} at {{time}}"
+  },
+  "dashboard": {
+    "activity": "Recent activity",
+    "allGood": "All services healthy",
+    "assets": "Assets",
+    "attention": "{{n}} need attention",
+    "dedup": "content-addressed, deduplicated",
+    "devHint": "Find packages in Browse or Search, and create a personal token for CI under My Tokens.",
+    "packages": "Packages",
+    "refresh": "refreshes every 30 s",
+    "repos": "Repositories",
+    "size": "Total size",
+    "step1": "Change the admin password",
+    "step1a": "Change now",
+    "step2": "Create your first proxy",
+    "step2a": "e.g. Maven Central",
+    "step3": "Copy the client setup",
+    "step3a": "from the repository \"Usage\" tab",
+    "welcome": "Welcome to Holiaokho",
+    "welcomeHint": "Three steps to get your first repository serving."
+  },
+  "email": {
+    "encryption": "Encryption",
+    "recipients": "Notification recipients",
+    "recipientsHint": "Receive task failures and storage quota warnings.",
+    "sendTest": "Send test email",
+    "sub": "Outgoing SMTP for task-failure and quota notifications.",
+    "testHint": "The test uses the saved settings — save first.",
+    "testSent": "Test email sent"
+  },
+  "errors": {
+    "auth": {
+      "forbidden": "You do not have permission to do this",
+      "invalid": "Invalid credentials",
+      "rate_limited": "Too many failed login attempts, try again later",
+      "required": "Please log in to continue"
+    },
+    "body": {
+      "invalid": "The request body could not be read"
+    },
+    "conflict": "That already exists",
+    "email": {
+      "failed": "Sending the email failed"
+    },
+    "format": {
+      "unsupported": "This format does not support that operation"
+    },
+    "internal": "Internal server error",
+    "ldap": {
+      "failed": "LDAP request failed"
+    },
+    "nexus": {
+      "unsupported": "Not supported by the Nexus compatibility layer"
+    },
+    "not_found": "Not found",
+    "oidc": {
+      "failed": "OIDC login failed"
+    },
+    "password": {
+      "common": "That password is too common",
+      "contains_username": "Password must not contain the username",
+      "need_digit": "Password must contain a digit",
+      "need_lower": "Password must contain a lowercase letter",
+      "need_symbol": "Password must contain a symbol",
+      "need_upper": "Password must contain an uppercase letter",
+      "too_long": "Password must be at most {{p0}} characters",
+      "too_short": "Password must be at least {{p0}} characters"
+    },
+    "path": {
+      "invalid": "Invalid path"
+    },
+    "repo": {
+      "invalid": "Invalid repository settings",
+      "not_found": "Repository not found",
+      "not_proxy": "This is not a proxy repository",
+      "read_only": "This repository is read-only",
+      "redeploy_denied": "This repository does not allow redeploying an existing version"
+    },
+    "restore": {
+      "failed": "Restore failed"
+    },
+    "storage": {
+      "invalid": "Invalid storage settings",
+      "unknown": "Unknown storage"
+    },
+    "task": {
+      "unknown": "Unknown task"
+    },
+    "upload": {
+      "failed": "Upload failed"
+    },
+    "user": {
+      "exists": "That username already exists",
+      "invalid": "Invalid user"
+    },
+    "validation": "Please check the values you entered"
+  },
+  "health": {
+    "changeNow": "Change now",
+    "check": "Check",
+    "message": "Message",
+    "ok": "OK",
+    "problems": "Problems detected",
+    "recheck": "Re-check",
+    "unhealthy": "unhealthy"
+  },
+  "info": {
+    "copy": "Copy as text",
+    "database": "Database",
+    "runtime": "Runtime",
+    "version": "Version"
+  },
+  "login": {
+    "badCredentials": "Incorrect username or password",
+    "browseAnon": "Browse packages without logging in →",
+    "forgot": "Forgot your password? Ask an administrator to reset it.",
+    "or": "or",
+    "password": "Password",
+    "passwordRequired": "Enter your password",
+    "rateLimited": "Too many failed attempts. Please wait 30 seconds.",
+    "retryIn": "Retry in {{s}}s",
+    "sp1": "26 formats, one address",
+    "sp2": "Single binary, low memory",
+    "sp3": "Replace Nexus without touching CI",
+    "sso": "Log in with SSO",
+    "ssoFailed": "SSO login failed: {{reason}}",
+    "submit": "Log in",
+    "title": "Log in to Holiaokho",
+    "unreachable": "Cannot reach the server",
+    "username": "Username",
+    "usernameRequired": "Enter your username"
+  },
+  "logs": {
+    "auto": "Auto refresh",
+    "copyAll": "Copy all",
+    "filter": "Filter",
+    "levelSet": "Log level set to {{v}} (resets on restart)",
+    "wrap": "Wrap"
+  },
+  "nav": {
+    "anonymous": "Anonymous",
+    "auth": "Auth Settings",
+    "backup": "Backup / Restore",
+    "browse": "Browse",
+    "changePassword": "Change password",
+    "cleanup": "Cleanup Policies",
+    "clickToLogin": "click to log in",
+    "dashboard": "Dashboard",
+    "email": "Email",
+    "group": {
+      "maintenance": "Maintenance",
+      "manage": "Manage",
+      "more": "More",
+      "security": "Security"
+    },
+    "login": "Log in",
+    "logout": "Log out",
+    "repositories": "Repositories",
+    "roles": "Roles",
+    "routing": "Routing Rules",
+    "search": "Search",
+    "selectors": "Content Selectors",
+    "storages": "Storages",
+    "system": "System",
+    "tasks": "Tasks",
+    "tokens": "My Tokens",
+    "users": "Users",
+    "webhooks": "Webhooks"
+  },
+  "notify": {
+    "none": "Nothing needs attention"
+  },
+  "package": {
+    "assets": "Assets",
+    "deleteHint": "All {{n}} assets of this version are removed. Blobs are reclaimed by the next blob-gc run.",
+    "deleteTitle": "Delete {{name}}?",
+    "deleteVersion": "Delete this version",
+    "namespace": "Namespace",
+    "version": "Version"
+  },
+  "password": {
+    "changed": "Password changed",
+    "confirm": "Confirm new password",
+    "current": "Current password",
+    "currentRequired": "Enter your current password",
+    "currentWrong": "Current password is incorrect",
+    "forcedHint": "The admin account still uses the default password. Set a new one before continuing.",
+    "forcedTitle": "Please change the default password first",
+    "hint": "Choose a new password for {{user}}.",
+    "mismatch": "Passwords do not match",
+    "new": "New password",
+    "rule": {
+      "digit": "A digit",
+      "lower": "A lowercase letter",
+      "symbol": "A symbol",
+      "upper": "An uppercase letter",
+      "username": "Does not contain the username"
+    },
+    "submit": "Change password",
+    "title": "Change password"
+  },
+  "priv": {
+    "add": "Add a row",
+    "allActions": "full control",
+    "allAreas": "all",
+    "allRepos": "every repository",
+    "kind": {
+      "all": "Entire system",
+      "app": "Application area",
+      "format": "All repos of a format",
+      "repo": "Repository",
+      "selector": "Content selector"
+    },
+    "noSelectors": "Create a content selector first",
+    "sumAll": "{{acts}} over the entire system",
+    "sumApp": "{{acts}}: {{area}} administration",
+    "sumFormat": "{{acts}} on all {{format}} repositories",
+    "sumRepo": "{{acts}} on repository {{name}}",
+    "sumSelector": "{{acts}} on content matching selector {{sel}}",
+    "value": "VALUE"
+  },
+  "repos": {
+    "browseContent": "Browse content",
+    "create": "Create Repository",
+    "created": "Repository {{name}} created",
+    "d": {
+      "forceBasic": "Force basic auth (no anonymous pulls)",
+      "indexType": "Index type",
+      "path": "Path mode",
+      "port": "HTTP port",
+      "subdomain": "Subdomain",
+      "tls": "HTTPS port"
+    },
+    "deleteCi": "Clients using this URL will get 404.",
+    "deleteConfirm": "Delete repository",
+    "deleteGroups": "Removed from groups: {{list}}",
+    "deleteSize": "{{n}} packages, {{size}} of content. Blobs are reclaimed by the next blob-gc run.",
+    "deleteTitle": "Delete repository",
+    "deleted": "Repository {{name}} deleted",
+    "empty": "No repositories yet",
+    "emptyHint": "Create a proxy for Maven Central or npm to get started.",
+    "f": {
+      "autoBlock": "Auto-block when the upstream is unreachable",
+      "blocked": "Blocked (serve cache only)",
+      "cacheForever": "Cache forever",
+      "downloadUrlHint": "leave empty for the default",
+      "flat": "Upstream is a flat repository (no dists/)",
+      "keyNameHint": "Installed by clients under /etc/apk/keys/",
+      "metadataHint": "Index / version lists re-check the upstream after this.",
+      "negativeHint": "Remember upstream 404s for this long. 0 disables.",
+      "repodataHint": "Directory depth at which repodata/ is generated (0 = root)."
+    },
+    "g": {
+      "available": "Available",
+      "members": "Members",
+      "moveUp": "Click to move up",
+      "order": "Resolution order:"
+    },
+    "genKey": "Generate key",
+    "genKeyDone": "Private key filled in. Public key (also available at <repo url>/repository-key.gpg after saving):",
+    "genKeyHint": "The private key is stored encrypted with the repository. Clients need the public key, served from the repository URL.",
+    "genKeyTitle": "Generate a signing key",
+    "invalidate": "Invalidate cache",
+    "invalidated": "Cache invalidated",
+    "nameExists": "A repository named {{name}} already exists.",
+    "nameInvalid": "Only letters, digits, . _ -",
+    "online": "Online",
+    "onlineHint": "Offline repositories reject all client requests.",
+    "sec": {
+      "basic": "Basic",
+      "docker": "Docker · access (any combination)",
+      "group": "Group · members (order = resolution order)",
+      "hosted": "Hosted · write policy",
+      "optional": "Optional",
+      "proxy": "Proxy · upstream"
+    },
+    "tab": {
+      "settings": "Settings",
+      "stats": "Stats"
+    },
+    "usage": "Usage",
+    "usageTitle": "How to use",
+    "wp": {
+      "allow": "existing paths can be overwritten.",
+      "allowOnce": "a path can be written once; redeploying the same version is rejected (Maven SNAPSHOT excepted). Recommended.",
+      "deny": "read-only; no uploads."
+    }
+  },
+  "roles": {
+    "adminLocked": "The admin role always has full access; its privileges cannot be changed.",
+    "builtin": "built-in",
+    "create": "Create role",
+    "deleteHint": "Used by {{u}} users. They lose these privileges immediately.",
+    "deleteTitle": "Delete role",
+    "edit": "Edit role",
+    "idHint": "Leave empty to derive from the name",
+    "summary": "What this role can do",
+    "summaryEmpty": "Nothing yet — add at least one privilege.",
+    "usedBy": "Used by {{u}} users, {{m}} LDAP/OIDC mappings"
+  },
+  "routing": {
+    "addMatcher": "Add matcher",
+    "allowHint": "only paths matching a matcher are served",
+    "allowed": "Allowed",
+    "blockHint": "reject paths matching any matcher",
+    "blocked": "Blocked",
+    "create": "Create rule",
+    "deleteTitle": "Delete rule \"{{name}}\"?",
+    "deleteUsed": "Repositories using it ({{list}}) will have no routing rule afterwards.",
+    "edit": "Edit rule",
+    "hitHint": "Matching matchers are highlighted in amber.",
+    "matchers": "Matchers",
+    "matchersHint": "matched against the request path",
+    "mode": "Mode",
+    "sub": "Block or allow request paths per repository, e.g. keep a proxy from fetching internal group IDs from the internet.",
+    "testPath": "Test a path",
+    "usedBy": "Used by"
+  },
+  "search": {
+    "emptyHint": "Try",
+    "emptyTitle": "Search across all repositories",
+    "noResults": "No packages match",
+    "placeholder": "Search packages… e.g. gson, @babel/core, library/alpine"
+  },
+  "selectors": {
+    "create": "Create selector",
+    "deleteTitle": "Delete selector",
+    "deleteUsed": "Roles referencing it: {{list}}. Their selector privileges stop matching.",
+    "edit": "Edit selector",
+    "expression": "Expression",
+    "match": "Matches",
+    "noMatch": "Does not match",
+    "prefix": "starts with",
+    "runTest": "Evaluate",
+    "sub": "Expressions that pick a subset of a repository, usable as privilege targets (selector:<name>@<repo>).",
+    "usedBy": "Used by roles"
+  },
+  "storages": {
+    "create": "Create Storage",
+    "dedupHint": "A file that exists in several repositories is stored once. Deleted content is released by the blob-gc task; compact-blobs then frees the disk space.",
+    "dedupTitle": "Content-addressed storage",
+    "edit": "Edit {{name}}",
+    "endpointHint": "Empty = AWS",
+    "fs": "Local filesystem",
+    "location": "Location",
+    "noQuota": "no quota",
+    "path": "Path",
+    "pathHint": "Absolute path on the server (inside the container when deployed with Docker/K8s).",
+    "pathStyle": "Path-style addressing (MinIO and most self-hosted S3)",
+    "quota": "Quota",
+    "quotaHint": "0 = unlimited. Uploads are rejected with 507 when exceeded; a warning shows above 90%.",
+    "s3": "S3-compatible object storage",
+    "test": "Test connection",
+    "testOk": "OK · {{ms}} ms",
+    "usage": "Usage"
+  },
+  "support": {
+    "download": "Download support zip",
+    "hint": "A zip with everything needed to diagnose a problem, without user data or blobs:",
+    "i1": "system information and health checks",
+    "i2": "configuration (secrets masked)",
+    "i3": "recent log lines",
+    "i4": "repository, storage and task definitions"
+  },
+  "system": {
+    "audit": "Audit Log",
+    "config": "Configuration",
+    "health": "Health",
+    "info": "Information"
+  },
+  "tasks": {
+    "cleanupNote": "Cleanup policies only take effect when this task runs.",
+    "defaultInterval": "Default interval ({{i}})",
+    "duration": "Duration",
+    "every": "every",
+    "failedNotice": "Task {{name}} failed",
+    "idle": "idle",
+    "lastRun": "Last run",
+    "name": {
+      "backup": "Backup",
+      "blob-gc": "Blob GC",
+      "cleanup-policies": "Apply cleanup policies",
+      "compact-blobs": "Compact blob store",
+      "prune-expired": "Prune expired entries",
+      "re-encrypt-secrets": "Re-encrypt secrets",
+      "rebuild-indexes": "Rebuild indexes"
+    },
+    "nextRun": "Next run",
+    "noLog": "(no output)",
+    "runNow": "Run now",
+    "running": "{{n}} running · refreshes every 3 s",
+    "runningNow": "running…",
+    "runs": "Run history",
+    "saveSchedule": "Save schedule",
+    "schedule": "Schedule",
+    "scheduleBtn": "Schedule",
+    "scheduleTitle": "Schedule",
+    "started": "Task {{name}} started",
+    "summary": "Summary",
+    "task": "Task"
+  },
+  "theme": {
+    "dark": "Dark theme",
+    "light": "Light theme"
+  },
+  "tokens": {
+    "create": "Create token",
+    "createdTitle": "Token \"{{name}}\" created",
+    "custom": "custom",
+    "d30": "30 days",
+    "d365": "1 year",
+    "d90": "90 days",
+    "date": "Date",
+    "expired": "expired",
+    "expires": "Expires",
+    "expiresOn": "Expires {{date}}",
+    "lastUsed": "Last used",
+    "nameHint": "e.g. \"gitlab-ci\", \"laptop\"",
+    "never": "never",
+    "neverExpires": "Never expires",
+    "prefix": "Prefix",
+    "revoke": "Revoke",
+    "revokeHint": "Clients using it will start failing immediately.",
+    "revokeTitle": "Revoke token \"{{name}}\"?",
+    "revoked": "Token revoked",
+    "saved": "I have saved it",
+    "secretLabel": "SECRET · shown only once",
+    "secretWarn": "You will not be able to see this secret again. Store it now, e.g. as a CI secret variable (HLK_TOKEN).",
+    "sub": "Personal access tokens for CI and command-line clients. They act as {{user}}.",
+    "useBasic": "Basic (any client)",
+    "useBasicHint": "Username + the token as the password."
+  },
+  "type": {
+    "blocked": "Blocked",
+    "group": "Group",
+    "hosted": "Hosted",
+    "offline": "Offline",
+    "proxy": "Proxy"
+  },
+  "usage": {
+    "apt": {
+      "sources": "Sources",
+      "upload": "Upload a .deb"
+    },
+    "createToken": "Create my token →",
+    "cred": "Credentials: use a User Token (username + token as the password).",
+    "credNote": "# credentials: your username + a User Token as the password",
+    "docker": {
+      "mirror": "Docker daemon registry mirror",
+      "path": "Path mode (main port)",
+      "port": "Port connector",
+      "subdomain": "Subdomain",
+      "tls": "TLS port connector"
+    },
+    "helm": {
+      "push": "Upload a chart"
+    },
+    "maven": {
+      "deploy": "Deploy",
+      "mirror": "Use as mirror"
+    },
+    "npm": {
+      "publish": "Publish",
+      "registry": "Registry",
+      "scope": "Only for a scope"
+    },
+    "nuget": {
+      "push": "Push"
+    },
+    "raw": {
+      "download": "Download",
+      "upload": "Upload"
+    },
+    "tf": {
+      "mirror": "Provider network mirror",
+      "module": "Module source"
+    },
+    "yum": {
+      "upload": "Upload an .rpm"
+    }
+  },
+  "users": {
+    "active": "Active",
+    "create": "Create user",
+    "deleteHint": "Their tokens stop working immediately.",
+    "deleteTitle": "Delete user",
+    "displayName": "Display name",
+    "edit": "Edit {{name}}",
+    "exists": "That username already exists",
+    "externalHint": "Synced from {{source}}. Roles from the mapping are applied at login; roles set here are added on top.",
+    "pwReset": "Password updated",
+    "resetPw": "Reset password",
+    "resetPwTitle": "Reset password for {{name}}",
+    "selfAdminHint": "You will lose access to this page immediately.",
+    "selfAdminTitle": "Remove your own admin role?",
+    "source": "Source",
+    "tokensOf": "Tokens of {{name}}"
+  },
+  "webhooks": {
+    "create": "Create webhook",
+    "deleteTitle": "Delete webhook \"{{name}}\"?",
+    "edit": "Edit webhook",
+    "events": "Events",
+    "httpsHint": "https:// recommended",
+    "payload": "Payload example",
+    "queued": "Test event queued — check Logs for the delivery result",
+    "repoHint": "Empty = all repositories",
+    "sendTest": "Send test",
+    "signature": "Signature: X-Holiaokho-Signature (HMAC-SHA256 of the body)"
+  },
+  "wizard": {
+    "configure": "Configure {{format}} {{type}}",
+    "create": "Create {{name}}",
+    "filterFormats": "Filter formats",
+    "groupDesc": "One URL that merges several hosted and proxy repositories.",
+    "groupNeedsMembers": "Create a hosted or proxy {{format}} repository first.",
+    "groupWhen": "Give clients a single address.",
+    "hostedDesc": "Your own artifacts, uploaded by developers or CI.",
+    "hostedWhen": "Internal libraries, release builds, images you build.",
+    "preview": "After creation, clients use it like this",
+    "proxyDesc": "Caches a remote registry. Downloaded once, served locally afterwards.",
+    "proxyWhen": "Maven Central, npmjs, Docker Hub, PyPI…",
+    "step1": "Format",
+    "step2": "Type",
+    "step3": "Settings",
+    "title": "Create"
+  }
+}
