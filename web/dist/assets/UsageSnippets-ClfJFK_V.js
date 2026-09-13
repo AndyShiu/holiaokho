@@ -1,4 +1,4 @@
-import{u as m,j as c,L as h}from"./react-BWHAFyLI.js";import{a as $}from"./Copyable-DCXes2wN.js";function f(i,o=window.location.origin){return i.url||`${o}/repository/${i.name}`}function k(i){try{return new URL(i).host}catch{return i}}function E(i,o){var d,u,n;const e=f(i),a=k(e),t=i.name,p=i.type==="hosted",r=[],g=o("usage.credNote","# credentials: your username + a User Token as the password");switch(i.format){case"maven":r.push({title:o("usage.maven.mirror","Use as mirror"),file:"~/.m2/settings.xml",code:`<settings>
+import{u as m,j as c,L as h}from"./react-BWHAFyLI.js";import{a as $}from"./Copyable-B1KF8BU8.js";function f(i,o=window.location.origin){return i.url||`${o}/repository/${i.name}`}function k(i){try{return new URL(i).host}catch{return i}}function E(i,o){var d,u,n;const e=f(i),a=k(e),t=i.name,p=i.type==="hosted",r=[],g=o("usage.credNote","# credentials: your username + a User Token as the password");switch(i.format){case"maven":r.push({title:o("usage.maven.mirror","Use as mirror"),file:"~/.m2/settings.xml",code:`<settings>
   <mirrors>
     <mirror>
       <id>${t}</id>

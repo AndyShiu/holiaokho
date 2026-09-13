@@ -495,8 +495,10 @@
     "noSelectors": "Create a content selector first",
     "sumAll": "{{acts}} over the entire system",
     "sumApp": "{{acts}}: {{area}} administration",
+    "sumAppAll": "{{acts}} over every application area",
     "sumFormat": "{{acts}} on all {{format}} repositories",
     "sumRepo": "{{acts}} on repository {{name}}",
+    "sumRepoAll": "{{acts}} on every repository",
     "sumSelector": "{{acts}} on content matching selector {{sel}}",
     "target": "TARGET",
     "value": "VALUE"

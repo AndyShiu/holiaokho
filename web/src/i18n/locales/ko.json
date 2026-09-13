@@ -495,8 +495,10 @@
     "noSelectors": "먼저 콘텐츠 선택기를 만드세요",
     "sumAll": "시스템 전체에 대한 {{acts}} 권한",
     "sumApp": "{{acts}}: {{area}} 관리",
+    "sumAppAll": "모든 애플리케이션 영역에 대한 {{acts}} 권한",
     "sumFormat": "모든 {{format}} 리포지터리에 대한 {{acts}} 권한",
     "sumRepo": "리포지터리 {{name}} 에 대한 {{acts}} 권한",
+    "sumRepoAll": "모든 리포지터리에 대한 {{acts}} 권한",
     "sumSelector": "선택기 {{sel}} 에 맞는 콘텐츠에 대한 {{acts}} 권한",
     "target": "대상",
     "value": "값"

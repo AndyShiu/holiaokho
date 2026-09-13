@@ -22,9 +22,11 @@ export function summarise(privs: Privilege[], t: (k: string, d: string, o?: any)
     const { kind, value } = split(p.target)
     const acts = p.actions.includes('*') ? t('priv.allActions', 'full control') : p.actions.join(' / ')
     if (kind === '*') out.push(t('priv.sumAll', '{{acts}} over the entire system', { acts }))
-    else if (kind === 'app') out.push(t('priv.sumApp', '{{acts}}: {{area}} administration', { acts, area: value === '*' ? t('priv.allAreas', 'all') : value }))
-    else if (kind === 'repo') out.push(t('priv.sumRepo', '{{acts}} on repository {{name}}', { acts, name: value === '*' ? t('priv.allRepos', 'every repository') : value }))
-    else if (kind === 'format') out.push(t('priv.sumFormat', '{{acts}} on all {{format}} repositories', { acts, format: value }))
+    // Wildcards read badly when substituted into the named phrasing, so they
+    // get their own sentence.
+    else if (kind === 'app') out.push(value === '*' ? t('priv.sumAppAll', '{{acts}} over every application area', { acts }) : t('priv.sumApp', '{{acts}}: {{area}} administration', { acts, area: value }))
+    else if (kind === 'repo') out.push(value === '*' ? t('priv.sumRepoAll', '{{acts}} on every repository', { acts }) : t('priv.sumRepo', '{{acts}} on repository {{name}}', { acts, name: value }))
+    else if (kind === 'format') out.push(value === '*' ? t('priv.sumRepoAll', '{{acts}} on every repository', { acts }) : t('priv.sumFormat', '{{acts}} on all {{format}} repositories', { acts, format: value }))
     else if (kind === 'selector') out.push(t('priv.sumSelector', '{{acts}} on content matching selector {{sel}}', { acts, sel: value }))
   }
   return out

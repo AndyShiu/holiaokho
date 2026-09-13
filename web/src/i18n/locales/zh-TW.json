@@ -495,8 +495,10 @@
     "noSelectors": "請先建立內容選擇器",
     "sumAll": "對整個系統有 {{acts}} 權限",
     "sumApp": "{{acts}}：管理 {{area}}",
+    "sumAppAll": "對所有應用區域有 {{acts}} 權限",
     "sumFormat": "對所有 {{format}} repository 有 {{acts}} 權限",
     "sumRepo": "對 repository {{name}} 有 {{acts}} 權限",
+    "sumRepoAll": "對所有 repository 有 {{acts}} 權限",
     "sumSelector": "對符合選擇器 {{sel}} 的內容有 {{acts}} 權限",
     "target": "目標",
     "value": "值"

@@ -495,8 +495,10 @@
     "noSelectors": "请先创建内容选择器",
     "sumAll": "对整个系统拥有 {{acts}} 权限",
     "sumApp": "{{acts}}：管理 {{area}}",
+    "sumAppAll": "对所有应用区域拥有 {{acts}} 权限",
     "sumFormat": "对所有 {{format}} 仓库拥有 {{acts}} 权限",
     "sumRepo": "对仓库 {{name}} 拥有 {{acts}} 权限",
+    "sumRepoAll": "对所有仓库拥有 {{acts}} 权限",
     "sumSelector": "对匹配选择器 {{sel}} 的内容拥有 {{acts}} 权限",
     "target": "目标",
     "value": "值"

@@ -495,8 +495,10 @@
     "noSelectors": "先にコンテンツセレクターを作成してください",
     "sumAll": "システム全体に対する {{acts}} 権限",
     "sumApp": "{{acts}}：{{area}} の管理",
+    "sumAppAll": "すべてのアプリケーション領域に対する {{acts}} 権限",
     "sumFormat": "すべての {{format}} リポジトリに対する {{acts}} 権限",
     "sumRepo": "リポジトリ {{name}} に対する {{acts}} 権限",
+    "sumRepoAll": "すべてのリポジトリに対する {{acts}} 権限",
     "sumSelector": "セレクター {{sel}} に一致するコンテンツへの {{acts}} 権限",
     "target": "ターゲット",
     "value": "値"
