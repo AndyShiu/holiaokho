@@ -1,9 +1,9 @@
 # Nexus Repository 功能對照表
 
 > 目的：確保「Nexus 有的我們都有」是可追蹤的清單，而不是一句話。
-> 基準：Nexus Repository 3.95 Community Edition（公司環境）。Pro-only 功能另列，作為超越 Nexus CE 的機會。
-> 狀態欄：`P0`–`P7` 對應 `holiaokho-architecture-draft.md` §14 的實作階段；`後` = 有排但無階段；`不做` = 明確不做並附理由；✅ = 已實作並測試（2026-09-13 夜）。
-> 2026-09-13 初版；同日晚間全數實作完成後更新狀態。
+> 基準：Nexus Repository 3.95 Community Edition。付費版才有的功能另列於 §7。
+> 狀態欄：`P0`–`P7` 為實作階段編號；`後` = 已排入但未定階段；`不做` = 明確不做並附理由；✅ = 已實作並以官方 client 測試。
+> 2026-09-13 初版。
 
 ---
 

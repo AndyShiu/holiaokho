@@ -1,6 +1,7 @@
 // Package model holds the core domain types shared by every layer.
-// Terminology follows docs/holiaokho-architecture-draft.md §2:
-// Repository → Package → Asset → Blob.
+// The ownership chain is Repository → Package → Asset → Blob: a repository
+// holds packages, a package has assets, and an asset points at a blob that
+// may be shared with any number of other assets.
 package model
 
 import (
