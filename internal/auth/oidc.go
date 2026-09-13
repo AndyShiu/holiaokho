@@ -67,10 +67,10 @@ func (s *Service) OIDCLogin(w http.ResponseWriter, r *http.Request, baseURL stri
 	rand.Read(raw)
 	state := base64.RawURLEncoding.EncodeToString(raw)
 	next := r.URL.Query().Get("next")
-	if next == "" || !strings.HasPrefix(next, "/") {
+	if next == "" || !strings.HasPrefix(next, "/") || strings.HasPrefix(next, "//") || strings.HasPrefix(next, "/\\") {
 		next = "/"
 	}
-	http.SetCookie(w, &http.Cookie{Name: oidcStateCookie, Value: state + "|" + next, Path: "/api/v1/auth/oidc", HttpOnly: true, SameSite: http.SameSiteLaxMode, MaxAge: 600})
+	http.SetCookie(w, &http.Cookie{Name: oidcStateCookie, Value: state + "|" + next, Path: "/api/v1/auth/oidc", HttpOnly: true, SameSite: http.SameSiteLaxMode, MaxAge: 600, Secure: r.TLS != nil || strings.EqualFold(r.Header.Get("X-Forwarded-Proto"), "https")})
 	http.Redirect(w, r, s.oauthConfig(p, cfg, redirect).AuthCodeURL(state), http.StatusFound)
 }
 
@@ -85,6 +85,9 @@ func (s *Service) OIDCCallback(w http.ResponseWriter, r *http.Request, baseURL s
 		return nil, "", errors.New("missing state cookie")
 	}
 	state, next, _ := strings.Cut(c.Value, "|")
+	if !strings.HasPrefix(next, "/") || strings.HasPrefix(next, "//") || strings.HasPrefix(next, "/\\") {
+		next = "/"
+	}
 	if r.URL.Query().Get("state") != state {
 		return nil, "", errors.New("state mismatch")
 	}

@@ -214,11 +214,13 @@ func Restore(ctx context.Context, c *content.Service, r io.Reader, logf func(str
 			order = append(order, t)
 		}
 	}
-	// Disable FK checks for the session while loading.
-	if _, err := conn.Exec(ctx, `SET session_replication_role = replica`); err != nil {
-		return err
+	// Disable FK checks for the session while loading (needs superuser; the
+	// tables are loaded parents-first, so it is only an optimisation).
+	if _, err := conn.Exec(ctx, `SET session_replication_role = replica`); err == nil {
+		defer conn.Exec(ctx, `SET session_replication_role = DEFAULT`)
+	} else {
+		logf("session_replication_role not available (%v); loading in dependency order", err)
 	}
-	defer conn.Exec(ctx, `SET session_replication_role = DEFAULT`)
 	for _, t := range order {
 		csv, ok := tables[t]
 		if !ok {

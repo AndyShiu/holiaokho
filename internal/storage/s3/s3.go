@@ -202,6 +202,9 @@ type upload struct {
 }
 
 func (s *Store) Begin(ctx context.Context, id string) (storage.Upload, error) {
+	if id != "" && !storage.ValidUploadID(id) {
+		return nil, fmt.Errorf("invalid upload id")
+	}
 	if id == "" {
 		id = uuid.NewString()
 	}
@@ -213,6 +216,9 @@ func (s *Store) Begin(ctx context.Context, id string) (storage.Upload, error) {
 }
 
 func (s *Store) Resume(ctx context.Context, id string) (storage.Upload, error) {
+	if !storage.ValidUploadID(id) {
+		return nil, storage.ErrNotFound
+	}
 	f, err := os.OpenFile(filepath.Join(s.tmp, id), os.O_RDWR|os.O_APPEND, 0o644)
 	if errors.Is(err, os.ErrNotExist) {
 		return nil, storage.ErrNotFound

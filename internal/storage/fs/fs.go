@@ -125,6 +125,9 @@ type upload struct {
 }
 
 func (s *Store) Begin(ctx context.Context, id string) (storage.Upload, error) {
+	if id != "" && !storage.ValidUploadID(id) {
+		return nil, fmt.Errorf("invalid upload id")
+	}
 	var f *os.File
 	var err error
 	if id == "" {
@@ -142,6 +145,9 @@ func (s *Store) Begin(ctx context.Context, id string) (storage.Upload, error) {
 // existing bytes are re-read to rebuild it (uploads are bounded in size and
 // rare, so this is acceptable).
 func (s *Store) Resume(ctx context.Context, id string) (storage.Upload, error) {
+	if !storage.ValidUploadID(id) {
+		return nil, storage.ErrNotFound
+	}
 	p := filepath.Join(s.root, "uploads", id)
 	f, err := os.OpenFile(p, os.O_RDWR, 0o644)
 	if errors.Is(err, os.ErrNotExist) {

@@ -31,7 +31,10 @@ type Server struct {
 	// If empty it is derived from the request (Host + X-Forwarded-*).
 	BaseURL string `yaml:"base_url"`
 	// TrustForwarded honours X-Forwarded-Proto/Host/For from a reverse proxy.
-	TrustForwarded bool          `yaml:"trust_forwarded"`
+	TrustForwarded bool `yaml:"trust_forwarded"`
+	// TrustedProxies are CIDRs whose X-Forwarded-For is believed for client
+	// IP (login rate limiting, audit). Default: private ranges + loopback.
+	TrustedProxies []string      `yaml:"trusted_proxies"`
 	ReadTimeout    time.Duration `yaml:"read_timeout"`
 	WriteTimeout   time.Duration `yaml:"write_timeout"`
 	// UIDir optionally overrides the embedded web UI with a directory on disk.
@@ -119,6 +122,7 @@ func Default() Config {
 		Server: Server{
 			Listen:         ":8081",
 			TrustForwarded: true,
+			TrustedProxies: []string{"127.0.0.0/8", "::1/128", "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"},
 			ReadTimeout:    0,
 			WriteTimeout:   0,
 		},
@@ -182,6 +186,14 @@ func applyEnv(c *Config) {
 	str("LISTEN", &c.Server.Listen)
 	str("BASE_URL", &c.Server.BaseURL)
 	boolean("TRUST_FORWARDED", &c.Server.TrustForwarded)
+	if v, ok := os.LookupEnv("HOLIAOKHO_TRUSTED_PROXIES"); ok {
+		c.Server.TrustedProxies = nil
+		for _, x := range strings.Split(v, ",") {
+			if x = strings.TrimSpace(x); x != "" {
+				c.Server.TrustedProxies = append(c.Server.TrustedProxies, x)
+			}
+		}
+	}
 	str("UI_DIR", &c.Server.UIDir)
 	str("TLS_CERT", &c.Server.TLSCert)
 	str("TLS_KEY", &c.Server.TLSKey)

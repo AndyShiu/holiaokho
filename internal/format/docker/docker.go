@@ -637,8 +637,14 @@ func (h *handler) blobs(w http.ResponseWriter, r *http.Request, name, digest str
 
 // --------------------------------------------------------------- uploads
 
+var uploadIDRe = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
+
 func (h *handler) uploads(w http.ResponseWriter, r *http.Request, name, id string) {
 	if !h.authorize(w, r, name, auth.Write) {
+		return
+	}
+	if id != "" && !uploadIDRe.MatchString(id) {
+		regErr(w, 404, "BLOB_UPLOAD_UNKNOWN", "upload unknown")
 		return
 	}
 	if h.repo.Type != model.Hosted {

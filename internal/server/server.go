@@ -4,6 +4,7 @@ package server
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -95,6 +96,9 @@ type metrics struct {
 func New(ctx context.Context, cfg config.Config, log *slog.Logger, sys *System) (*Server, error) {
 	if sys == nil {
 		_, sys = NewSystemLogger(cfg.Log.Level, cfg.Log.Format)
+	}
+	if err := auth.SetTrustedProxies(cfg.Server.TrustedProxies); err != nil {
+		return nil, err
 	}
 	kr, err := secrets.Init(cfg.Secrets.Key, cfg.Secrets.KeyFile, cfg.Secrets.PreviousKeys)
 	if err != nil {
@@ -268,6 +272,18 @@ func (s *Server) middleware(next http.Handler) http.Handler {
 			}
 			s.Log.Debug("http", "method", r.Method, "path", r.URL.Path, "status", sw.status, "bytes", sw.n, "dur", time.Since(start).Round(time.Millisecond), "ip", auth.ClientIP(r))
 		}()
+		// Browser hardening. Repository content is served in a sandbox so an
+		// uploaded HTML file cannot run scripts in Holiaokho's origin.
+		sw.Header().Set("X-Content-Type-Options", "nosniff")
+		if strings.HasPrefix(r.URL.Path, "/repository/") || strings.HasPrefix(r.URL.Path, "/v2/") {
+			sw.Header().Set("Content-Security-Policy", "sandbox; default-src 'none'")
+		} else {
+			sw.Header().Set("X-Frame-Options", "DENY")
+			sw.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
+			if strings.HasPrefix(r.URL.Path, "/api/") || strings.HasPrefix(r.URL.Path, "/service/") {
+				sw.Header().Set("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'")
+			}
+		}
 		p, presented, err := s.Auth.FromRequest(r)
 		if err != nil {
 			if errors.Is(err, auth.ErrRateLimited) {
@@ -501,7 +517,7 @@ func (s *Server) syncDockerListeners() {
 		mux.NotFound(func(w http.ResponseWriter, r *http.Request) {
 			format.WriteError(w, 404, "not_found", "this port serves the Docker registry API for %q", name)
 		})
-		srv := &http.Server{Addr: fmt.Sprintf(":%d", port), Handler: mux, ReadHeaderTimeout: 30 * time.Second}
+		srv := &http.Server{Addr: fmt.Sprintf(":%d", port), Handler: mux, ReadHeaderTimeout: 30 * time.Second, TLSConfig: &tls.Config{MinVersion: tls.VersionTLS12}}
 		ln, err := net.Listen("tcp", srv.Addr)
 		if err != nil {
 			s.Log.Error("docker connector listen", "port", port, "repo", name, "err", err)
@@ -541,7 +557,7 @@ func (s *Server) Run(ctx context.Context) error {
 	s.Tasks.Start()
 	s.syncDockerListeners()
 	s.main = &http.Server{Addr: s.Cfg.Server.Listen, Handler: s.Router(), ReadHeaderTimeout: 30 * time.Second,
-		ReadTimeout: s.Cfg.Server.ReadTimeout, WriteTimeout: s.Cfg.Server.WriteTimeout}
+		ReadTimeout: s.Cfg.Server.ReadTimeout, WriteTimeout: s.Cfg.Server.WriteTimeout, TLSConfig: &tls.Config{MinVersion: tls.VersionTLS12}}
 	ln, err := net.Listen("tcp", s.Cfg.Server.Listen)
 	if err != nil {
 		return err
@@ -553,7 +569,7 @@ func (s *Server) Run(ctx context.Context) error {
 		// HTTP on Listen plus HTTPS on TLSListen.
 		s.Log.Info("holiaokho listening", "addr", cfg.Listen, "https", cfg.TLSListen, "version", Version)
 		go func() { errc <- s.main.Serve(ln) }()
-		tlsSrv := &http.Server{Addr: cfg.TLSListen, Handler: s.main.Handler, ReadHeaderTimeout: 30 * time.Second}
+		tlsSrv := &http.Server{Addr: cfg.TLSListen, Handler: s.main.Handler, ReadHeaderTimeout: 30 * time.Second, TLSConfig: &tls.Config{MinVersion: tls.VersionTLS12}}
 		tln, err := net.Listen("tcp", cfg.TLSListen)
 		if err != nil {
 			return err

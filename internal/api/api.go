@@ -178,6 +178,12 @@ type validationError struct{ msg string }
 func (v validationError) Error() string   { return v.msg }
 func invalid(f string, args ...any) error { return validationError{fmt.Sprintf(f, args...)} }
 
+// isHTTPS reports whether the client reached us over TLS (directly or via a
+// forwarding proxy), so cookies can carry the Secure flag.
+func isHTTPS(r *http.Request) bool {
+	return r.TLS != nil || strings.EqualFold(r.Header.Get("X-Forwarded-Proto"), "https")
+}
+
 // need wraps a handler with an application-level permission check.
 func (a *API) need(target, action string, h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -316,7 +322,7 @@ func (a *API) login(w http.ResponseWriter, r *http.Request) {
 		a.fail(w, err)
 		return
 	}
-	http.SetCookie(w, &http.Cookie{Name: auth.SessionCookie, Value: id, Path: "/", HttpOnly: true, SameSite: http.SameSiteLaxMode, Expires: exp})
+	http.SetCookie(w, &http.Cookie{Name: auth.SessionCookie, Value: id, Path: "/", HttpOnly: true, SameSite: http.SameSiteLaxMode, Expires: exp, Secure: isHTTPS(r)})
 	a.audit_(r, "login", "user", p.Username, nil)
 	writeJSON(w, 200, map[string]any{"username": p.Username, "roles": p.Roles, "expiresAt": exp})
 }

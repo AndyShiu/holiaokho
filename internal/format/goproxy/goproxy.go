@@ -94,6 +94,12 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		rest := strings.TrimPrefix(cp, "sumdb/")
 		host, path, _ := strings.Cut(rest, "/")
+		// Only forward to the checksum databases we know about; anything
+		// else would let a client turn the proxy into an open fetcher.
+		if host != "sum.golang.org" && host != "sum.golang.google.cn" {
+			format.WriteError(w, http.StatusNotFound, "not_found", "unknown checksum database")
+			return
+		}
 		pol.UpstreamPath = "https://" + host + "/" + path
 		if strings.HasPrefix(path, "tile/") {
 			pol.Kind, pol.Immutable = repo.Content, true

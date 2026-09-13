@@ -640,12 +640,14 @@ func (s *Service) rutAuth(r *http.Request) (*Principal, bool) {
 	if username == "" || username == UserAnonymous {
 		return nil, false
 	}
-	if len(cfg.TrustedProxies) > 0 {
-		host := r.RemoteAddr
-		if i := strings.LastIndexByte(host, ':'); i > 0 {
-			host = host[:i]
-		}
-		ip := net.ParseIP(strings.Trim(host, "[]"))
+	if len(cfg.TrustedProxies) == 0 {
+		// Never accept an identity header from arbitrary peers.
+		s.Log.Warn("rut auth enabled without trustedProxies; ignoring header")
+		return nil, false
+	}
+	{
+		host := remoteIP(r)
+		ip := net.ParseIP(host)
 		trusted := false
 		for _, c := range cfg.TrustedProxies {
 			if _, n, err := net.ParseCIDR(c); err == nil && ip != nil && n.Contains(ip) {
@@ -680,19 +682,73 @@ func (s *Service) rutAuth(r *http.Request) (*Principal, bool) {
 	return p, true
 }
 
-// ClientIP honours X-Forwarded-For (first hop) when present.
-func ClientIP(r *http.Request) string {
-	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
-		if i := strings.IndexByte(xff, ','); i > 0 {
-			return strings.TrimSpace(xff[:i])
+// TrustedProxies is the set of networks whose X-Forwarded-For is trusted;
+// set by the server from configuration.
+var TrustedProxies []*net.IPNet
+
+// SetTrustedProxies parses CIDRs (or single IPs) into TrustedProxies.
+func SetTrustedProxies(cidrs []string) error {
+	var out []*net.IPNet
+	for _, c := range cidrs {
+		if !strings.Contains(c, "/") {
+			if strings.Contains(c, ":") {
+				c += "/128"
+			} else {
+				c += "/32"
+			}
 		}
-		return strings.TrimSpace(xff)
+		_, n, err := net.ParseCIDR(c)
+		if err != nil {
+			return fmt.Errorf("trusted proxy %q: %w", c, err)
+		}
+		out = append(out, n)
 	}
+	TrustedProxies = out
+	return nil
+}
+
+func remoteIP(r *http.Request) string {
 	host := r.RemoteAddr
-	if i := strings.LastIndexByte(host, ':'); i > 0 {
-		host = host[:i]
+	if h, _, err := net.SplitHostPort(host); err == nil {
+		host = h
 	}
-	return host
+	return strings.Trim(host, "[]")
+}
+
+// ClientIP returns the client address. X-Forwarded-For is only believed
+// when the direct peer is a trusted proxy; the rightmost untrusted hop wins,
+// so clients cannot spoof their address past the proxy.
+func ClientIP(r *http.Request) string {
+	peer := remoteIP(r)
+	ip := net.ParseIP(peer)
+	if ip == nil || !inTrusted(ip) {
+		return peer
+	}
+	xff := r.Header.Get("X-Forwarded-For")
+	if xff == "" {
+		return peer
+	}
+	hops := strings.Split(xff, ",")
+	for i := len(hops) - 1; i >= 0; i-- {
+		h := strings.TrimSpace(hops[i])
+		hip := net.ParseIP(h)
+		if hip == nil {
+			return peer
+		}
+		if !inTrusted(hip) {
+			return h
+		}
+	}
+	return strings.TrimSpace(hops[0])
+}
+
+func inTrusted(ip net.IP) bool {
+	for _, n := range TrustedProxies {
+		if n.Contains(ip) {
+			return true
+		}
+	}
+	return false
 }
 
 type ctxKey struct{}

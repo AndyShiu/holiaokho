@@ -96,15 +96,19 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.modules(w, r, segs[2:])
 	case len(segs) == 5 && segs[0] == "modules" && strings.HasSuffix(segs[4], ".tgz"):
 		pol := repo.Policy{Kind: repo.Content, Immutable: true, ContentType: "application/gzip", Package: Format{}.Parse(p)}
-		if up := r.URL.Query().Get("upstream"); up != "" && strings.HasPrefix(up, "https://") {
-			pol.UpstreamPath = up
-		}
 		for _, rp := range common.Members(r.Context(), h.d, h.repo) {
-			if rp.Type == model.Hosted || pol.UpstreamPath != "" {
-				if res, err := h.d.Engine.Fetch(r.Context(), rp, p, pol); err == nil {
-					format.ServeResult(w, r, h.d, res)
-					return
+			mp := pol
+			if rp.Type == model.Proxy {
+				if _, err := h.d.Content.Asset(r.Context(), rp.ID, p); err != nil {
+					mp.UpstreamPath = h.resolveModuleArchive(r.Context(), rp, segs[1], segs[2], segs[3], strings.TrimSuffix(segs[4], ".tgz"))
+					if mp.UpstreamPath == "" {
+						continue
+					}
 				}
+			}
+			if res, err := h.d.Engine.Fetch(r.Context(), rp, p, mp); err == nil {
+				format.ServeResult(w, r, h.d, res)
+				return
 			}
 		}
 		writeJSON(w, 404, map[string]any{"errors": []string{"module archive not found"}})
@@ -436,7 +440,9 @@ func (h *handler) modules(w http.ResponseWriter, r *http.Request, segs []string)
 					continue
 				}
 				if strings.HasPrefix(get, "https://") && (strings.HasSuffix(get, ".tgz") || strings.HasSuffix(get, ".tar.gz") || strings.HasSuffix(get, ".zip") || strings.Contains(get, "archive=")) {
-					w.Header().Set("X-Terraform-Get", fmt.Sprintf("%s/modules/%s/%s/%s/%s.tgz?upstream=%s", h.base(r), ns, name, provider, ver, get))
+					// The archive is proxied; the upstream location is re-resolved
+					// server-side when the archive is requested (never from the client).
+					w.Header().Set("X-Terraform-Get", fmt.Sprintf("%s/modules/%s/%s/%s/%s.tgz", h.base(r), ns, name, provider, ver))
 				} else {
 					w.Header().Set("X-Terraform-Get", get)
 				}
@@ -448,6 +454,22 @@ func (h *handler) modules(w http.ResponseWriter, r *http.Request, segs []string)
 	default:
 		writeJSON(w, 404, map[string]any{"errors": []string{"not found"}})
 	}
+}
+
+// resolveModuleArchive asks the upstream registry where a module version's
+// archive lives and returns it only when it is a plain https archive.
+func (h *handler) resolveModuleArchive(ctx context.Context, rp *model.Repository, ns, name, provider, ver string) string {
+	u := fmt.Sprintf("%s/%s/%s/%s/%s/download", h.upstreamBase(ctx, rp, "modules"), ns, name, provider, ver)
+	resp, err := h.d.Engine.Upstream(ctx, rp, http.MethodGet, u, nil, nil, repo.Policy{Kind: repo.NoCache})
+	if err != nil {
+		return ""
+	}
+	get := resp.Header.Get("X-Terraform-Get")
+	resp.Body.Close()
+	if strings.HasPrefix(get, "https://") && (strings.HasSuffix(get, ".tgz") || strings.HasSuffix(get, ".tar.gz") || strings.HasSuffix(get, ".zip") || strings.Contains(get, "archive=")) {
+		return get
+	}
+	return ""
 }
 
 // upload stores a module archive: PUT modules/<ns>/<name>/<provider>/<version>.tgz

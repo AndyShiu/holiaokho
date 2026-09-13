@@ -558,6 +558,7 @@ func (a *API) systemConfig(w http.ResponseWriter, r *http.Request) {
 	c.Storage.S3.SecretKey = redact(c.Storage.S3.SecretKey)
 	c.Auth.AdminPassword = redact(c.Auth.AdminPassword)
 	c.Secrets.Key = redact(c.Secrets.Key)
+	c.Proxy.HTTPProxy = redactURL(c.Proxy.HTTPProxy)
 	for i := range c.Secrets.PreviousKeys {
 		c.Secrets.PreviousKeys[i] = "***"
 	}

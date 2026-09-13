@@ -100,7 +100,7 @@ func (a *API) oidcCallback(w http.ResponseWriter, r *http.Request) {
 		a.fail(w, err)
 		return
 	}
-	http.SetCookie(w, &http.Cookie{Name: auth.SessionCookie, Value: id, Path: "/", HttpOnly: true, SameSite: http.SameSiteLaxMode, Expires: exp})
+	http.SetCookie(w, &http.Cookie{Name: auth.SessionCookie, Value: id, Path: "/", HttpOnly: true, SameSite: http.SameSiteLaxMode, Expires: exp, Secure: isHTTPS(r)})
 	a.audit_(r, "login", "user", u.Username, map[string]any{"via": "oidc"})
 	http.Redirect(w, r, next, http.StatusFound)
 }

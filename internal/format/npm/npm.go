@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -27,6 +28,9 @@ import (
 const Name = "npm"
 
 const challenge = `Basic realm="Holiaokho npm"`
+
+// nameRe is the npm package name grammar (optionally scoped).
+var nameRe = regexp.MustCompile(`^(@[a-z0-9-~][a-z0-9-._~]*/)?[a-z0-9-~][a-z0-9-._~]*$`)
 
 type Format struct{}
 
@@ -141,7 +145,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	name, rest := splitName(p)
-	if name == "" {
+	if name == "" || !nameRe.MatchString(name) {
 		writeJSON(w, 404, map[string]any{"error": "not found"})
 		return
 	}

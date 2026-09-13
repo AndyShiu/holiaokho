@@ -85,3 +85,17 @@ func (h *Hasher) Write(p []byte) (int, error) {
 }
 func (h *Hasher) Digest() Digest { return DigestFromHex(hex.EncodeToString(h.h.Sum(nil))) }
 func (h *Hasher) Size() int64    { return h.n }
+
+// ValidUploadID accepts only simple identifiers (no path separators or
+// dots), so upload ids taken from URLs can never escape the uploads dir.
+func ValidUploadID(id string) bool {
+	if id == "" || len(id) > 128 {
+		return false
+	}
+	for _, c := range id {
+		if !(c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9' || c == '-' || c == '_') {
+			return false
+		}
+	}
+	return true
+}
