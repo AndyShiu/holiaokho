@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Holiaokho — the good-stuff store</title>
+<meta name="description" content="A self-hosted artifact repository for 25 package formats — one address, one binary, no paid tier. Apache 2.0.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231E2A3B%22%2F%3E%3Cpath%20d%3D%22M6.5%2014.2%20L16%207%20L25.5%2014.2%22%20fill%3D%22none%22%20stroke%3D%22%23E8963A%22%20stroke-width%3D%223.2%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3Crect%20x%3D%2213%22%20y%3D%2215.4%22%20width%3D%226%22%20height%3D%225.1%22%20rx%3D%221%22%20fill%3D%22%23F3EFE7%22%2F%3E%3Crect%20x%3D%228.6%22%20y%3D%2221.8%22%20width%3D%226%22%20height%3D%225.1%22%20rx%3D%221%22%20fill%3D%22%23F3EFE7%22%2F%3E%3Crect%20x%3D%2217.4%22%20y%3D%2221.8%22%20width%3D%226%22%20height%3D%225.1%22%20rx%3D%221%22%20fill%3D%22%23F3EFE7%22%2F%3E%3C%2Fsvg%3E">
+<link rel="alternate" hreflang="zh-Hant-TW" href="index.zh-TW.html">
+<link rel="alternate" hreflang="en" href="index.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@700&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script>(function(){try{var t=new URLSearchParams(location.search).get("theme")||localStorage.getItem("holiaokho.theme");if(t==="dark"||t==="light")document.documentElement.setAttribute("data-theme",t)}catch(e){}})();</script>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="top" aria-label="Site">
+      <span>v1.0.3</span>
+      <nav><a href="index.zh-TW.html" lang="zh-Hant-TW" hreflang="zh-Hant-TW" data-lang>繁體中文</a><a href="https://github.com/AndyShiu/holiaokho">GitHub ↗</a><button class="theme" type="button" aria-label="Switch theme" title="Switch theme"><svg class="moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><svg class="sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M18.7 5.3l-1.4 1.4M6.7 17.3l-1.4 1.4"/></svg></button></nav>
+    </div>
+    <div class="lockup">
+      <svg class="mark" width="52" height="52" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M4 13 L16 4 L28 13" stroke="#E8963A" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"></path><rect x="12.5" y="14.5" width="7" height="6" rx="1" fill="currentColor"></rect><rect x="7.5" y="22" width="7" height="6" rx="1" fill="currentColor"></rect><rect x="17.5" y="22" width="7" height="6" rx="1" fill="currentColor"></rect></svg>
+      <div>
+        <div class="word">Holiaokho</div>
+        <div class="meta"><span class="cjk" lang="zh-Hant">好料庫</span><span class="tailo">hó-liāu-khòo</span></div>
+      </div>
+    </div>
+    <div class="bar"></div>
+    <h1>“the good-stuff store”</h1>
+    <p class="sub">A self-hosted artifact repository for 25 package formats — one address, one binary, no paid tier.</p>
+    <div class="btns">
+      <a class="btn btn-primary" href="https://github.com/AndyShiu/holiaokho">View on GitHub <span class="ext">↗</span></a>
+      <a class="btn btn-ghost" href="#quick-start">Quick start</a>
+    </div>
+  </div>
+</header>
+
+<main>
+<section id="why" class="reveal">
+  <div class="wrap">
+    <div class="bar"></div>
+    <h2>Why switch</h2>
+    <div class="cards">
+      <article class="card"><div class="bar"></div><h3>Switching does not hurt</h3><p>Repository paths, Docker port connectors and the credential model follow Nexus conventions. A production cut-over ran on the same host and the same ports without changing one line of CI configuration.</p></article>
+      <article class="card"><div class="bar"></div><h3>It is small</h3><p>A single Go binary. No JVM, no plugins, no application server. It starts serving in seconds and runs in a few hundred megabytes under real CI load.</p></article>
+      <article class="card"><div class="bar"></div><h3>Still shipping when upstream is down</h3><p>Cached artefacts keep being served while a public registry is unreachable, so a bad afternoon at Maven Central does not stop your builds.</p></article>
+      <article class="card"><div class="bar"></div><h3>Nothing held back for a paid tier</h3><p>There is no paid tier. Apache 2.0, every feature, no component limits, no request quotas.</p></article>
+    </div>
+  </div>
+</section>
+
+<section id="quick-start" class="reveal">
+  <div class="wrap">
+    <div class="bar"></div>
+    <h2>Running in one command</h2>
+    <div class="cmd">
+      <span class="prompt" aria-hidden="true">$</span>
+      <code id="cmd-up">docker compose -f deploy/docker-compose.yml up -d</code>
+      <button class="copy" type="button" data-copy="cmd-up" data-done-label="Copied" aria-label="Copy command">Copy</button>
+    </div>
+    <p class="then">Then open <code>http://localhost:8081/ui/</code>. Point your clients at it exactly as you would at Nexus:</p>
+    <div class="clients">
+      <div class="client">
+        <header><span class="tile-s" style="background:#B8541F" aria-hidden="true">mvn</span>Maven<span class="file">settings.xml</span></header>
+        <div class="body"><pre><code id="cl-mvn">&lt;mirror&gt;
+  &lt;id&gt;holiaokho&lt;/id&gt;
+  &lt;url&gt;http://localhost:8081/repository/maven-public/&lt;/url&gt;
+  &lt;mirrorOf&gt;*&lt;/mirrorOf&gt;
+&lt;/mirror&gt;</code></pre><button class="copy" type="button" data-copy="cl-mvn" data-done-label="Copied" aria-label="Copy — Maven">Copy</button></div>
+      </div>
+      <div class="client">
+        <header><span class="tile-s" style="background:#CB3837" aria-hidden="true">npm</span>npm<span class="file">.npmrc</span></header>
+        <div class="body"><pre><code id="cl-npm">npm config set registry http://localhost:8081/repository/npm-group/</code></pre><button class="copy" type="button" data-copy="cl-npm" data-done-label="Copied" aria-label="Copy — npm">Copy</button></div>
+      </div>
+      <div class="client">
+        <header><span class="tile-s" style="background:#1D63ED" aria-hidden="true">dkr</span>Docker<span class="file">docker pull</span></header>
+        <div class="body"><pre><code id="cl-dkr">docker pull localhost:8081/docker-hub/alpine:3.19</code></pre><button class="copy" type="button" data-copy="cl-dkr" data-done-label="Copied" aria-label="Copy — Docker">Copy</button></div>
+      </div>
+    </div>
+
+    <h3 class="conf-h">Configuration</h3>
+    <p class="then">A working configuration is this short. Every key can be given as a <code>HOLIAOKHO_*</code> environment variable instead, which is usually what you want in a container.</p>
+    <div class="cmd cmd-block">
+      <pre><code id="cfg">server:
+  listen: &quot;:8081&quot;
+database:
+  url: &quot;postgres://holiaokho:PASSWORD@localhost:5432/holiaokho?sslmode=disable&quot;
+storage:
+  type: fs              # fs | s3
+  path: ./data/blobs
+auth:
+  anonymous_enabled: true
+  session_ttl: 30m
+log:
+  level: info</code></pre>
+      <button class="copy" type="button" data-copy="cfg" data-done-label="Copied" aria-label="Copy configuration">Copy</button>
+    </div>
+    <p class="then"><a href="https://github.com/AndyShiu/holiaokho/blob/main/config.example.yaml">Full example with every option ↗</a></p>
+  </div>
+</section>
+
+<section id="formats" class="reveal">
+  <div class="wrap">
+    <div class="bar"></div>
+    <h2>25 formats</h2>
+    <p class="lead">Each one tested against its official client in a Docker container. Every format can be hosted, proxied, or grouped behind one address.</p>
+    <ul class="tiles">
+      <li><span class="tile" tabindex="0" role="img" aria-label="Maven" data-name="Maven" style="background:#B8541F;--d:0s">mvn</span></li>
+      <li><span class="tile" tabindex="0" role="img" aria-label="npm" data-name="npm" style="background:#CB3837;--d:-0.53s">npm</span></li>
+      <li><span class="tile" tabindex="0" role="img" aria-label="Docker / OCI" data-name="Docker / OCI" style="background:#1D63ED;--d:-1.06s">dkr</span></li>
+      <li><span class="tile" tabindex="0" role="img" aria-label="PyPI" data-name="PyPI" style="background:#3572A5;--d:-1.59s">py</span></li>
+      <li><span class="tile" tabindex="0" role="img" aria-label="raw" data-name="raw" style="background:#6B7280;--d:-2.12s">raw</span></li>
+      <li><span class="tile" tabindex="0" role="img" aria-label="NuGet" data-name="NuGet" style="background:#004880;--d:-2.65s">nu</span></li>
+      <li><span class="tile" tabindex="0" role="img" aria-label="Helm" data-name="Helm" style="background:#0F1689;--d:-3.18s">helm</span></li>
+      <li><span class="tile" tabindex="0" role="img" aria-label="Go" data-name="Go" style="background:#00879E;--d:-3.71s">go</span></li>
+      <li><span class="tile" tabindex="0" role="img" aria-label="APT" data-name="APT" style="background:#A80030;--d:-4.24s">apt</span></li>
+      <li><span class="tile" tabindex="0" role="img" aria-label="YUM" data-name="YUM" style="background:#B22222;--d:-4.77s">yum</span></li>
+      <li><span class="tile" tabindex="0" role="img" aria-label="Alpine" data-name="Alpine" style="background:#0D597F;--d:-5.3s">apk</span></li>
+      <li><span class="tile" tabindex="0" role="img" aria-label="RubyGems" data-name="RubyGems" style="background:#CC342D;--d:-5.83s">gem</span></li>
+      <li><span class="tile" tabindex="0" role="img" aria-label="Cargo" data-name="Cargo" style="background:#B7410E;--d:-6.36s">crg</span></li>
+      <li><span class="tile" tabindex="0" role="img" aria-label="Composer" data-name="Composer" style="background:#7377AD;--d:-6.89s">php</span></li>
+      <li><span class="tile" tabindex="0" role="img" aria-label="Conda" data-name="Conda" style="background:#3E9A2A;--d:-0.42s">cnd</span></li>
+      <li><span class="tile" tabindex="0" role="img" aria-label="R / CRAN" data-name="R / CRAN" style="background:#276DC3;--d:-0.95s">R</span></li>
+      <li><span class="tile" tabindex="0" role="img" aria-label="p2" data-name="p2" style="background:#2C2255;--d:-1.48s">p2</span></li>
+      <li><span class="tile" tabindex="0" role="img" aria-label="CocoaPods" data-name="CocoaPods" style="background:#EE3322;--d:-2.01s">pod</span></li>
+      <li><span class="tile" tabindex="0" role="img" aria-label="Terraform" data-name="Terraform" style="background:#7B42BC;--d:-2.54s">tf</span></li>
+      <li><span class="tile" tabindex="0" role="img" aria-label="pub" data-name="pub" style="background:#0175C2;--d:-3.07s">pub</span></li>
+      <li><span class="tile" tabindex="0" role="img" aria-label="Git LFS" data-name="Git LFS" style="background:#F05032;--d:-3.6s">lfs</span></li>
+      <li><span class="tile dk" tabindex="0" role="img" aria-label="Hugging Face" data-name="Hugging Face" style="background:#FFD21E;--d:-4.13s">hf</span></li>
+      <li><span class="tile" tabindex="0" role="img" aria-label="Ansible Galaxy" data-name="Ansible Galaxy" style="background:#C8102E;--d:-4.66s">ans</span></li>
+      <li><span class="tile" tabindex="0" role="img" aria-label="Conan" data-name="Conan" style="background:#6699CB;--d:-5.19s">con</span></li>
+      <li><span class="tile" tabindex="0" role="img" aria-label="Swift" data-name="Swift" style="background:#F05138;--d:-5.72s">swf</span></li>
+    </ul>
+  </div>
+</section>
+
+<section id="features" class="reveal">
+  <div class="wrap">
+    <div class="bar"></div>
+    <h2>What else it does</h2>
+    <div class="feat">
+      <div><h3>Access control</h3><ul><li>Local accounts (argon2)</li><li>LDAP</li><li>OIDC</li><li>Reverse-proxy header authentication</li><li>Roles described as subject × action</li><li>Content selectors narrowing by path</li><li>User tokens</li><li>Login rate limiting</li><li>Password policy</li></ul></div>
+      <div><h3>Operations</h3><ul><li>Routing rules</li><li>Cleanup policies, with preview</li><li>Soft delete and compaction</li><li>Storage quotas</li><li>Cron-scheduled tasks</li><li>Webhooks with HMAC signatures</li><li>Email notifications</li><li>Audit log</li><li>Backup and restore, blobs included</li><li>Prometheus metrics</li></ul></div>
+      <div><h3>Storage</h3><ul><li>Local filesystem or any S3-compatible service</li><li>Content-addressed</li><li>Reference-counted deduplication</li></ul></div>
+      <div><h3>Interface</h3><ul><li>繁體中文 · 简体中文 · English · 日本語 · 한국어</li><li>Dark mode</li><li>Keyboard search</li><li>Responsive layout</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<section id="name" class="name reveal">
+  <div class="wrap">
+    <div>
+      <svg class="big" width="240" height="240" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M4 13 L16 4 L28 13" stroke="#E8963A" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"></path><rect x="12.5" y="14.5" width="7" height="6" rx="1" fill="currentColor"></rect><rect x="7.5" y="22" width="7" height="6" rx="1" fill="currentColor"></rect><rect x="17.5" y="22" width="7" height="6" rx="1" fill="currentColor"></rect></svg>
+      <div class="chars" lang="zh-Hant">
+        <div><span class="c">好</span><span class="r">hó</span><span class="g" lang="en">good</span></div>
+        <div><span class="c">料</span><span class="r">liāu</span><span class="g" lang="en">stuff</span></div>
+        <div><span class="c">庫</span><span class="r">khòo</span><span class="g" lang="en">store</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="bar"></div>
+      <h2>Where the name comes from</h2>
+      <p>In Taiwanese Hokkien, <strong>hó-liāu</strong>（好料）means good stuff — good ingredients, good material, the kind you bring out when guests arrive. <strong>Khòo</strong>（庫）is where you keep things. Together: the place the good stuff lives.</p>
+      <p>The packages your builds depend on, and the artefacts they produce, are exactly that. They deserve somewhere dependable and close to hand.</p>
+      <p>The mark is a 广 roof with goods stacked beneath it — a storehouse, with the amber line for the light left on.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap foot" aria-label="Footer">
+    <div class="brand"><svg class="" width="22" height="22" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M4 13 L16 4 L28 13" stroke="#E8963A" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"></path><rect x="12.5" y="14.5" width="7" height="6" rx="1" fill="currentColor"></rect><rect x="7.5" y="22" width="7" height="6" rx="1" fill="currentColor"></rect><rect x="17.5" y="22" width="7" height="6" rx="1" fill="currentColor"></rect></svg><span class="word">Holiaokho</span><span class="cjk" lang="zh-Hant">好料庫</span></div>
+    <nav><a href="https://github.com/AndyShiu/holiaokho">GitHub</a><a href="https://github.com/AndyShiu/holiaokho/blob/main/LICENSE">Apache 2.0 license</a><a href="index.zh-TW.html" lang="zh-Hant-TW" hreflang="zh-Hant-TW" data-lang>繁體中文</a></nav>
+    <div class="copy-line">© 2026 Pei-En Hsu</div>
+  </div>
+</footer>
+
+<script src="site.js"></script>
+</body>
+</html>

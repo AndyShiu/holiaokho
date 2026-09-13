@@ -1,0 +1,12 @@
+<!-- A favicon sits on whatever colour the browser's tab strip happens to be,
+     which is dark for a large share of people. The mark's crates are ink blue,
+     so on a dark strip they vanished and only the amber roof survived. A solid
+     rounded ground fixes it in both directions: the crates go light against
+     the brand's own ink, and the tile itself reads on a pale strip too. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="7" fill="#1E2A3B"/>
+  <path d="M6.5 14.2 L16 7 L25.5 14.2" fill="none" stroke="#E8963A" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="13" y="15.4" width="6" height="5.1" rx="1" fill="#F3EFE7"/>
+  <rect x="8.6" y="21.8" width="6" height="5.1" rx="1" fill="#F3EFE7"/>
+  <rect x="17.4" y="21.8" width="6" height="5.1" rx="1" fill="#F3EFE7"/>
+</svg>
