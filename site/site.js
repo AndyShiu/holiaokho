@@ -5,13 +5,6 @@
   // The head already applied ?theme= or the stored choice before first paint;
   // this only carries a forced theme across the language links so a preview
   // stays on the scheme it was asked for.
-  var theme = new URLSearchParams(location.search).get('theme');
-  if (theme === 'dark' || theme === 'light') {
-    document.querySelectorAll('a[data-lang]').forEach(function (a) {
-      a.href += (a.href.indexOf('?') > -1 ? '&' : '?') + 'theme=' + theme;
-    });
-  }
-
   // Theme toggle. Without a stored choice the page follows the system, so the
   // first click has to resolve what is actually on screen rather than read an
   // attribute that is not there yet.
@@ -28,31 +21,16 @@
     });
   });
 
-  // Language. A static host cannot see where a visitor is, so this goes by the
-  // browser's own language preference — in practice the same thing for the
-  // audience this is aimed at. Traditional Chinese readers land on the zh-TW
-  // page; everyone else stays on English.
-  //
-  // Three things this must not do: trap someone who wants the other language,
-  // bounce between the two pages, or redirect a crawler (they report English,
-  // so they stay put, and hreflang declares both versions anyway).
-  var LANG_KEY = 'holiaokho.lang';
-  var onZh = /index\.zh-TW\.html$/.test(location.pathname);
-
-  // Following a language link is an explicit choice; remember it and never
-  // override it again.
-  document.querySelectorAll('a[data-lang]').forEach(function (a) {
-    a.addEventListener('click', function () {
-      try { localStorage.setItem(LANG_KEY, onZh ? 'en' : 'zh-TW'); } catch (e) {}
+  // Language. The head already chose one; these buttons record a deliberate
+  // choice so the browser's preference never overrides it again.
+  document.querySelectorAll('button[data-set-lang]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var l = btn.getAttribute('data-set-lang');
+      html.setAttribute('data-lang', l);
+      html.lang = l === 'zh' ? 'zh-Hant-TW' : 'en';
+      try { localStorage.setItem('holiaokho.lang', l); } catch (e) {}
     });
   });
-
-  var chosen = null;
-  try { chosen = localStorage.getItem(LANG_KEY); } catch (e) {}
-  if (!chosen && !onZh && /^zh-(Hant|TW|HK|MO)\b/i.test(navigator.language || '')) {
-    location.replace('index.zh-TW.html' + location.search + location.hash);
-    return;
-  }
 
   // copy buttons
   document.querySelectorAll('button[data-copy]').forEach(function (btn) {

@@ -3,25 +3,47 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Holiaokho — the good-stuff store</title>
+<title>Holiaokho 好料庫 — the good-stuff store</title>
 <meta name="description" content="A self-hosted artifact repository for 25 package formats — one address, one binary, no paid tier. Apache 2.0.">
 <meta name="color-scheme" content="light dark">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231E2A3B%22%2F%3E%3Cpath%20d%3D%22M6.5%2014.2%20L16%207%20L25.5%2014.2%22%20fill%3D%22none%22%20stroke%3D%22%23E8963A%22%20stroke-width%3D%223.2%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3Crect%20x%3D%2213%22%20y%3D%2215.4%22%20width%3D%226%22%20height%3D%225.1%22%20rx%3D%221%22%20fill%3D%22%23F3EFE7%22%2F%3E%3Crect%20x%3D%228.6%22%20y%3D%2221.8%22%20width%3D%226%22%20height%3D%225.1%22%20rx%3D%221%22%20fill%3D%22%23F3EFE7%22%2F%3E%3Crect%20x%3D%2217.4%22%20y%3D%2221.8%22%20width%3D%226%22%20height%3D%225.1%22%20rx%3D%221%22%20fill%3D%22%23F3EFE7%22%2F%3E%3C%2Fsvg%3E">
-<link rel="alternate" hreflang="zh-Hant-TW" href="index.zh-TW.html">
-<link rel="alternate" hreflang="en" href="index.html">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@700&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
-<script>(function(){try{var t=new URLSearchParams(location.search).get("theme")||localStorage.getItem("holiaokho.theme");if(t==="dark"||t==="light")document.documentElement.setAttribute("data-theme",t)}catch(e){}})();</script>
+<script>
+// Decide language and theme before the first paint. Both are stored choices
+// falling back to what the browser reports; doing it here is what stops the
+// page rendering in one language and snapping to the other.
+(function () {
+  var d = document.documentElement, p = new URLSearchParams(location.search);
+  try {
+    var l = p.get('lang') || localStorage.getItem('holiaokho.lang');
+    if (l !== 'en' && l !== 'zh') {
+      l = /^zh-(Hant|TW|HK|MO)\b/i.test(navigator.language || '') ? 'zh' : 'en';
+    }
+    d.setAttribute('data-lang', l);
+    d.lang = l === 'zh' ? 'zh-Hant-TW' : 'en';
+  } catch (e) { d.setAttribute('data-lang', 'en'); }
+  try {
+    var t = p.get('theme') || localStorage.getItem('holiaokho.theme');
+    if (t === 'dark' || t === 'light') d.setAttribute('data-theme', t);
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
 
 <header class="hero">
   <div class="wrap">
-    <div class="top" aria-label="Site">
+    <div class="top">
       <span>v1.0.3</span>
-      <nav><a href="index.zh-TW.html" lang="zh-Hant-TW" hreflang="zh-Hant-TW" data-lang>繁體中文</a><a href="https://github.com/AndyShiu/holiaokho">GitHub ↗</a><button class="theme" type="button" aria-label="Switch theme" title="Switch theme"><svg class="moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><svg class="sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M18.7 5.3l-1.4 1.4M6.7 17.3l-1.4 1.4"/></svg></button></nav>
+      <nav>
+        <button class="lang" type="button" data-set-lang="zh" lang="zh-Hant">繁體中文</button>
+        <button class="lang" type="button" data-set-lang="en" lang="en">English</button>
+        <a href="https://github.com/AndyShiu/holiaokho">GitHub ↗</a>
+        <button class="theme" type="button"><span class="sr en">Switch theme</span><span class="sr zh" lang="zh-Hant">切換深色或淺色</span><svg class="moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><svg class="sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M18.7 5.3l-1.4 1.4M6.7 17.3l-1.4 1.4"/></svg></button>
+      </nav>
     </div>
     <div class="lockup">
       <svg class="mark" width="52" height="52" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M4 13 L16 4 L28 13" stroke="#E8963A" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"></path><rect x="12.5" y="14.5" width="7" height="6" rx="1" fill="currentColor"></rect><rect x="7.5" y="22" width="7" height="6" rx="1" fill="currentColor"></rect><rect x="17.5" y="22" width="7" height="6" rx="1" fill="currentColor"></rect></svg>
@@ -31,11 +53,13 @@
       </div>
     </div>
     <div class="bar"></div>
-    <h1>“the good-stuff store”</h1>
-    <p class="sub">A self-hosted artifact repository for 25 package formats — one address, one binary, no paid tier.</p>
+    <h1 class="en">“the good-stuff store”</h1>
+    <h1 class="zh" lang="zh-Hant">「the good-stuff store」</h1>
+    <p class="sub en">A self-hosted artifact repository for 25 package formats — one address, one binary, no paid tier.</p>
+    <p class="sub zh" lang="zh-Hant">自架的套件倉庫，25 種格式、一個位址、一個執行檔，沒有付費版。</p>
     <div class="btns">
-      <a class="btn btn-primary" href="https://github.com/AndyShiu/holiaokho">View on GitHub <span class="ext">↗</span></a>
-      <a class="btn btn-ghost" href="#quick-start">Quick start</a>
+      <a class="btn btn-primary" href="https://github.com/AndyShiu/holiaokho"><span class="en">View on GitHub</span><span class="zh" lang="zh-Hant">在 GitHub 上查看</span> <span class="ext">↗</span></a>
+      <a class="btn btn-ghost" href="#quick-start"><span class="en">Quick start</span><span class="zh" lang="zh-Hant">快速開始</span></a>
     </div>
   </div>
 </header>
@@ -44,12 +68,29 @@
 <section id="why" class="reveal">
   <div class="wrap">
     <div class="bar"></div>
-    <h2>Why switch</h2>
+    <h2 class="en">Why switch</h2>
+    <h2 class="zh" lang="zh-Hant">為什麼換</h2>
     <div class="cards">
-      <article class="card"><div class="bar"></div><h3>Switching does not hurt</h3><p>Repository paths, Docker port connectors and the credential model follow Nexus conventions. A production cut-over ran on the same host and the same ports without changing one line of CI configuration.</p></article>
-      <article class="card"><div class="bar"></div><h3>It is small</h3><p>A single Go binary. No JVM, no plugins, no application server. It starts serving in seconds and runs in a few hundred megabytes under real CI load.</p></article>
-      <article class="card"><div class="bar"></div><h3>Still shipping when upstream is down</h3><p>Cached artefacts keep being served while a public registry is unreachable, so a bad afternoon at Maven Central does not stop your builds.</p></article>
-      <article class="card"><div class="bar"></div><h3>Nothing held back for a paid tier</h3><p>There is no paid tier. Apache 2.0, every feature, no component limits, no request quotas.</p></article>
+      <article class="card"><div class="bar"></div>
+        <h3 class="en">Switching does not hurt</h3><h3 class="zh" lang="zh-Hant">搬過來不會痛</h3>
+        <p class="en">Repository paths, Docker port connectors and the credential model follow Nexus conventions. A production cut-over ran on the same host and the same ports without changing one line of CI configuration.</p>
+        <p class="zh" lang="zh-Hant">repository 路徑、Docker 連接埠、帳號模型都沿用 Nexus 的慣例。實際做過一次正式環境切換：同一台主機、同樣的連接埠，CI 設定一行都沒改。</p>
+      </article>
+      <article class="card"><div class="bar"></div>
+        <h3 class="en">It is small</h3><h3 class="zh" lang="zh-Hant">它很小</h3>
+        <p class="en">A single Go binary. No JVM, no plugins, no application server. It starts serving in seconds and runs in a few hundred megabytes under real CI load.</p>
+        <p class="zh" lang="zh-Hant">單一 Go 執行檔，不需要 JVM、外掛或應用伺服器。幾秒內開始服務，在真實 CI 負載下記憶體用量維持在數百 MB。</p>
+      </article>
+      <article class="card"><div class="bar"></div>
+        <h3 class="en">Still shipping when upstream is down</h3><h3 class="zh" lang="zh-Hant">上游壞掉時照樣出貨</h3>
+        <p class="en">Cached artefacts keep being served while a public registry is unreachable, so a bad afternoon at Maven Central does not stop your builds.</p>
+        <p class="zh" lang="zh-Hant">已快取的內容在公開來源連不上時仍然供應，Maven Central 出狀況的那個下午不會讓你們的建置全部停擺。</p>
+      </article>
+      <article class="card"><div class="bar"></div>
+        <h3 class="en">Nothing held back for a paid tier</h3><h3 class="zh" lang="zh-Hant">沒有功能被留在付費版</h3>
+        <p class="en">There is no paid tier. Apache 2.0, every feature, no component limits, no request quotas.</p>
+        <p class="zh" lang="zh-Hant">因為沒有付費版。Apache 2.0，所有功能，不限元件數，不限請求數。</p>
+      </article>
     </div>
   </div>
 </section>
@@ -57,13 +98,15 @@
 <section id="quick-start" class="reveal">
   <div class="wrap">
     <div class="bar"></div>
-    <h2>Running in one command</h2>
+    <h2 class="en">Running in one command</h2>
+    <h2 class="zh" lang="zh-Hant">一行指令跑起來</h2>
     <div class="cmd">
       <span class="prompt" aria-hidden="true">$</span>
       <code id="cmd-up">docker compose -f deploy/docker-compose.yml up -d</code>
-      <button class="copy" type="button" data-copy="cmd-up" data-done-label="Copied" aria-label="Copy command">Copy</button>
+      <button class="copy" type="button" data-copy="cmd-up"><span class="en">Copy</span><span class="zh" lang="zh-Hant">複製</span></button>
     </div>
-    <p class="then">Then open <code>http://localhost:8081/ui/</code>. Point your clients at it exactly as you would at Nexus:</p>
+    <p class="then en">Then open <code>http://localhost:8081/ui/</code>. Point your clients at it exactly as you would at Nexus:</p>
+    <p class="then zh" lang="zh-Hant">然後開啟 <code>http://localhost:8081/ui/</code>。客戶端的設定方式和 Nexus 完全一樣：</p>
     <div class="clients">
       <div class="client">
         <header><span class="tile-s" style="background:#B8541F" aria-hidden="true">mvn</span>Maven<span class="file">settings.xml</span></header>
@@ -71,20 +114,22 @@
   &lt;id&gt;holiaokho&lt;/id&gt;
   &lt;url&gt;http://localhost:8081/repository/maven-public/&lt;/url&gt;
   &lt;mirrorOf&gt;*&lt;/mirrorOf&gt;
-&lt;/mirror&gt;</code></pre><button class="copy" type="button" data-copy="cl-mvn" data-done-label="Copied" aria-label="Copy — Maven">Copy</button></div>
+&lt;/mirror&gt;</code></pre><button class="copy" type="button" data-copy="cl-mvn"><span class="en">Copy</span><span class="zh" lang="zh-Hant">複製</span></button></div>
       </div>
       <div class="client">
         <header><span class="tile-s" style="background:#CB3837" aria-hidden="true">npm</span>npm<span class="file">.npmrc</span></header>
-        <div class="body"><pre><code id="cl-npm">npm config set registry http://localhost:8081/repository/npm-group/</code></pre><button class="copy" type="button" data-copy="cl-npm" data-done-label="Copied" aria-label="Copy — npm">Copy</button></div>
+        <div class="body"><pre><code id="cl-npm">npm config set registry http://localhost:8081/repository/npm-group/</code></pre><button class="copy" type="button" data-copy="cl-npm"><span class="en">Copy</span><span class="zh" lang="zh-Hant">複製</span></button></div>
       </div>
       <div class="client">
         <header><span class="tile-s" style="background:#1D63ED" aria-hidden="true">dkr</span>Docker<span class="file">docker pull</span></header>
-        <div class="body"><pre><code id="cl-dkr">docker pull localhost:8081/docker-hub/alpine:3.19</code></pre><button class="copy" type="button" data-copy="cl-dkr" data-done-label="Copied" aria-label="Copy — Docker">Copy</button></div>
+        <div class="body"><pre><code id="cl-dkr">docker pull localhost:8081/docker-hub/alpine:3.19</code></pre><button class="copy" type="button" data-copy="cl-dkr"><span class="en">Copy</span><span class="zh" lang="zh-Hant">複製</span></button></div>
       </div>
     </div>
 
-    <h3 class="conf-h">Configuration</h3>
-    <p class="then">A working configuration is this short. Every key can be given as a <code>HOLIAOKHO_*</code> environment variable instead, which is usually what you want in a container.</p>
+    <h3 class="conf-h en">Configuration</h3>
+    <h3 class="conf-h zh" lang="zh-Hant">設定</h3>
+    <p class="then en">A working configuration is this short. Every key can be given as a <code>HOLIAOKHO_*</code> environment variable instead, which is usually what you want in a container.</p>
+    <p class="then zh" lang="zh-Hant">一份能跑的設定就這麼短。每個設定都可以改用 <code>HOLIAOKHO_*</code> 環境變數給定，在容器裡通常會這樣做。</p>
     <div class="cmd cmd-block">
       <pre><code id="cfg">server:
   listen: &quot;:8081&quot;
@@ -98,17 +143,19 @@ auth:
   session_ttl: 30m
 log:
   level: info</code></pre>
-      <button class="copy" type="button" data-copy="cfg" data-done-label="Copied" aria-label="Copy configuration">Copy</button>
+      <button class="copy" type="button" data-copy="cfg"><span class="en">Copy</span><span class="zh" lang="zh-Hant">複製</span></button>
     </div>
-    <p class="then"><a href="https://github.com/AndyShiu/holiaokho/blob/main/config.example.yaml">Full example with every option ↗</a></p>
+    <p class="then"><a href="https://github.com/AndyShiu/holiaokho/blob/main/config.example.yaml"><span class="en">Full example with every option</span><span class="zh" lang="zh-Hant">完整範例（含所有選項）</span> ↗</a></p>
   </div>
 </section>
 
 <section id="formats" class="reveal">
   <div class="wrap">
     <div class="bar"></div>
-    <h2>25 formats</h2>
-    <p class="lead">Each one tested against its official client in a Docker container. Every format can be hosted, proxied, or grouped behind one address.</p>
+    <h2 class="en">25 formats</h2>
+    <h2 class="zh" lang="zh-Hant">25 種格式</h2>
+    <p class="lead en">Each one tested against its official client in a Docker container. Every format can be hosted, proxied, or grouped behind one address.</p>
+    <p class="lead zh" lang="zh-Hant">每一種都用官方 client 在 Docker 容器中實測過。每種格式都可以 hosted、proxy，或 group 成一個位址。</p>
     <ul class="tiles">
       <li><span class="tile" tabindex="0" role="img" aria-label="Maven" data-name="Maven" style="background:#B8541F;--d:0s">mvn</span></li>
       <li><span class="tile" tabindex="0" role="img" aria-label="npm" data-name="npm" style="background:#CB3837;--d:-0.53s">npm</span></li>
@@ -142,12 +189,29 @@ log:
 <section id="features" class="reveal">
   <div class="wrap">
     <div class="bar"></div>
-    <h2>What else it does</h2>
+    <h2 class="en">What else it does</h2>
+    <h2 class="zh" lang="zh-Hant">它還做了什麼</h2>
     <div class="feat">
-      <div><h3>Access control</h3><ul><li>Local accounts (argon2)</li><li>LDAP</li><li>OIDC</li><li>Reverse-proxy header authentication</li><li>Roles described as subject × action</li><li>Content selectors narrowing by path</li><li>User tokens</li><li>Login rate limiting</li><li>Password policy</li></ul></div>
-      <div><h3>Operations</h3><ul><li>Routing rules</li><li>Cleanup policies, with preview</li><li>Soft delete and compaction</li><li>Storage quotas</li><li>Cron-scheduled tasks</li><li>Webhooks with HMAC signatures</li><li>Email notifications</li><li>Audit log</li><li>Backup and restore, blobs included</li><li>Prometheus metrics</li></ul></div>
-      <div><h3>Storage</h3><ul><li>Local filesystem or any S3-compatible service</li><li>Content-addressed</li><li>Reference-counted deduplication</li></ul></div>
-      <div><h3>Interface</h3><ul><li>繁體中文 · 简体中文 · English · 日本語 · 한국어</li><li>Dark mode</li><li>Keyboard search</li><li>Responsive layout</li></ul></div>
+      <div>
+        <h3 class="en">Access control</h3><h3 class="zh" lang="zh-Hant">存取控制</h3>
+        <ul class="en"><li>Local accounts (argon2)</li><li>LDAP</li><li>OIDC</li><li>Reverse-proxy header authentication</li><li>Roles described as subject × action</li><li>Content selectors narrowing by path</li><li>User tokens</li><li>Login rate limiting</li><li>Password policy</li></ul>
+        <ul class="zh" lang="zh-Hant"><li>本機帳號（argon2）</li><li>LDAP</li><li>OIDC</li><li>反向代理標頭認證</li><li>角色以「對象 × 動作」描述</li><li>內容選擇器依路徑收窄</li><li>使用者權杖</li><li>登入頻率限制</li><li>密碼複雜度政策</li></ul>
+      </div>
+      <div>
+        <h3 class="en">Operations</h3><h3 class="zh" lang="zh-Hant">維運</h3>
+        <ul class="en"><li>Routing rules</li><li>Cleanup policies, with preview</li><li>Soft delete and compaction</li><li>Storage quotas</li><li>Cron-scheduled tasks</li><li>Webhooks with HMAC signatures</li><li>Email notifications</li><li>Audit log</li><li>Backup and restore, blobs included</li><li>Prometheus metrics</li></ul>
+        <ul class="zh" lang="zh-Hant"><li>路由規則</li><li>清理規則（含預覽）</li><li>軟刪除與壓實回收</li><li>儲存配額</li><li>cron 排程任務</li><li>含 HMAC 簽章的 webhook</li><li>電子郵件通知</li><li>稽核紀錄</li><li>含 blob 的備份還原</li><li>Prometheus 指標</li></ul>
+      </div>
+      <div>
+        <h3 class="en">Storage</h3><h3 class="zh" lang="zh-Hant">儲存</h3>
+        <ul class="en"><li>Local filesystem or any S3-compatible service</li><li>Content-addressed</li><li>Reference-counted deduplication</li></ul>
+        <ul class="zh" lang="zh-Hant"><li>本機檔案系統或任何 S3 相容服務</li><li>內容定址</li><li>引用計數去重</li></ul>
+      </div>
+      <div>
+        <h3 class="en">Interface</h3><h3 class="zh" lang="zh-Hant">介面</h3>
+        <ul class="en"><li>繁體中文 · 简体中文 · English · 日本語 · 한국어</li><li>Dark mode</li><li>Keyboard search</li><li>Responsive layout</li></ul>
+        <ul class="zh" lang="zh-Hant"><li>繁體中文 · 简体中文 · English · 日本語 · 한국어</li><li>深色模式</li><li>鍵盤搜尋</li><li>RWD</li></ul>
+      </div>
     </div>
   </div>
 </section>
@@ -164,19 +228,30 @@ log:
     </div>
     <div>
       <div class="bar"></div>
-      <h2>Where the name comes from</h2>
-      <p>In Taiwanese Hokkien, <strong>hó-liāu</strong>（好料）means good stuff — good ingredients, good material, the kind you bring out when guests arrive. <strong>Khòo</strong>（庫）is where you keep things. Together: the place the good stuff lives.</p>
-      <p>The packages your builds depend on, and the artefacts they produce, are exactly that. They deserve somewhere dependable and close to hand.</p>
-      <p>The mark is a 广 roof with goods stacked beneath it — a storehouse, with the amber line for the light left on.</p>
+      <h2 class="en">Where the name comes from</h2>
+      <h2 class="zh" lang="zh-Hant">名字的由來</h2>
+      <div class="en">
+        <p>In Taiwanese Hokkien, <strong>hó-liāu</strong>（好料）means good stuff — good ingredients, good material, the kind you bring out when guests arrive. <strong>Khòo</strong>（庫）is where you keep things. Together: the place the good stuff lives.</p>
+        <p>The packages your builds depend on, and the artefacts they produce, are exactly that. They deserve somewhere dependable and close to hand.</p>
+        <p>The mark is a 广 roof with goods stacked beneath it — a storehouse, with the amber line for the light left on.</p>
+      </div>
+      <div class="zh" lang="zh-Hant">
+        <p>台語的「好料」（<strong>hó-liāu</strong>）是好東西、好材料——上等的食材、紮實的用料，家裡有好料，是客人來了值得端出來的那種。「庫」（<strong>khòo</strong>）是存放的地方。合起來就是：放好東西的地方。</p>
+        <p>你們建置時倚賴的套件、每次出版產出的成品，正是這樣的東西——值得好好收在一個可靠、隨手拿得到的地方。</p>
+        <p>Logo 是「广」字的屋頂，底下堆著貨，一座倉房；那道琥珀色的線，是留著的燈。</p>
+      </div>
     </div>
   </div>
 </section>
 </main>
 
 <footer>
-  <div class="wrap foot" aria-label="Footer">
-    <div class="brand"><svg class="" width="22" height="22" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M4 13 L16 4 L28 13" stroke="#E8963A" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"></path><rect x="12.5" y="14.5" width="7" height="6" rx="1" fill="currentColor"></rect><rect x="7.5" y="22" width="7" height="6" rx="1" fill="currentColor"></rect><rect x="17.5" y="22" width="7" height="6" rx="1" fill="currentColor"></rect></svg><span class="word">Holiaokho</span><span class="cjk" lang="zh-Hant">好料庫</span></div>
-    <nav><a href="https://github.com/AndyShiu/holiaokho">GitHub</a><a href="https://github.com/AndyShiu/holiaokho/blob/main/LICENSE">Apache 2.0 license</a><a href="index.zh-TW.html" lang="zh-Hant-TW" hreflang="zh-Hant-TW" data-lang>繁體中文</a></nav>
+  <div class="wrap foot">
+    <div class="brand"><svg width="22" height="22" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M4 13 L16 4 L28 13" stroke="#E8963A" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"></path><rect x="12.5" y="14.5" width="7" height="6" rx="1" fill="currentColor"></rect><rect x="7.5" y="22" width="7" height="6" rx="1" fill="currentColor"></rect><rect x="17.5" y="22" width="7" height="6" rx="1" fill="currentColor"></rect></svg><span class="word">Holiaokho</span><span class="cjk" lang="zh-Hant">好料庫</span></div>
+    <nav>
+      <a href="https://github.com/AndyShiu/holiaokho">GitHub</a>
+      <a href="https://github.com/AndyShiu/holiaokho/blob/main/LICENSE"><span class="en">Apache 2.0 license</span><span class="zh" lang="zh-Hant">Apache 2.0 授權</span></a>
+    </nav>
     <div class="copy-line">© 2026 Pei-En Hsu</div>
   </div>
 </footer>

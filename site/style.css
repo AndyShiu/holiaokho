@@ -169,3 +169,12 @@ html.js .reveal.in{opacity:1;transform:none}
 .cmd-block pre{margin:0;overflow-x:auto}
 .cmd-block code{white-space:pre;display:block}
 .cmd-block .copy{background:var(--code-bg)}
+
+/* bilingual: both languages live in the markup so the page still reads with
+   JavaScript off and a crawler sees both. The head picks one before paint. */
+:root[data-lang="en"] .zh{display:none}
+:root[data-lang="zh"] .en{display:none}
+.lang{padding:0;border:0;background:none;color:var(--t2);font:13px var(--mono);cursor:pointer}
+.lang:hover{color:var(--amber)}
+:root[data-lang="en"] .lang[data-set-lang="en"],
+:root[data-lang="zh"] .lang[data-set-lang="zh"]{display:none}
