@@ -1,10 +1,17 @@
+<div align="center">
+
+<img src="docs/images/logo.svg" width="76" alt="">
+
 # Holiaokho 好料庫
 
-**繁體中文:[README.zh-TW.md](README.zh-TW.md)**
+**hó-liāu-khòo** — Taiwanese for *the place you keep the good stuff*
 
-> hó-liāu-khòo — Taiwanese for *the place you keep the good stuff*.
-> A self-hosted artifact repository, built to replace Sonatype Nexus without
-> asking anyone to change how they work.
+A self-hosted artifact repository for 25 package formats.<br>
+Built to replace Sonatype Nexus without asking anyone to change how they work.
+
+[English](README.md) · [繁體中文](README.zh-TW.md) · [holiaokho.andyshiu.com](https://holiaokho.andyshiu.com)
+
+</div>
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Security](https://github.com/AndyShiu/holiaokho/actions/workflows/security.yml/badge.svg)](https://github.com/AndyShiu/holiaokho/actions/workflows/security.yml)
@@ -59,6 +66,64 @@ docker pull localhost:8081/docker-hub/alpine:3.19
 A fresh install creates the same starter repositories Nexus would, plus a
 Docker group on port 8082 so a daemon's `registry-mirrors` has somewhere to
 point.
+
+## What it looks like
+
+<img src="docs/images/dashboard.jpg" alt="Dashboard showing health checks, repository counts and scheduled tasks">
+
+<details>
+<summary>Repository management, and browsing cached content</summary>
+
+<br>
+
+<img src="docs/images/repositories.jpg" alt="Repository list with format, type, online state and URL for each">
+
+<img src="docs/images/browse.jpg" alt="Browsing the cached contents of a proxy repository">
+
+</details>
+
+## How it fits together
+
+```mermaid
+flowchart LR
+    subgraph clients [Your build tools]
+        direction TB
+        mvn[Maven]
+        npm[npm]
+        dkr[Docker]
+        etc[22 more]
+    end
+
+    subgraph holiaokho [Holiaokho]
+        direction TB
+        api["One address<br/>/repository/NAME"]
+        hosted[(hosted<br/>what you publish)]
+        proxy[(proxy<br/>upstream cache)]
+        group[(group<br/>merged view)]
+        api --> hosted
+        api --> proxy
+        api --> group
+        group -.-> hosted
+        group -.-> proxy
+    end
+
+    subgraph state [State]
+        direction TB
+        pg[(PostgreSQL<br/>metadata)]
+        blob[(Filesystem or S3<br/>content-addressed blobs)]
+    end
+
+    upstream([Maven Central<br/>npm registry<br/>Docker Hub…])
+
+    clients --> api
+    proxy -->|on a miss| upstream
+    holiaokho --> state
+```
+
+Metadata lives in PostgreSQL; file contents live in a content-addressed blob
+store, so the same bytes referenced by ten repositories occupy the disk once.
+A proxy repository serves what it has cached and only reaches upstream on a
+miss — which is why it keeps working when upstream does not.
 
 ## What it does
 

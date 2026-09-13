@@ -1,9 +1,17 @@
+<div align="center">
+
+<img src="docs/images/logo.svg" width="76" alt="">
+
 # Holiaokho 好料庫
 
-**English: [README.md](README.md)**
+**hó-liāu-khòo** —— 台語「好料」是好東西、好材料,「庫」是存放的地方
 
-> hó-liāu-khòo —— 台語「好料」是好東西、好材料,「庫」是存放的地方。
-> 自架的套件倉庫,設計目標是取代 Sonatype Nexus,而且不要求任何人改變原本的工作方式。
+自架的套件倉庫,支援 25 種格式。<br>
+設計目標是取代 Sonatype Nexus,而且不要求任何人改變原本的工作方式。
+
+[繁體中文](README.zh-TW.md) · [English](README.md) · [holiaokho.andyshiu.com](https://holiaokho.andyshiu.com)
+
+</div>
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Security](https://github.com/AndyShiu/holiaokho/actions/workflows/security.yml/badge.svg)](https://github.com/AndyShiu/holiaokho/actions/workflows/security.yml)
@@ -53,6 +61,64 @@ docker pull localhost:8081/docker-hub/alpine:3.19
 
 全新安裝會建立和 Nexus 相同的起始 repository,另外加上綁在 8082 的 Docker
 group,讓 daemon 的 `registry-mirrors` 有地方可以指。
+
+## 長什麼樣子
+
+<img src="docs/images/dashboard.jpg" alt="總覽頁:健康檢查、repository 數量與排程任務">
+
+<details>
+<summary>Repository 管理,以及瀏覽已快取的內容</summary>
+
+<br>
+
+<img src="docs/images/repositories.jpg" alt="Repository 列表:格式、類型、上線狀態與位址">
+
+<img src="docs/images/browse.jpg" alt="瀏覽 proxy repository 已快取的內容">
+
+</details>
+
+## 架構
+
+```mermaid
+flowchart LR
+    subgraph clients [你的建置工具]
+        direction TB
+        mvn[Maven]
+        npm[npm]
+        dkr[Docker]
+        etc[另外 22 種]
+    end
+
+    subgraph holiaokho [Holiaokho]
+        direction TB
+        api["一個位址<br/>/repository/NAME"]
+        hosted[(hosted<br/>你們自己發布的)]
+        proxy[(proxy<br/>上游快取)]
+        group[(group<br/>合併的視圖)]
+        api --> hosted
+        api --> proxy
+        api --> group
+        group -.-> hosted
+        group -.-> proxy
+    end
+
+    subgraph state [狀態]
+        direction TB
+        pg[(PostgreSQL<br/>metadata)]
+        blob[(檔案系統或 S3<br/>內容定址的 blob)]
+    end
+
+    upstream([Maven Central<br/>npm registry<br/>Docker Hub…])
+
+    clients --> api
+    proxy -->|快取未命中時| upstream
+    holiaokho --> state
+```
+
+metadata 存在 PostgreSQL,檔案內容存在內容定址的 blob 儲存區——
+同一份位元組就算被十個 repository 引用,磁碟上也只有一份。
+proxy repository 優先供應已快取的內容,只有未命中才連上游,
+這也是它在上游故障時仍能出貨的原因。
 
 ## 它做些什麼
 
