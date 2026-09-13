@@ -10,7 +10,7 @@
 
 ## 1. 產品是什麼
 
-**Holiaokho**（台語「好料庫」hó-liāu-khòo，英文 tagline："the good-stuff store"，發音 ho-LIAO-kho）是一套**自架的 artifact repository manager**：開發團隊把所有套件（Java、JavaScript、Docker image、Python、.NET、Go、Linux 套件…共 26 種格式）集中存放、快取、分發的地方。
+**Holiaokho**（台語「好料庫」hó-liāu-khòo，英文 tagline："the good-stuff store"，發音 ho-LIAO-kho）是一套**自架的 artifact repository manager**：開發團隊把所有套件（Java、JavaScript、Docker image、Python、.NET、Go、Linux 套件…共 25 種格式）集中存放、快取、分發的地方。
 
 它是 **Sonatype Nexus Repository 的直接替代品**：同樣的 URL 結構、同樣的 repo 概念，但是單一 Go binary、記憶體用量低、功能沒有 OSS 版的閹割（不限 component 數、不限每日請求數、有 OIDC、有 user token）。
 
