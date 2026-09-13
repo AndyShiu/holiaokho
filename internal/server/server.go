@@ -278,7 +278,19 @@ func (s *Server) middleware(next http.Handler) http.Handler {
 			if c := sw.status / 100; c >= 1 && c <= 5 {
 				s.metrics.requests[c].Add(1)
 			}
-			s.Log.Debug("http", "method", r.Method, "path", r.URL.Path, "status", sw.status, "bytes", sw.n, "dur", time.Since(start).Round(time.Millisecond), "ip", auth.ClientIP(r))
+			// Successful requests are the firehose and stay at debug. Failures
+			// are rare and are what you need when something goes wrong, so
+			// they are visible at the default level: a CI run that logs
+			// nothing at info still shows its 4xx and 5xx here.
+			args := []any{"method", r.Method, "path", r.URL.Path, "status", sw.status, "bytes", sw.n, "dur", time.Since(start).Round(time.Millisecond), "ip", auth.ClientIP(r)}
+			switch {
+			case sw.status >= 500:
+				s.Log.Error("http", args...)
+			case sw.status >= 400:
+				s.Log.Info("http", args...)
+			default:
+				s.Log.Debug("http", args...)
+			}
 		}()
 		// Browser hardening. Repository content is served in a sandbox so an
 		// uploaded HTML file cannot run scripts in Holiaokho's origin.

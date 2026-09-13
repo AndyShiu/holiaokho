@@ -49,7 +49,9 @@ type Server struct {
 
 type Database struct {
 	URL string `yaml:"url"`
-	// MaxConns is the pgx pool size.
+	// MaxConns is the pgx pool size. A CI burst fetching hundreds of
+	// artifacts saturated a pool of 20, so the default leaves headroom;
+	// keep it well under the server's own max_connections.
 	MaxConns int32 `yaml:"max_conns"`
 }
 
@@ -128,7 +130,7 @@ func Default() Config {
 		},
 		Database: Database{
 			URL:      "postgres://holiaokho:holiaokho@localhost:5432/holiaokho?sslmode=disable",
-			MaxConns: 20,
+			MaxConns: 50,
 		},
 		Storage: Storage{Type: "fs", Path: "./data/blobs"},
 		Auth: Auth{
