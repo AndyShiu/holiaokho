@@ -27,6 +27,7 @@ const Webhooks = lazy(() => import('./pages/admin/Webhooks'))
 const Email = lazy(() => import('./pages/admin/Email'))
 const System = lazy(() => import('./pages/system/System'))
 const About = lazy(() => import('./pages/About'))
+const Changelog = lazy(() => import('./pages/Changelog'))
 
 function Center({ children }: { children: ReactNode }) {
   return <div style={{ minHeight: '60vh', display: 'grid', placeItems: 'center' }}>{children}</div>
@@ -75,6 +76,7 @@ export default function App() {
             <Route index element={<Guard authed><Dashboard /></Guard>} />
             <Route path="/browse" element={<Browse />} />
             <Route path="/about" element={<About />} />
+            <Route path="/changelog" element={<Changelog />} />
             <Route path="/browse/:repo/*" element={<Browse />} />
             <Route path="/search" element={<Guard target="app:search"><Search /></Guard>} />
             <Route path="/admin/repositories" element={<Guard target="app:repositories"><Repositories /></Guard>} />

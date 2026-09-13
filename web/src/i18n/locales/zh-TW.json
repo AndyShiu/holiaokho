@@ -210,6 +210,14 @@
     "uploadTo": "上傳到 {{name}}",
     "uploaded": "已上傳 {{path}}"
   },
+  "changelog": {
+    "added": "新增",
+    "changed": "調整",
+    "fixed": "修正",
+    "hint": "每個版本改了什麼。",
+    "running": "目前執行中",
+    "title": "更新紀錄"
+  },
   "cleanup": {
     "assignTo": "套用到 repository",
     "assigned": "Repository",

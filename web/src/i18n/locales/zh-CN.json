@@ -210,6 +210,14 @@
     "uploadTo": "上传到 {{name}}",
     "uploaded": "已上传 {{path}}"
   },
+  "changelog": {
+    "added": "新增",
+    "changed": "调整",
+    "fixed": "修正",
+    "hint": "每个版本改了什么。",
+    "running": "当前运行中",
+    "title": "更新记录"
+  },
   "cleanup": {
     "assignTo": "应用到仓库",
     "assigned": "仓库",

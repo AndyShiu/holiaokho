@@ -210,6 +210,14 @@
     "uploadTo": "{{name}} 에 업로드",
     "uploaded": "{{path}} 를 업로드했습니다"
   },
+  "changelog": {
+    "added": "추가",
+    "changed": "변경",
+    "fixed": "수정",
+    "hint": "각 릴리스에서 바뀐 점.",
+    "running": "실행 중",
+    "title": "릴리스 노트"
+  },
   "cleanup": {
     "assignTo": "적용할 리포지터리",
     "assigned": "리포지터리",

@@ -210,6 +210,14 @@
     "uploadTo": "{{name}} にアップロード",
     "uploaded": "{{path}} をアップロードしました"
   },
+  "changelog": {
+    "added": "追加",
+    "changed": "変更",
+    "fixed": "修正",
+    "hint": "各バージョンでの変更点。",
+    "running": "実行中",
+    "title": "リリースノート"
+  },
   "cleanup": {
     "assignTo": "適用するリポジトリ",
     "assigned": "リポジトリ",

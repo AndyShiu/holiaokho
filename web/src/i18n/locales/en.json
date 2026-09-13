@@ -210,6 +210,14 @@
     "uploadTo": "Upload to {{name}}",
     "uploaded": "Uploaded {{path}}"
   },
+  "changelog": {
+    "added": "Added",
+    "changed": "Changed",
+    "fixed": "Fixed",
+    "hint": "What changed in each release.",
+    "running": "running now",
+    "title": "Release notes"
+  },
   "cleanup": {
     "assignTo": "Apply to repositories",
     "assigned": "Repositories",

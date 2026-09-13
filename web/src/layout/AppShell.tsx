@@ -3,7 +3,7 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Avatar, Badge, Button, Drawer, Dropdown, Input, Layout, Menu, Tooltip, type MenuProps } from 'antd'
 import {
   AppstoreOutlined, BellOutlined, ClockCircleOutlined, DatabaseOutlined, DeleteOutlined, FileSearchOutlined, FolderOpenOutlined, GlobalOutlined, HddOutlined,
-  KeyOutlined, LogoutOutlined, MailOutlined, MoonOutlined, SafetyCertificateOutlined, SearchOutlined, SettingOutlined, SunOutlined, TeamOutlined, ToolOutlined,
+  InfoCircleOutlined, KeyOutlined, LogoutOutlined, MailOutlined, MoonOutlined, SafetyCertificateOutlined, SearchOutlined, SettingOutlined, SunOutlined, TeamOutlined, ToolOutlined,
   UserOutlined, ApiOutlined, BranchesOutlined, FilterOutlined, SaveOutlined, DashboardOutlined, LockOutlined, MenuOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
@@ -146,11 +146,18 @@ export default function AppShell() {
     return match ? [match] : []
   }, [loc.pathname, items])
 
+  const aboutItem = { key: 'about', icon: <InfoCircleOutlined />, label: t('about.title', 'About Holiaokho'), onClick: () => navigate('/about') }
   const userMenu: MenuProps['items'] = isAnonymous
-    ? [{ key: 'login', icon: <LockOutlined />, label: t('nav.login', 'Log in'), onClick: () => navigate(`/login?next=${encodeURIComponent(loc.pathname + loc.search)}`) }]
+    ? [
+        { key: 'login', icon: <LockOutlined />, label: t('nav.login', 'Log in'), onClick: () => navigate(`/login?next=${encodeURIComponent(loc.pathname + loc.search)}`) },
+        { type: 'divider' as const },
+        aboutItem,
+      ]
     : [
         { key: 'tokens', icon: <KeyOutlined />, label: t('nav.tokens', 'My Tokens'), onClick: () => navigate('/me/tokens') },
         ...(isLocalUser ? [{ key: 'pw', icon: <SettingOutlined />, label: t('nav.changePassword', 'Change password'), onClick: () => navigate('/change-password') }] : []),
+        { type: 'divider' as const },
+        aboutItem,
         { type: 'divider' as const },
         { key: 'logout', icon: <LogoutOutlined />, label: t('nav.logout', 'Log out'), onClick: async () => { await logout(); navigate('/login') } },
       ]
@@ -168,9 +175,9 @@ export default function AppShell() {
             <Wordmark size={15} />
             <span
               className="hlk-mono hlk-versionlink"
-              title={t('about.title', 'About Holiaokho')}
+              title={t('changelog.title', 'Release notes')}
               style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--hlk-text-tertiary)' }}
-              onClick={(e) => { e.stopPropagation(); navigate('/about'); setNavOpen(false) }}
+              onClick={(e) => { e.stopPropagation(); navigate('/changelog'); setNavOpen(false) }}
             >{status.data?.version ? `v${status.data.version}` : ''}</span>
           </>
         )}

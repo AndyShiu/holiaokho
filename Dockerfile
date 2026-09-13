@@ -8,7 +8,7 @@ RUN npm run build
 
 FROM golang:1.27-alpine AS build
 WORKDIR /src
-ARG VERSION=1.0.1
+ARG VERSION=1.0.2
 ENV LDFLAGS="-s -w -X github.com/holiaokho/holiaokho/internal/server.Version=$VERSION"
 COPY go.mod go.sum ./
 RUN go mod download
