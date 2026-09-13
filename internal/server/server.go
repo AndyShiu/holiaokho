@@ -31,6 +31,7 @@ import (
 	"github.com/holiaokho/holiaokho/internal/format/cargo"
 	"github.com/holiaokho/holiaokho/internal/format/cocoapods"
 	"github.com/holiaokho/holiaokho/internal/format/composer"
+	"github.com/holiaokho/holiaokho/internal/format/conan"
 	"github.com/holiaokho/holiaokho/internal/format/conda"
 	"github.com/holiaokho/holiaokho/internal/format/cran"
 	"github.com/holiaokho/holiaokho/internal/format/docker"
@@ -46,6 +47,7 @@ import (
 	"github.com/holiaokho/holiaokho/internal/format/pypi"
 	"github.com/holiaokho/holiaokho/internal/format/raw"
 	"github.com/holiaokho/holiaokho/internal/format/rubygems"
+	"github.com/holiaokho/holiaokho/internal/format/swift"
 	"github.com/holiaokho/holiaokho/internal/format/terraform"
 	"github.com/holiaokho/holiaokho/internal/format/yum"
 	"github.com/holiaokho/holiaokho/internal/model"
@@ -147,6 +149,8 @@ func New(ctx context.Context, cfg config.Config, log *slog.Logger, sys *System) 
 	s.Formats.Register(gitlfs.Format{})
 	s.Formats.Register(huggingface.Format{})
 	s.Formats.Register(ansible.Format{})
+	s.Formats.Register(conan.Format{})
+	s.Formats.Register(swift.Format{})
 	s.Formats.Register(s.Docker)
 
 	s.Tasks = task.NewScheduler(d, log)
