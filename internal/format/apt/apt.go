@@ -357,3 +357,10 @@ func (h *handler) buildIndex(ctx context.Context, rp *model.Repository) (map[str
 }
 
 func digest(s string) storageDigest { return storageDigest(s) }
+
+// Rebuild regenerates the dists/ index files of a hosted repository.
+func (f Format) Rebuild(ctx context.Context, d format.Deps, rp *model.Repository) error {
+	h := &handler{repo: rp, d: d, a: attrsOf(rp)}
+	h.rebuild(ctx)
+	return nil
+}

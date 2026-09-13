@@ -421,3 +421,10 @@ func rpmvercmp(a, b string) int {
 	}
 	return 1
 }
+
+// Rebuild regenerates repodata of a hosted repository.
+func (f Format) Rebuild(ctx context.Context, d format.Deps, rp *model.Repository) error {
+	h := &handler{repo: rp, d: d, a: attrsOf(rp)}
+	h.rebuild(ctx)
+	return nil
+}

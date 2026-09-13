@@ -18,6 +18,7 @@ type Config struct {
 	Storage  Storage  `yaml:"storage"`
 	Auth     Auth     `yaml:"auth"`
 	Proxy    Proxy    `yaml:"proxy"`
+	Backup   Backup   `yaml:"backup"`
 	Log      Log      `yaml:"log"`
 }
 
@@ -88,6 +89,13 @@ type Proxy struct {
 	CACertFile string `yaml:"ca_cert_file"`
 }
 
+type Backup struct {
+	// Dir enables the scheduled backup task, writing archives here.
+	Dir       string `yaml:"dir"`
+	WithBlobs bool   `yaml:"with_blobs"`
+	Keep      int    `yaml:"keep"`
+}
+
 type Log struct {
 	Level  string `yaml:"level"`  // debug|info|warn|error
 	Format string `yaml:"format"` // json|text
@@ -118,7 +126,8 @@ func Default() Config {
 			ConnectTimeout: 20 * time.Second,
 			Timeout:        10 * time.Minute,
 		},
-		Log: Log{Level: "info", Format: "text"},
+		Backup: Backup{Keep: 7},
+		Log:    Log{Level: "info", Format: "text"},
 	}
 }
 
@@ -184,6 +193,8 @@ func applyEnv(c *Config) {
 	str("HTTP_PROXY", &c.Proxy.HTTPProxy)
 	str("NO_PROXY", &c.Proxy.NoProxy)
 	str("CA_CERT_FILE", &c.Proxy.CACertFile)
+	str("BACKUP_DIR", &c.Backup.Dir)
+	boolean("BACKUP_WITH_BLOBS", &c.Backup.WithBlobs)
 	str("LOG_LEVEL", &c.Log.Level)
 	str("LOG_FORMAT", &c.Log.Format)
 }

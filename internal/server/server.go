@@ -21,6 +21,7 @@ import (
 
 	"github.com/holiaokho/holiaokho/internal/api"
 	"github.com/holiaokho/holiaokho/internal/auth"
+	"github.com/holiaokho/holiaokho/internal/backup"
 	"github.com/holiaokho/holiaokho/internal/config"
 	"github.com/holiaokho/holiaokho/internal/content"
 	"github.com/holiaokho/holiaokho/internal/db"
@@ -161,6 +162,15 @@ func New(ctx context.Context, cfg config.Config, log *slog.Logger, sys *System) 
 		}
 	}
 	task.RegisterBuiltins(s.Tasks, c)
+	if cfg.Backup.Dir != "" {
+		s.Tasks.Register("backup", "Write a database backup archive to "+cfg.Backup.Dir, 24*time.Hour, func(ctx context.Context, logf func(string, ...any)) error {
+			_, err := backup.WriteFile(ctx, c, Version, cfg.Backup.Dir, cfg.Backup.WithBlobs, cfg.Backup.Keep, logf)
+			return err
+		})
+	}
+	s.Tasks.Register("rebuild-indexes", "Regenerate hosted repository indexes (Maven metadata, APT/YUM/apk/CRAN/Conda index files)", 7*24*time.Hour, func(ctx context.Context, logf func(string, ...any)) error {
+		return s.rebuildIndexes(ctx, logf)
+	})
 	task.VersionLess = func(f, x, y string) bool {
 		if fm, ok := s.Formats.Get(f); ok {
 			return fm.VersionLess(x, y)
@@ -279,6 +289,8 @@ func (s *Server) Router() http.Handler {
 	})
 	r.Get("/metrics", s.metricsHandler)
 	r.Mount("/api/v1", s.API.Router())
+	r.Mount("/service/rest/v1", s.API.NexusCompatRouter())
+	r.Get("/service/metrics/prometheus", s.metricsHandler)
 	r.HandleFunc("/repository/{name}/*", s.repositoryHandler)
 	r.HandleFunc("/repository/{name}", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, r.URL.Path+"/", http.StatusMovedPermanently)
@@ -567,4 +579,38 @@ func (s *Server) Run(ctx context.Context) error {
 		}
 		return err
 	}
+}
+
+// Rebuilder is implemented by formats whose hosted repositories keep
+// derived index files.
+type Rebuilder interface {
+	Rebuild(ctx context.Context, d format.Deps, rp *model.Repository) error
+}
+
+func (s *Server) rebuildIndexes(ctx context.Context, logf func(string, ...any)) error {
+	repos, err := s.Content.ListRepos(ctx)
+	if err != nil {
+		return err
+	}
+	n := 0
+	for _, rp := range repos {
+		if rp.Type != model.Hosted {
+			continue
+		}
+		f, ok := s.Formats.Get(rp.Format)
+		if !ok {
+			continue
+		}
+		rb, ok := f.(Rebuilder)
+		if !ok {
+			continue
+		}
+		if err := rb.Rebuild(ctx, s.Deps, rp); err != nil {
+			logf("%s: %v", rp.Name, err)
+			continue
+		}
+		n++
+	}
+	logf("rebuilt indexes for %d repositories", n)
+	return nil
 }

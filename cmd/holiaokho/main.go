@@ -2,6 +2,8 @@
 //
 //	holiaokho [--config config.yaml]                 run the server
 //	holiaokho import-nexus --nexus-db ... --nexus-blobs ... [--link] [--dry-run]
+//	holiaokho backup --out backup.tar.gz [--with-blobs]
+//	holiaokho restore --in backup.tar.gz
 //	holiaokho version
 package main
 
@@ -15,6 +17,9 @@ import (
 	"strings"
 	"syscall"
 
+	"io"
+
+	"github.com/holiaokho/holiaokho/internal/backup"
 	"github.com/holiaokho/holiaokho/internal/config"
 	"github.com/holiaokho/holiaokho/internal/nexusimport"
 	"github.com/holiaokho/holiaokho/internal/server"
@@ -31,6 +36,10 @@ func main() {
 		runServe(args)
 	case "import-nexus":
 		runImport(args)
+	case "backup":
+		runBackup(args)
+	case "restore":
+		runRestore(args)
 	case "version":
 		fmt.Println("holiaokho", server.Version)
 	default:
@@ -99,6 +108,61 @@ func runImport(args []string) {
 	}
 	if err := nexusimport.Run(ctx, srv.Content, srv.Auth, log, opt); err != nil {
 		log.Error("import failed", "err", err)
+		os.Exit(1)
+	}
+}
+
+func runBackup(args []string) {
+	fs := flag.NewFlagSet("backup", flag.ExitOnError)
+	out := fs.String("out", "", "output file (default: stdout)")
+	withBlobs := fs.Bool("with-blobs", false, "include blob contents (large)")
+	cfg, log, sys := setup(fs, args)
+	ctx := context.Background()
+	srv, err := server.New(ctx, cfg, log, sys)
+	if err != nil {
+		log.Error("startup failed", "err", err)
+		os.Exit(1)
+	}
+	var w io.Writer = os.Stdout
+	if *out != "" {
+		f, err := os.Create(*out)
+		if err != nil {
+			log.Error("create", "err", err)
+			os.Exit(1)
+		}
+		defer f.Close()
+		w = f
+	}
+	logf := func(f string, a ...any) { log.Info(fmt.Sprintf(f, a...)) }
+	if err := backup.Write(ctx, srv.Content, server.Version, *withBlobs, w, logf); err != nil {
+		log.Error("backup failed", "err", err)
+		os.Exit(1)
+	}
+}
+
+func runRestore(args []string) {
+	fs := flag.NewFlagSet("restore", flag.ExitOnError)
+	in := fs.String("in", "", "backup archive (default: stdin)")
+	cfg, log, sys := setup(fs, args)
+	ctx := context.Background()
+	srv, err := server.New(ctx, cfg, log, sys)
+	if err != nil {
+		log.Error("startup failed", "err", err)
+		os.Exit(1)
+	}
+	var r io.Reader = os.Stdin
+	if *in != "" {
+		f, err := os.Open(*in)
+		if err != nil {
+			log.Error("open", "err", err)
+			os.Exit(1)
+		}
+		defer f.Close()
+		r = f
+	}
+	logf := func(f string, a ...any) { log.Info(fmt.Sprintf(f, a...)) }
+	if err := backup.Restore(ctx, srv.Content, r, logf); err != nil {
+		log.Error("restore failed", "err", err)
 		os.Exit(1)
 	}
 }

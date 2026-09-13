@@ -421,3 +421,16 @@ func (h *handler) buildIndex(ctx context.Context, rp *model.Repository, dir stri
 	out.Write(body.Bytes())
 	return out.Bytes(), nil
 }
+
+// Rebuild regenerates APKINDEX.tar.gz for every architecture directory.
+func (f Format) Rebuild(ctx context.Context, d format.Deps, rp *model.Repository) error {
+	h := &handler{repo: rp, d: d, a: attrsOf(rp)}
+	dirs, _, err := d.Content.ListChildren(ctx, rp.ID, "")
+	if err != nil {
+		return err
+	}
+	for _, dir := range dirs {
+		h.rebuild(ctx, dir)
+	}
+	return nil
+}

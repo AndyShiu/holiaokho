@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/holiaokho/holiaokho/internal/auth"
+	"github.com/holiaokho/holiaokho/internal/content"
 	"github.com/holiaokho/holiaokho/internal/format"
 	"github.com/holiaokho/holiaokho/internal/model"
 	"github.com/holiaokho/holiaokho/internal/repo"
@@ -494,4 +495,24 @@ func (Format) AfterDelete(r *http.Request, d format.Deps, rp *model.Repository, 
 	if err := RebuildMetadata(context.WithoutCancel(r.Context()), d, rp, dir); err != nil {
 		d.Log.Warn("rebuild maven metadata", "repo", rp.Name, "dir", dir, "err", err)
 	}
+}
+
+// Rebuild regenerates maven-metadata.xml for every group/artifact in a hosted repository.
+func (Format) Rebuild(ctx context.Context, d format.Deps, rp *model.Repository) error {
+	hits, err := d.Content.Search(ctx, content.SearchQuery{Repo: rp.Name, Format: Name, Limit: 500})
+	if err != nil {
+		return err
+	}
+	seen := map[string]bool{}
+	for _, h := range hits {
+		dir := strings.ReplaceAll(h.Namespace, ".", "/") + "/" + h.Name
+		if seen[dir] {
+			continue
+		}
+		seen[dir] = true
+		if err := RebuildMetadata(ctx, d, rp, dir); err != nil {
+			return err
+		}
+	}
+	return nil
 }

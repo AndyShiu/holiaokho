@@ -252,3 +252,10 @@ func (h *handler) build(ctx context.Context, rp *model.Repository, dir string) (
 	}
 	return b.Bytes(), nil
 }
+
+// Rebuild regenerates PACKAGES files for src/contrib.
+func (f Format) Rebuild(ctx context.Context, d format.Deps, rp *model.Repository) error {
+	h := &handler{repo: rp, d: d}
+	h.rebuild(ctx, "src/contrib")
+	return nil
+}

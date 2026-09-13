@@ -18,6 +18,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/holiaokho/holiaokho/internal/auth"
+	"github.com/holiaokho/holiaokho/internal/backup"
 	"github.com/holiaokho/holiaokho/internal/config"
 	"github.com/holiaokho/holiaokho/internal/format/alpine"
 	"github.com/holiaokho/holiaokho/internal/model"
@@ -73,6 +74,8 @@ func (a *API) adminRoutes(r chi.Router) {
 		r.Get("/config", a.need("app:system", auth.Read, a.systemConfig))
 		r.Post("/pgp-key", a.need("app:system", auth.Write, a.generatePGPKey))
 		r.Post("/rsa-key", a.need("app:system", auth.Write, a.generateRSAKey))
+		r.Get("/backup", a.need("app:system", auth.Admin, a.downloadBackup))
+		r.Post("/restore", a.need("app:system", auth.Admin, a.restoreBackup))
 	})
 }
 
@@ -577,6 +580,28 @@ func (a *API) generatePGPKey(w http.ResponseWriter, r *http.Request) {
 	}
 	a.audit_(r, "system.pgp_key", "system", in.Email, nil)
 	writeJSON(w, 201, map[string]any{"privateKey": priv, "publicKey": pub})
+}
+
+// downloadBackup streams a database backup archive (?blobs=true includes blobs).
+func (a *API) downloadBackup(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/gzip")
+	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="holiaokho-%s.tar.gz"`, time.Now().UTC().Format("20060102-150405")))
+	a.audit_(r, "system.backup", "system", "", nil)
+	if err := backup.Write(r.Context(), a.Content, a.Version, r.URL.Query().Get("blobs") == "true", w, func(string, ...any) {}); err != nil {
+		a.Deps.Log.Error("backup", "err", err)
+	}
+}
+
+// restoreBackup loads an uploaded archive (body = tar.gz).
+func (a *API) restoreBackup(w http.ResponseWriter, r *http.Request) {
+	var lines []string
+	logf := func(f string, args ...any) { lines = append(lines, fmt.Sprintf(f, args...)) }
+	if err := backup.Restore(r.Context(), a.Content, r.Body, logf); err != nil {
+		writeErr(w, 400, "restore.failed", "%s", err.Error())
+		return
+	}
+	a.audit_(r, "system.restore", "system", "", lines)
+	writeJSON(w, 200, map[string]any{"restored": true, "log": lines})
 }
 
 // generateRSAKey creates an RSA key pair for Alpine APKINDEX signing.

@@ -248,3 +248,16 @@ func (h *handler) build(ctx context.Context, rp *model.Repository, subdir string
 	doc := map[string]any{"info": map[string]any{"subdir": subdir}, "packages": packages, "packages.conda": packagesConda, "removed": []string{}, "repodata_version": 1}
 	return json.MarshalIndent(doc, "", "  ")
 }
+
+// Rebuild regenerates repodata.json for every subdir.
+func (f Format) Rebuild(ctx context.Context, d format.Deps, rp *model.Repository) error {
+	h := &handler{repo: rp, d: d}
+	dirs, _, err := d.Content.ListChildren(ctx, rp.ID, "")
+	if err != nil {
+		return err
+	}
+	for _, dir := range dirs {
+		h.rebuild(ctx, dir)
+	}
+	return nil
+}
