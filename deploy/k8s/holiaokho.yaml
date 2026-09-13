@@ -1,26 +1,23 @@
-# Drop-in replacement for the company Nexus deployment: same namespace shape,
-# same NodePorts (8081→32081, 8082→32082). Apply with:
-#   kubectl apply -f deploy/k8s/holiaokho.yaml
-# then scale the Nexus deployment to 0 once the import has been verified.
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: holiaokho
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: holiaokho-db
-  namespace: holiaokho
-type: Opaque
-stringData:
-  POSTGRES_DB: holiaokho
-  POSTGRES_USER: holiaokho
-  POSTGRES_PASSWORD: change-me
-  DATABASE_URL: postgres://holiaokho:change-me@holiaokho-postgres:5432/holiaokho?sslmode=disable
-  ADMIN_PASSWORD: change-me-too
-  SECRET_KEY: change-me-three   # encrypts stored credentials; keep it safe
----
+# Holiaokho, standing on its own: its own namespace, its own database, no
+# leftovers from the Nexus install it replaced.
+#
+# Secrets are NOT in this file. Create them first — the values never touch
+# disk or version control:
+#
+#   kubectl create namespace holiaokho
+#   kubectl -n holiaokho create secret generic holiaokho-db \
+#     --from-literal=POSTGRES_DB=holiaokho \
+#     --from-literal=POSTGRES_USER=holiaokho \
+#     --from-literal=POSTGRES_PASSWORD="$(openssl rand -base64 24 | tr -d '/+=')"
+#   kubectl -n holiaokho create secret generic holiaokho-app \
+#     --from-literal=secret-key="$(openssl rand -base64 32)" \
+#     --from-literal=admin-password='<the password you want to log in with>'
+#
+# Then:  kubectl apply -f deploy/k8s/holiaokho.yaml
+#
+# NodePort 32081/32082 are the same ports the old Nexus served, so CI/CD
+# configuration needs no change. Only one Service in the cluster can hold a
+# NodePort, so any older Service using them must be deleted first.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -50,6 +47,9 @@ kind: Deployment
 metadata:
   name: holiaokho-postgres
   namespace: holiaokho
+  labels:
+    app.kubernetes.io/name: holiaokho
+    app.kubernetes.io/component: database
 spec:
   replicas: 1
   strategy: { type: Recreate }
@@ -63,13 +63,19 @@ spec:
           envFrom:
             - secretRef: { name: holiaokho-db }
           env:
+            # The volume root is lost+found on some storage classes, so give
+            # PostgreSQL a subdirectory of its own to initialise into.
             - { name: PGDATA, value: /var/lib/postgresql/data/pgdata }
           ports: [{ containerPort: 5432 }]
           volumeMounts:
             - { name: pgdata, mountPath: /var/lib/postgresql/data }
           readinessProbe:
-            exec: { command: ["pg_isready", "-U", "holiaokho"] }
+            exec: { command: ["pg_isready", "-U", "holiaokho", "-d", "holiaokho"] }
+            initialDelaySeconds: 5
             periodSeconds: 5
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits: { memory: 1Gi }
       volumes:
         - name: pgdata
           persistentVolumeClaim: { claimName: holiaokho-pgdata }
@@ -88,43 +94,81 @@ kind: Deployment
 metadata:
   name: holiaokho
   namespace: holiaokho
+  labels:
+    app.kubernetes.io/name: holiaokho
 spec:
   replicas: 1
   strategy: { type: Recreate }
   selector: { matchLabels: { app: holiaokho } }
   template:
-    metadata: { labels: { app: holiaokho } }
+    metadata:
+      labels:
+        app: holiaokho
+        app.kubernetes.io/name: holiaokho
     spec:
+      # The image runs as uid 10001, which cannot write to a freshly
+      # provisioned volume without this.
+      securityContext:
+        fsGroup: 10001
       containers:
         - name: holiaokho
-          image: holiaokho/holiaokho:dev
-          imagePullPolicy: IfNotPresent
+          image: holiaokho:0.1.8-dev
+          # k3s runs the docker runtime on this node, so images built with
+          # `docker build` on the host are already present; there is nothing
+          # to pull and no registry involved.
+          imagePullPolicy: Never
           env:
+            - name: PGUSER
+              valueFrom: { secretKeyRef: { name: holiaokho-db, key: POSTGRES_USER } }
+            - name: PGPASSWORD
+              valueFrom: { secretKeyRef: { name: holiaokho-db, key: POSTGRES_PASSWORD } }
             - name: HOLIAOKHO_DATABASE_URL
-              valueFrom: { secretKeyRef: { name: holiaokho-db, key: DATABASE_URL } }
+              value: postgres://$(PGUSER):$(PGPASSWORD)@holiaokho-postgres:5432/holiaokho?sslmode=disable
             - name: HOLIAOKHO_ADMIN_PASSWORD
-              valueFrom: { secretKeyRef: { name: holiaokho-db, key: ADMIN_PASSWORD } }
+              valueFrom: { secretKeyRef: { name: holiaokho-app, key: admin-password } }
             - name: HOLIAOKHO_SECRET_KEY
-              valueFrom: { secretKeyRef: { name: holiaokho-db, key: SECRET_KEY } }
+              valueFrom: { secretKeyRef: { name: holiaokho-app, key: secret-key } }
+            - { name: HOLIAOKHO_LISTEN, value: ":8081" }
             - { name: HOLIAOKHO_STORAGE_PATH, value: /data/blobs }
-            - { name: HOLIAOKHO_LOG_FORMAT, value: json }
+            # Used to build absolute URLs (npm tarballs, Maven redirects), so
+            # it must be an address clients can actually reach.
+            - { name: HOLIAOKHO_BASE_URL, value: "http://your-host:32081" }
+            - { name: HOLIAOKHO_LOG_LEVEL, value: info }
           ports:
             - { name: http, containerPort: 8081 }
             - { name: docker-hub, containerPort: 8082 }
           volumeMounts:
             - { name: data, mountPath: /data }
-          resources:
-            requests: { cpu: 200m, memory: 256Mi }
-            limits: { cpu: "2", memory: 1Gi }
           readinessProbe:
             httpGet: { path: /readyz, port: 8081 }
+            initialDelaySeconds: 3
             periodSeconds: 5
           livenessProbe:
             httpGet: { path: /healthz, port: 8081 }
-            periodSeconds: 15
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            requests: { cpu: 200m, memory: 512Mi }
+            # 4Gi, not 1Gi: a real cut-over was OOMKilled at 1Gi during the
+            # first CI run. Live heap was only ~67MB — the rest was proxy
+            # buffers and page cache. The process reads this limit from the
+            # cgroup at startup and sets GOMEMLIMIT to 90% of it, so the Go
+            # runtime collects instead of being killed.
+            limits: { memory: 4Gi }
       volumes:
         - name: data
           persistentVolumeClaim: { claimName: holiaokho-data }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: holiaokho
+  namespace: holiaokho
+spec:
+  selector: { app: holiaokho }
+  ports:
+    - { name: http, port: 8081, targetPort: 8081 }
+    - { name: docker-hub, port: 8082, targetPort: 8082 }
 ---
 apiVersion: v1
 kind: Service
@@ -137,3 +181,54 @@ spec:
   ports:
     - { name: http, port: 8081, targetPort: 8081, nodePort: 32081 }
     - { name: docker-hub, port: 8082, targetPort: 8082, nodePort: 32082 }
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: holiaokho
+  namespace: holiaokho
+spec:
+  ingressClassName: traefik
+  rules:
+    # The Docker registry protocol needs a host of its own: clients send
+    # `/v2/...` at the root and cannot be served from a path prefix.
+    - host: holiao.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: holiaokho
+                port: { number: 8081 }
+    - host: holiao-docker.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: holiaokho
+                port: { number: 8082 }
+    # The old Nexus hostnames, kept pointing here so anything still
+    # configured against them keeps working. Delete the Ingress in the old
+    # namespace before applying this, or the two claim the same hosts.
+    # These two rules can be dropped once nothing uses the names.
+    - host: nexus.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: holiaokho
+                port: { number: 8081 }
+    - host: nexus-docker.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: holiaokho
+                port: { number: 8082 }
