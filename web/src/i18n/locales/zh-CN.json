@@ -498,9 +498,19 @@
   },
   "package": {
     "assets": "文件",
+    "attachmentKind": "类型",
+    "attachmentType": "Artifact type",
+    "attachments": "附加内容",
+    "attachmentsHint": "以这个镜像为对象的签名、SBOM 与构建证明。",
     "deleteHint": "该版本的 {{n}} 个文件都会被移除。Blob 会在下次 blob-gc 执行时回收。",
     "deleteTitle": "删除 {{name}}？",
     "deleteVersion": "删除这个版本",
+    "kind": {
+      "signature": "签名",
+      "sbom": "SBOM",
+      "attestation": "构建证明",
+      "other": "其他"
+    },
     "namespace": "命名空间",
     "version": "版本"
   },

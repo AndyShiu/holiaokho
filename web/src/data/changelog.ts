@@ -15,6 +15,22 @@ export interface Release {
 
 export const releases: Release[] = [
   {
+    version: '1.1.1',
+    date: '2026-09-14',
+    changes: [
+      {
+        kind: 'added',
+        text: {
+          en: 'Package details now list what is attached to a Docker image — signatures, SBOMs and attestations — with the kind of each one named rather than left as a media type to decipher.',
+          'zh-TW': '套件詳情會列出 Docker image 上掛了什麼 —— 簽章、SBOM、建置證明 —— 並直接標出種類,不用自己去解讀 media type。',
+          'zh-CN': '套件详情会列出 Docker 镜像上挂了什么 —— 签名、SBOM、构建证明 —— 并直接标出种类,不用自己去解读 media type。',
+          ja: 'パッケージ詳細に、イメージに紐付いた署名・SBOM・証明の一覧が表示されます。メディアタイプを読み解かなくても種類が分かります。',
+          ko: '패키지 상세에 이미지에 붙은 서명·SBOM·증명 목록이 표시됩니다. 미디어 타입을 해석하지 않아도 종류를 알 수 있습니다.',
+        },
+      },
+    ],
+  },
+  {
     version: '1.1.0',
     date: '2026-09-14',
     headline: {

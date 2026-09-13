@@ -498,9 +498,19 @@
   },
   "package": {
     "assets": "檔案",
+    "attachmentKind": "類型",
+    "attachmentType": "Artifact type",
+    "attachments": "附加內容",
+    "attachmentsHint": "以這個 image 為對象的簽章、SBOM 與建置證明。",
     "deleteHint": "此版本的 {{n}} 個檔案都會被移除。Blob 會在下次 blob-gc 執行時回收。",
     "deleteTitle": "刪除 {{name}}？",
     "deleteVersion": "刪除這個版本",
+    "kind": {
+      "signature": "簽章",
+      "sbom": "SBOM",
+      "attestation": "建置證明",
+      "other": "其他"
+    },
     "namespace": "命名空間",
     "version": "版本"
   },

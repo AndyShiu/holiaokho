@@ -164,6 +164,13 @@ check test "$n" -eq 1
 n=$(curl -s -u "admin:$ADMIN_PW" "$H/v2/$OCI/referrers/$OIMG_DIG?artifactType=application/spdx%2Bjson" | python3 -c "import sys,json; print(len(json.load(sys.stdin)['manifests']))")
 check test "$n" -eq 0
 
+# The same relationship, through the endpoint the web UI asks. It differs from
+# the registry API in one way that matters: it names the kind of each artifact,
+# so the drawer can say "Signature" instead of showing a media type.
+PKG_ID=$(curl -s -u "admin:$ADMIN_PW" "$H/api/v1/search?q=img" | python3 -c "import sys,json; d=json.load(sys.stdin); print((d['items'] if isinstance(d, dict) else d)[0]['id'])" 2>/dev/null)
+kind=$(curl -s -u "admin:$ADMIN_PW" "$H/api/v1/packages/$PKG_ID/referrers" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d[0]['kind'] if d else 'none')" 2>/dev/null)
+check test "$kind" = signature
+
 # Deleting the referrer has to clear the index, or it keeps being advertised.
 curl -s -o /dev/null -u "admin:$ADMIN_PW" -X DELETE "$H/v2/$OCI/manifests/$OSIG_DIG"
 n=$(curl -s -u "admin:$ADMIN_PW" "$H/v2/$OCI/referrers/$OIMG_DIG" | python3 -c "import sys,json; print(len(json.load(sys.stdin)['manifests']))")

@@ -143,6 +143,12 @@ and compacting GC, storage quotas, cron-scheduled tasks, webhooks with HMAC
 signing, e-mail, an audit log, backup and restore including blobs, Prometheus
 metrics.
 
+**Supply chain** — the OCI referrers API. Signatures, SBOMs and build
+attestations that `cosign` and `syft` attach to an image are stored as what
+they are, and found again through the same endpoint the tools already ask.
+Proxy repositories answer from upstream and cache the result; the web
+interface lists what is attached to each image.
+
 **Storage** — local filesystem or any S3-compatible service, content-addressed
 and reference-counted, so an identical file referenced by ten repositories
 occupies the disk once.

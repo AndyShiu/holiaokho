@@ -72,6 +72,21 @@ export function AssetDrawer({ assetId, repo: repoProp, onClose, onDeleted }: { a
 
 interface PackageView { package: Package; assets: Asset[]; repository: string; format: string }
 
+interface Referrer {
+  digest: string
+  mediaType: string
+  artifactType: string
+  size: number
+  kind: 'signature' | 'sbom' | 'attestation' | 'other'
+  annotations?: Record<string, string>
+}
+
+// Whether an image carries a signature is the thing a reader wants to spot
+// without having to read a media type, so each kind gets a colour of its own.
+const referrerColour: Record<string, string> = {
+  signature: 'green', sbom: 'blue', attestation: 'purple', other: 'default',
+}
+
 export function PackageDrawer({ packageId, onClose, onDeleted, onAsset }: { packageId: string | null; onClose: () => void; onDeleted?: () => void; onAsset?: (id: string) => void }) {
   const { t } = useTranslation()
   const { canRepo } = useAuth()
@@ -82,6 +97,12 @@ export function PackageDrawer({ packageId, onClose, onDeleted, onAsset }: { pack
   const q = useQuery({ queryKey: ['package', packageId], queryFn: () => get<PackageView>(`packages/${packageId}`), enabled: !!packageId })
   const repos = useQuery({ queryKey: ['repositories'], queryFn: () => get<Repository[]>('repositories') })
   const v = q.data
+  // Only Docker images can carry attachments, so do not ask for anything else.
+  const refs = useQuery({
+    queryKey: ['package-referrers', packageId],
+    queryFn: () => get<Referrer[]>(`packages/${packageId}/referrers`),
+    enabled: !!packageId && q.data?.format === 'docker',
+  })
   const p = v?.package
   const repo = repos.data?.find((r) => r.name === v?.repository)
   const canDelete = v ? canRepo(v.repository, v.format, 'delete') : false
@@ -113,6 +134,30 @@ export function PackageDrawer({ packageId, onClose, onDeleted, onAsset }: { pack
               { title: '', width: 80, render: (_: unknown, a: Asset) => repo ? <a href={`${repoBase(repo)}/${a.path}`} target="_blank" onClick={(e) => e.stopPropagation()}>{t('common.download', 'Download')}</a> : null },
             ]}
           />
+          {!!refs.data?.length && (
+            <>
+              <div className="hlk-section-label" style={{ margin: '20px 0 8px' }}>
+                {t('package.attachments', 'Attachments')} · {refs.data.length}
+              </div>
+              <p style={{ margin: '0 0 10px', fontSize: 12, color: 'var(--hlk-text-secondary)' }}>
+                {t('package.attachmentsHint', 'Signatures, SBOMs and attestations that name this image as their subject.')}
+              </p>
+              <Table<Referrer>
+                size="small" rowKey="digest" pagination={false} dataSource={refs.data} className="hlk-table"
+                columns={[
+                  {
+                    title: t('package.attachmentKind', 'Kind'), dataIndex: 'kind', width: 120,
+                    render: (k: string) => <Tag color={referrerColour[k] ?? 'default'} style={{ marginInlineEnd: 0 }}>{t(`package.kind.${k}`, k)}</Tag>,
+                  },
+                  {
+                    title: t('package.attachmentType', 'Artifact type'), dataIndex: 'artifactType',
+                    render: (x: string, r: Referrer) => <span className="hlk-mono" style={{ fontSize: 11.5, wordBreak: 'break-all' }}>{x || r.mediaType}</span>,
+                  },
+                  { title: t('asset.size', 'Size'), dataIndex: 'size', width: 90, render: (x: number) => fmtBytes(x) },
+                ]}
+              />
+            </>
+          )}
           {canDelete && (
             <div style={{ marginTop: 20, display: 'flex', justifyContent: 'flex-end' }}>
               <Button danger onClick={() => setConfirm(true)}>{t('package.deleteVersion', 'Delete this version')}</Button>

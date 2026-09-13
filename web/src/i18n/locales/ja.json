@@ -498,9 +498,19 @@
   },
   "package": {
     "assets": "ファイル",
+    "attachmentKind": "種類",
+    "attachmentType": "Artifact type",
+    "attachments": "添付",
+    "attachmentsHint": "このイメージを対象とする署名・SBOM・ビルド証明。",
     "deleteHint": "このバージョンの {{n}} 件のファイルが削除されます。blob は次回の blob-gc で回収されます。",
     "deleteTitle": "{{name}} を削除しますか？",
     "deleteVersion": "このバージョンを削除",
+    "kind": {
+      "signature": "署名",
+      "sbom": "SBOM",
+      "attestation": "ビルド証明",
+      "other": "その他"
+    },
     "namespace": "名前空間",
     "version": "バージョン"
   },

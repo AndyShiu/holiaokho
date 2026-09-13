@@ -498,9 +498,19 @@
   },
   "package": {
     "assets": "파일",
+    "attachmentKind": "종류",
+    "attachmentType": "Artifact type",
+    "attachments": "첨부",
+    "attachmentsHint": "이 이미지를 대상으로 하는 서명·SBOM·빌드 증명.",
     "deleteHint": "이 버전의 파일 {{n}}개가 삭제됩니다. blob은 다음 blob-gc 실행 때 회수됩니다.",
     "deleteTitle": "{{name}} 을 삭제할까요?",
     "deleteVersion": "이 버전 삭제",
+    "kind": {
+      "signature": "서명",
+      "sbom": "SBOM",
+      "attestation": "빌드 증명",
+      "other": "기타"
+    },
     "namespace": "네임스페이스",
     "version": "버전"
   },

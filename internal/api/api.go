@@ -149,6 +149,7 @@ func (a *API) Router() http.Handler {
 		r.Get("/{id}", a.getPackage)
 		r.Delete("/{id}", a.deletePackage)
 		r.Get("/{id}/assets", a.packageAssets)
+		r.Get("/{id}/referrers", a.packageReferrers)
 	})
 	r.Route("/assets", func(r chi.Router) {
 		r.Get("/{id}", a.getAsset)
@@ -1250,6 +1251,91 @@ func (a *API) packageAssets(w http.ResponseWriter, r *http.Request) {
 		assets = []*model.Asset{}
 	}
 	writeJSON(w, 200, assets)
+}
+
+// packageReferrers lists the artifacts attached to a Docker image — cosign
+// signatures, SBOMs, build attestations.
+//
+// The registry protocol already exposes this at /v2/<name>/referrers/<digest>,
+// but that endpoint speaks in image names and digests the UI does not hold,
+// and answers with an OCI index rather than something a page can render. This
+// is the same data addressed the way the rest of the API is: by package id.
+func (a *API) packageReferrers(w http.ResponseWriter, r *http.Request) {
+	p, rp := a.pkgRepo(w, r, auth.Read)
+	if p == nil {
+		return
+	}
+	out := []map[string]any{}
+	if rp.Format != "docker" {
+		writeJSON(w, 200, out)
+		return
+	}
+
+	// The image name lives on the package, the digest on its manifest asset —
+	// a tag can be repointed, so the digest has to come from what is stored
+	// rather than from the version string.
+	var pattrs map[string]any
+	json.Unmarshal(p.Attrs, &pattrs)
+	image, _ := pattrs["image"].(string)
+	if image == "" {
+		writeJSON(w, 200, out)
+		return
+	}
+	assets, err := a.Content.PackageAssets(r.Context(), p.ID)
+	if err != nil {
+		a.fail(w, err)
+		return
+	}
+	var digest string
+	for _, as := range assets {
+		var aattrs map[string]any
+		json.Unmarshal(as.Attrs, &aattrs)
+		if d, _ := aattrs["digest"].(string); d != "" {
+			digest = d
+			break
+		}
+	}
+	if digest == "" {
+		writeJSON(w, 200, out)
+		return
+	}
+
+	list, err := a.Content.Referrers(r.Context(), rp.ID, image, digest, "")
+	if err != nil {
+		a.fail(w, err)
+		return
+	}
+	for _, l := range list {
+		out = append(out, map[string]any{
+			"digest":       l.Digest,
+			"mediaType":    l.MediaType,
+			"artifactType": l.ArtifactType,
+			"size":         l.Size,
+			"annotations":  l.Annotations,
+			// Classified here rather than in the UI: the mapping from an
+			// artifact type to "this is a signature" is knowledge about the
+			// ecosystem, and belongs with the code that already knows it.
+			"kind": referrerKind(l.ArtifactType, l.MediaType),
+		})
+	}
+	writeJSON(w, 200, out)
+}
+
+// referrerKind gives a stable label the UI can translate, instead of asking a
+// page to pattern-match media types it should not need to know about.
+func referrerKind(artifactType, mediaType string) string {
+	t := strings.ToLower(artifactType + " " + mediaType)
+	switch {
+	case strings.Contains(t, "cosign") && strings.Contains(t, "sign"):
+		return "signature"
+	case strings.Contains(t, "in-toto"), strings.Contains(t, "attestation"):
+		return "attestation"
+	case strings.Contains(t, "spdx"), strings.Contains(t, "cyclonedx"), strings.Contains(t, "sbom"):
+		return "sbom"
+	case strings.Contains(t, "sig"):
+		return "signature"
+	}
+	return "other"
 }
 
 func (a *API) deletePackage(w http.ResponseWriter, r *http.Request) {

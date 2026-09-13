@@ -136,6 +136,10 @@ OIDC、反向代理標頭認證。角色以「對象 × 動作」描述,可細�
 cron 排程任務、含 HMAC 簽章的 webhook、電子郵件、稽核紀錄、
 含 blob 的備份還原、Prometheus 指標。
 
+**供應鏈** —— OCI referrers API。`cosign`、`syft` 掛在 image 上的簽章、
+SBOM 與建置證明會以它們原本的樣子保存,並透過工具本來就會問的同一個端點找回來。
+proxy repository 會向上游詢問並快取結果;網頁介面會列出每個 image 掛了什麼。
+
 **儲存** —— 本機檔案系統或任何 S3 相容服務。內容定址並計算引用數,
 所以同一個檔案就算被十個 repository 引用,磁碟上也只有一份。
 

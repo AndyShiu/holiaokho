@@ -498,9 +498,19 @@
   },
   "package": {
     "assets": "Assets",
+    "attachmentKind": "Kind",
+    "attachmentType": "Artifact type",
+    "attachments": "Attachments",
+    "attachmentsHint": "Signatures, SBOMs and attestations that name this image as their subject.",
     "deleteHint": "All {{n}} assets of this version are removed. Blobs are reclaimed by the next blob-gc run.",
     "deleteTitle": "Delete {{name}}?",
     "deleteVersion": "Delete this version",
+    "kind": {
+      "signature": "Signature",
+      "sbom": "SBOM",
+      "attestation": "Attestation",
+      "other": "Other"
+    },
     "namespace": "Namespace",
     "version": "Version"
   },
