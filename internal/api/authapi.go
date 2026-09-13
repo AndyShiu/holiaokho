@@ -25,6 +25,7 @@ func (a *API) authMethods(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, 200, map[string]any{
 		"local": true, "ldap": st.LDAP.Enabled, "oidc": st.OIDC.Enabled,
 		"oidcLoginUrl": "/api/v1/auth/oidc/login", "anonymous": a.Auth.Cfg.AnonymousEnabled,
+		"passwordPolicy": st.Password,
 	})
 }
 
@@ -42,6 +43,10 @@ func (a *API) putAuthSettings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	cur := a.Auth.Settings(r.Context())
+	if in.Password.MinLength == 0 {
+		// password block omitted: keep the current policy
+		in.Password = cur.Password
+	}
 	if in.LDAP.BindPassword == "" || in.LDAP.BindPassword == "***" {
 		in.LDAP.BindPassword = cur.LDAP.BindPassword
 	}
@@ -53,6 +58,14 @@ func (a *API) putAuthSettings(w http.ResponseWriter, r *http.Request) {
 			writeErr(w, 400, "validation", "unknown realm %q", realm)
 			return
 		}
+	}
+	if in.Password.MinLength < 8 {
+		writeErr(w, 400, "validation", "password.minLength must be at least 8")
+		return
+	}
+	if in.Password.MaxLength != 0 && in.Password.MaxLength < in.Password.MinLength {
+		writeErr(w, 400, "validation", "password.maxLength must be >= minLength")
+		return
 	}
 	if err := a.Auth.SaveSettings(r.Context(), in); err != nil {
 		a.fail(w, err)

@@ -116,6 +116,27 @@ components:
           type: object
           description: '`fs`: {path}. `s3`: {endpoint, region, bucket, prefix, accessKey, secretKey, pathStyle}'
         createdAt: { type: string, format: date-time }
+    PasswordPolicy:
+      type: object
+      description: Complexity rules applied whenever a local password is set. Violations return 400 with code password.too_short / too_long / need_upper / need_lower / need_digit / need_symbol / contains_username / common.
+      properties:
+        minLength: { type: integer, default: 12, minimum: 8 }
+        maxLength: { type: integer, default: 128 }
+        requireUpper: { type: boolean, default: true }
+        requireLower: { type: boolean, default: true }
+        requireDigit: { type: boolean, default: true }
+        requireSymbol: { type: boolean, default: false }
+        disallowUsername: { type: boolean, default: true, description: Reject passwords containing the username }
+        disallowCommon: { type: boolean, default: true, description: Reject a built-in list of common passwords }
+    AuthSettings:
+      type: object
+      properties:
+        realms: { type: array, items: { type: string, enum: [local, ldap] }, description: Realm order tried at login }
+        defaultRoles: { type: array, items: { type: string } }
+        password: { $ref: '#/components/schemas/PasswordPolicy' }
+        ldap: { type: object }
+        oidc: { type: object }
+        rut: { type: object }
     User:
       type: object
       properties:
@@ -325,20 +346,25 @@ paths:
       summary: Create a blob storage (fs or s3)
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Storage' } } } }
       responses: { '201': { description: Created }, '400': { $ref: '#/components/responses/Error' } }
+  /auth/methods:
+    get: { tags: [auth], summary: Login methods and password policy (public, for login/UI hints), security: [], responses: { '200': { description: OK, content: { application/json: { schema: { type: object, properties: { local: { type: boolean }, ldap: { type: boolean }, oidc: { type: boolean }, oidcLoginUrl: { type: string }, anonymous: { type: boolean }, passwordPolicy: { $ref: '#/components/schemas/PasswordPolicy' } } } } } } } }
+  /auth/settings:
+    get: { tags: [auth], summary: Authentication settings (secrets redacted as ***), responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/AuthSettings' } } } } } }
+    put: { tags: [auth], summary: Update authentication settings (omit password to keep the current policy; *** keeps a stored secret), requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/AuthSettings' } } } }, responses: { '200': { description: OK }, '400': { $ref: '#/components/responses/Error' } } }
   /users:
     get: { tags: [users], summary: List users, responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/User' } } } } } } }
     post:
       tags: [users]
       summary: Create a user
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/UserInput' } } } }
-      responses: { '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/User' } } } } }
+      responses: { '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/User' } } } }, '400': { $ref: '#/components/responses/Error' } }
   /users/{username}:
     parameters: [{ name: username, in: path, required: true, schema: { type: string } }]
     get: { tags: [users], summary: Get a user, responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/User' } } } } } }
     put: { tags: [users], summary: Update a user, requestBody: { content: { application/json: { schema: { $ref: '#/components/schemas/UserInput' } } } }, responses: { '200': { description: OK } } }
     delete: { tags: [users], summary: Delete a user, responses: { '204': { description: Deleted } } }
   /users/{username}/password:
-    put: { tags: [users], summary: Set a user's password (admin), parameters: [{ name: username, in: path, required: true, schema: { type: string } }], requestBody: { content: { application/json: { schema: { type: object, properties: { password: { type: string } } } } } }, responses: { '204': { description: Done } } }
+    put: { tags: [users], summary: Set a user's password (admin), parameters: [{ name: username, in: path, required: true, schema: { type: string } }], requestBody: { content: { application/json: { schema: { type: object, properties: { password: { type: string } } } } } }, responses: { '204': { description: Done }, '400': { $ref: '#/components/responses/Error' } } }
   /users/{username}/tokens:
     parameters: [{ name: username, in: path, required: true, schema: { type: string } }]
     get: { tags: [tokens], summary: List a user's tokens, responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Token' } } } } } } }
@@ -346,7 +372,7 @@ paths:
   /users/{username}/tokens/{id}:
     delete: { tags: [tokens], summary: Revoke a token, parameters: [{ name: username, in: path, required: true, schema: { type: string } }, { name: id, in: path, required: true, schema: { type: string } }], responses: { '204': { description: Revoked } } }
   /me/password:
-    put: { tags: [users], summary: Change own password, requestBody: { content: { application/json: { schema: { type: object, properties: { current: { type: string }, password: { type: string } } } } } }, responses: { '204': { description: Done } } }
+    put: { tags: [users], summary: Change own password, requestBody: { content: { application/json: { schema: { type: object, properties: { current: { type: string }, password: { type: string } } } } } }, responses: { '204': { description: Done }, '400': { $ref: '#/components/responses/Error' } } }
   /me/tokens:
     get: { tags: [tokens], summary: List own tokens, responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Token' } } } } } } }
     post: { tags: [tokens], summary: Create own token, requestBody: { content: { application/json: { schema: { type: object, properties: { name: { type: string }, expiresAt: { type: string, format: date-time } } } } } }, responses: { '201': { description: Created } } }

@@ -162,6 +162,10 @@ func (a *API) fail(w http.ResponseWriter, err error) {
 		writeErr(w, 401, "auth.invalid", "invalid credentials")
 	case errors.Is(err, auth.ErrRateLimited):
 		writeErr(w, 429, "auth.rate_limited", "too many failed login attempts")
+	case errors.Is(err, auth.ErrPolicy):
+		var pe *auth.PolicyError
+		errors.As(err, &pe)
+		writeErr(w, 400, pe.Code, pe.Format, pe.Params...)
 	default:
 		var ve validationError
 		if errors.As(err, &ve) {
@@ -834,6 +838,10 @@ func (a *API) createUser(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, 400, "validation", "username and password required")
 		return
 	}
+	if err := a.Auth.CheckPassword(r.Context(), in.Username, in.Password); err != nil {
+		a.fail(w, err)
+		return
+	}
 	hash, err := auth.HashPassword(in.Password)
 	if err != nil {
 		a.fail(w, err)
@@ -883,6 +891,10 @@ func (a *API) updateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if in.Password != "" {
+		if err := a.Auth.CheckPassword(r.Context(), u.Username, in.Password); err != nil {
+			a.fail(w, err)
+			return
+		}
 		if err := a.Auth.SetPassword(r.Context(), u.Username, in.Password); err != nil {
 			a.fail(w, err)
 			return
@@ -910,6 +922,10 @@ func (a *API) setPassword(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, 400, "validation", "password required")
 		return
 	}
+	if err := a.Auth.CheckPassword(r.Context(), chi.URLParam(r, "username"), in.Password); err != nil {
+		a.fail(w, err)
+		return
+	}
 	if err := a.Auth.SetPassword(r.Context(), chi.URLParam(r, "username"), in.Password); err != nil {
 		a.fail(w, err)
 		return
@@ -929,6 +945,10 @@ func (a *API) changeMyPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if _, err := a.Auth.Login(r.Context(), auth.ClientIP(r), p.Username, in.Current); err != nil {
+		a.fail(w, err)
+		return
+	}
+	if err := a.Auth.CheckPassword(r.Context(), p.Username, in.Password); err != nil {
 		a.fail(w, err)
 		return
 	}

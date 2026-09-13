@@ -10,5 +10,14 @@
   "pull.ok": "downloaded %s (%d bytes)",
   "token.created": "token created (store it now, it is shown once):\n%s",
   "task.started": "task %s started",
-  "user.created": "user %s created"
+  "user.created": "user %s created",
+  "api.password.too_short": "password must be at least %v characters",
+  "api.password.too_long": "password must be at most %v characters",
+  "api.password.need_upper": "password must contain an uppercase letter",
+  "api.password.need_lower": "password must contain a lowercase letter",
+  "api.password.need_digit": "password must contain a digit",
+  "api.password.need_symbol": "password must contain a symbol",
+  "api.password.contains_username": "password must not contain the username",
+  "api.password.common": "password is too common",
+  "api.auth.rate_limited": "too many failed login attempts, try again later"
 }

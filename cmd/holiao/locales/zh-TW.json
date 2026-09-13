@@ -10,5 +10,14 @@
   "pull.ok": "已下載 %s（%d bytes）",
   "token.created": "已建立 token（只顯示這一次，請立即保存）：\n%s",
   "task.started": "已啟動任務 %s",
-  "user.created": "已建立使用者 %s"
+  "user.created": "已建立使用者 %s",
+  "api.password.too_short": "密碼長度至少需 %v 個字元",
+  "api.password.too_long": "密碼長度最多 %v 個字元",
+  "api.password.need_upper": "密碼必須包含大寫字母",
+  "api.password.need_lower": "密碼必須包含小寫字母",
+  "api.password.need_digit": "密碼必須包含數字",
+  "api.password.need_symbol": "密碼必須包含符號",
+  "api.password.contains_username": "密碼不可包含使用者名稱",
+  "api.password.common": "此密碼過於常見",
+  "api.auth.rate_limited": "登入失敗次數過多，請稍後再試"
 }

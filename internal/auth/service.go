@@ -102,6 +102,9 @@ func (s *Service) Bootstrap(ctx context.Context, adminPassword string) error {
 		return err
 	}
 	if n == 0 {
+		if err := defaultPasswordPolicy().Validate(adminPassword, "admin"); err != nil {
+			s.Log.Warn("bootstrap admin password violates the password policy; change it after first login", "reason", err.Error())
+		}
 		hash, err := HashPassword(adminPassword)
 		if err != nil {
 			return err
@@ -203,6 +206,11 @@ func setRolesTx(ctx context.Context, tx pgx.Tx, userID uuid.UUID, roles []string
 		}
 	}
 	return nil
+}
+
+// CheckPassword validates pw against the configured policy.
+func (s *Service) CheckPassword(ctx context.Context, username, pw string) error {
+	return s.Settings(ctx).Password.Validate(pw, username)
 }
 
 func (s *Service) SetPassword(ctx context.Context, username, pw string) error {

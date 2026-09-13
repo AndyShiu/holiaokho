@@ -108,7 +108,7 @@ Nexus 3.95 CE 支援的格式（從公司 DB 的 `<fmt>_component` 表確認）�
 | Realm 啟用順序設定 | ✅ | ✅（local/ldap 順序） |
 | SSL trust store（匯入上游憑證） | ✅ | ✅ `proxy.ca_cert_file` |
 | Content selector 綁權限 | ✅ | ✅ |
-| Password 政策、帳號鎖定 | 部分 | 部分（登入限流；無密碼複雜度規則） |
+| Password 政策、帳號鎖定 | 部分 | ✅ 登入限流（每 IP）＋密碼複雜度政策（長度、字元類別、不含帳號、常見密碼；`PUT /auth/settings`） |
 | Audit log | ✅（capability） | ✅ 基本（管理操作） |
 
 ## 5. 維護任務（Tasks）

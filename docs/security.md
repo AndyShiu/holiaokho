@@ -17,6 +17,7 @@
 
 **認證與授權**
 - 密碼 argon2id；匯入的 Nexus Shiro 雜湊驗證後自動升級；比較用常數時間
+- 密碼複雜度政策（`auth.settings.password`，API 可調）：預設最少 12 碼、需含大小寫與數字、不可包含使用者名稱、拒絕常見弱密碼；建立使用者、admin 重設、自助改密碼一律套用，違反時回 `password.*` code 與 params。Bootstrap 的 admin 密碼不擋但會在 log 警告
 - User token 只存 SHA-256；Docker/npm/NuGet/cargo/gem/conan 等格式的 token 都對應到同一套 token
 - 登入失敗限流（依 client IP，預設 10 次／分鐘，回 429）
 - RBAC：`target` × `actions`，content selector 可限制到路徑；匿名是明確的角色，可整個關閉
@@ -69,6 +70,5 @@
 ## 尚未做（已知）
 
 - 沒有全站 API 速率限制（只有登入）
-- 沒有密碼複雜度政策
 - Docker foreign layer 直接由 client 抓上游（與 Nexus 預設相同）
 - 上游 metadata 內的 URL（Helm index、Composer dist、Ansible download_url…）會被伺服器抓取：惡意上游可讓伺服器連到它指定的位址；proxy 上游只能由 admin 設定，風險等同 Nexus

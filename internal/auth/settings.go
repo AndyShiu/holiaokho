@@ -14,10 +14,12 @@ type Settings struct {
 	// Realms is the order in which password logins are attempted: local, ldap.
 	Realms []string `json:"realms"`
 	// DefaultRoles are granted to every authenticated user (Nexus "Default Role").
-	DefaultRoles []string   `json:"defaultRoles"`
-	LDAP         LDAPConfig `json:"ldap"`
-	OIDC         OIDCConfig `json:"oidc"`
-	Rut          RutConfig  `json:"rut"`
+	DefaultRoles []string `json:"defaultRoles"`
+	// Password is the complexity policy for local passwords.
+	Password PasswordPolicy `json:"password"`
+	LDAP     LDAPConfig     `json:"ldap"`
+	OIDC     OIDCConfig     `json:"oidc"`
+	Rut      RutConfig      `json:"rut"`
 }
 
 type LDAPConfig struct {
@@ -74,7 +76,7 @@ var settingsCache struct {
 }
 
 func defaultSettings() Settings {
-	return Settings{Realms: []string{"local", "ldap"}, LDAP: LDAPConfig{UserFilter: "(uid={username})", UserSubtree: true, EmailAttr: "mail", DisplayNameAttr: "cn", GroupNameAttr: "cn", Timeout: 10},
+	return Settings{Realms: []string{"local", "ldap"}, Password: defaultPasswordPolicy(), LDAP: LDAPConfig{UserFilter: "(uid={username})", UserSubtree: true, EmailAttr: "mail", DisplayNameAttr: "cn", GroupNameAttr: "cn", Timeout: 10},
 		OIDC: OIDCConfig{Scopes: []string{"openid", "profile", "email"}, UsernameClaim: "preferred_username"}, Rut: RutConfig{Header: "X-Forwarded-User"}}
 }
 

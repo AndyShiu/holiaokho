@@ -71,9 +71,19 @@ type apiError struct {
 	Status  int
 	Code    string `json:"code"`
 	Message string `json:"message"`
+	Params  []any  `json:"params"`
 }
 
-func (e *apiError) Error() string { return T("error.http", e.Status, e.Message) }
+// Error prefers a localised message for the server's stable code and falls
+// back to the server's English message.
+func (e *apiError) Error() string {
+	if e.Code != "" {
+		if _, ok := messages["api."+e.Code]; ok {
+			return T("api."+e.Code, e.Params...)
+		}
+	}
+	return T("error.http", e.Status, e.Message)
+}
 
 func do(method, path string, body any, out any) error {
 	if cfg.URL == "" {
