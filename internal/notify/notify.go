@@ -22,6 +22,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	"github.com/holiaokho/holiaokho/internal/secrets"
 )
 
 type Webhook struct {
@@ -235,12 +237,21 @@ func (s *Service) EmailConfig(ctx context.Context) (Email, error) {
 		return e, nil // not configured
 	}
 	json.Unmarshal(raw, &e)
+	if pw, err := secrets.Decrypt(e.Password); err == nil {
+		e.Password = pw
+	} else {
+		return e, err
+	}
 	return e, nil
 }
 
 func (s *Service) SaveEmailConfig(ctx context.Context, e Email) error {
+	var err error
+	if e.Password, err = secrets.Encrypt(e.Password); err != nil {
+		return err
+	}
 	raw, _ := json.Marshal(e)
-	_, err := s.Pool.Exec(ctx, `INSERT INTO settings(key,value) VALUES ('email',$1) ON CONFLICT (key) DO UPDATE SET value=EXCLUDED.value`, raw)
+	_, err = s.Pool.Exec(ctx, `INSERT INTO settings(key,value) VALUES ('email',$1) ON CONFLICT (key) DO UPDATE SET value=EXCLUDED.value`, raw)
 	return err
 }
 

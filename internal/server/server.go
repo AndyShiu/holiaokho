@@ -54,6 +54,7 @@ import (
 	"github.com/holiaokho/holiaokho/internal/model"
 	"github.com/holiaokho/holiaokho/internal/notify"
 	"github.com/holiaokho/holiaokho/internal/repo"
+	"github.com/holiaokho/holiaokho/internal/secrets"
 	"github.com/holiaokho/holiaokho/internal/task"
 	"github.com/holiaokho/holiaokho/web"
 )
@@ -94,6 +95,13 @@ type metrics struct {
 func New(ctx context.Context, cfg config.Config, log *slog.Logger, sys *System) (*Server, error) {
 	if sys == nil {
 		_, sys = NewSystemLogger(cfg.Log.Level, cfg.Log.Format)
+	}
+	kr, err := secrets.Init(cfg.Secrets.Key, cfg.Secrets.KeyFile, cfg.Secrets.PreviousKeys)
+	if err != nil {
+		return nil, fmt.Errorf("secrets: %w", err)
+	}
+	if kr.Generated {
+		log.Warn("generated a new secret encryption key; back it up or set HOLIAOKHO_SECRET_KEY", "file", cfg.Secrets.KeyFile)
 	}
 	d, err := db.Open(ctx, cfg.Database.URL, cfg.Database.MaxConns)
 	if err != nil {
@@ -168,6 +176,9 @@ func New(ctx context.Context, cfg config.Config, log *slog.Logger, sys *System) 
 			return err
 		})
 	}
+	s.Tasks.Register("re-encrypt-secrets", "Re-encrypt stored secrets with the current key (run after rotating secrets.key)", 24*time.Hour, func(ctx context.Context, logf func(string, ...any)) error {
+		return s.reencryptSecrets(ctx, logf)
+	})
 	s.Tasks.Register("rebuild-indexes", "Regenerate hosted repository indexes (Maven metadata, APT/YUM/apk/CRAN/Conda index files)", 7*24*time.Hour, func(ctx context.Context, logf func(string, ...any)) error {
 		return s.rebuildIndexes(ctx, logf)
 	})
@@ -613,4 +624,89 @@ func (s *Server) rebuildIndexes(ctx context.Context, logf func(string, ...any)) 
 	}
 	logf("rebuilt indexes for %d repositories", n)
 	return nil
+}
+
+// reencryptSecrets rewrites every stored secret (repository attributes,
+// storage configs, auth and email settings) with the current key. Values
+// already on the current key are left untouched.
+func (s *Server) reencryptSecrets(ctx context.Context, logf func(string, ...any)) error {
+	n := 0
+	rows, err := s.DB.Pool.Query(ctx, `SELECT name, attributes FROM repositories`)
+	if err != nil {
+		return err
+	}
+	type rr struct {
+		name string
+		raw  []byte
+	}
+	var repos []rr
+	for rows.Next() {
+		var x rr
+		rows.Scan(&x.name, &x.raw)
+		repos = append(repos, x)
+	}
+	rows.Close()
+	for _, x := range repos {
+		if !anyNeeds(x.raw, secrets.RepositoryPaths) {
+			continue
+		}
+		dec, err := secrets.DecryptPaths(x.raw, secrets.RepositoryPaths)
+		if err != nil {
+			logf("repository %s: %v", x.name, err)
+			continue
+		}
+		enc, _ := secrets.EncryptPaths(dec, secrets.RepositoryPaths)
+		if _, err := s.DB.Pool.Exec(ctx, `UPDATE repositories SET attributes=$2 WHERE name=$1`, x.name, enc); err == nil {
+			n++
+		}
+	}
+	srows, err := s.DB.Pool.Query(ctx, `SELECT name, config FROM storages`)
+	if err != nil {
+		return err
+	}
+	var stores []rr
+	for srows.Next() {
+		var x rr
+		srows.Scan(&x.name, &x.raw)
+		stores = append(stores, x)
+	}
+	srows.Close()
+	for _, x := range stores {
+		if !anyNeeds(x.raw, secrets.StorageConfigPaths) {
+			continue
+		}
+		dec, err := secrets.DecryptPaths(x.raw, secrets.StorageConfigPaths)
+		if err != nil {
+			logf("storage %s: %v", x.name, err)
+			continue
+		}
+		enc, _ := secrets.EncryptPaths(dec, secrets.StorageConfigPaths)
+		if _, err := s.DB.Pool.Exec(ctx, `UPDATE storages SET config=$2 WHERE name=$1`, x.name, enc); err == nil {
+			n++
+		}
+	}
+	// Settings: reading decrypts, saving encrypts with the current key.
+	st := s.Auth.Settings(ctx)
+	if err := s.Auth.SaveSettings(ctx, st); err == nil {
+		n++
+	}
+	if em, err := s.Notify.EmailConfig(ctx); err == nil {
+		if err := s.Notify.SaveEmailConfig(ctx, em); err == nil {
+			n++
+		}
+	}
+	s.Content.Invalidate()
+	logf("re-encrypted %d records", n)
+	return nil
+}
+
+func anyNeeds(raw []byte, paths []string) bool {
+	needs := false
+	secrets.Transform(raw, paths, func(v string) (string, error) {
+		if secrets.NeedsReencrypt(v) {
+			needs = true
+		}
+		return v, nil
+	})
+	return needs
 }

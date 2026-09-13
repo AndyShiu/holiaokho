@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"sync"
 	"time"
+
+	"github.com/holiaokho/holiaokho/internal/secrets"
 )
 
 // Settings is the persisted authentication configuration (settings.key='auth').
@@ -89,6 +91,16 @@ func (s *Service) Settings(ctx context.Context) Settings {
 	var raw []byte
 	if err := s.DB.Pool.QueryRow(ctx, `SELECT value FROM settings WHERE key='auth'`).Scan(&raw); err == nil {
 		json.Unmarshal(raw, &v)
+		if pw, err := secrets.Decrypt(v.LDAP.BindPassword); err == nil {
+			v.LDAP.BindPassword = pw
+		} else {
+			s.Log.Error("decrypt ldap bind password", "err", err)
+		}
+		if cs, err := secrets.Decrypt(v.OIDC.ClientSecret); err == nil {
+			v.OIDC.ClientSecret = cs
+		} else {
+			s.Log.Error("decrypt oidc client secret", "err", err)
+		}
 	}
 	if len(v.Realms) == 0 {
 		v.Realms = []string{"local", "ldap"}
@@ -100,8 +112,15 @@ func (s *Service) Settings(ctx context.Context) Settings {
 }
 
 func (s *Service) SaveSettings(ctx context.Context, v Settings) error {
+	var err error
+	if v.LDAP.BindPassword, err = secrets.Encrypt(v.LDAP.BindPassword); err != nil {
+		return err
+	}
+	if v.OIDC.ClientSecret, err = secrets.Encrypt(v.OIDC.ClientSecret); err != nil {
+		return err
+	}
 	raw, _ := json.Marshal(v)
-	_, err := s.DB.Pool.Exec(ctx, `INSERT INTO settings(key,value) VALUES ('auth',$1) ON CONFLICT (key) DO UPDATE SET value=EXCLUDED.value`, raw)
+	_, err = s.DB.Pool.Exec(ctx, `INSERT INTO settings(key,value) VALUES ('auth',$1) ON CONFLICT (key) DO UPDATE SET value=EXCLUDED.value`, raw)
 	settingsCache.mu.Lock()
 	settingsCache.at = time.Time{}
 	settingsCache.mu.Unlock()

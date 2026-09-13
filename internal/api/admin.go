@@ -557,6 +557,10 @@ func (a *API) systemConfig(w http.ResponseWriter, r *http.Request) {
 	c.Database.URL = redactURL(c.Database.URL)
 	c.Storage.S3.SecretKey = redact(c.Storage.S3.SecretKey)
 	c.Auth.AdminPassword = redact(c.Auth.AdminPassword)
+	c.Secrets.Key = redact(c.Secrets.Key)
+	for i := range c.Secrets.PreviousKeys {
+		c.Secrets.PreviousKeys[i] = "***"
+	}
 	writeJSON(w, 200, c)
 }
 

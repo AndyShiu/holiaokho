@@ -22,6 +22,15 @@ proxy:
   timeout: 10m
   # http_proxy: "http://proxy.corp:3128"
   # ca_cert_file: /etc/ssl/corp-ca.pem
+secrets:
+  # Encrypts stored credentials (upstream passwords, signing keys, LDAP/OIDC/SMTP
+  # secrets, S3 keys) with AES-256-GCM. Set `key` (any passphrase, or base64/hex
+  # 32 bytes) or let the server create key_file on first start — back it up!
+  # To rotate: set the new key, list the old one in previous_keys, run the
+  # `re-encrypt-secrets` task, then remove previous_keys.
+  # key: "change-me"
+  key_file: ./data/secret.key
+  previous_keys: []
 log:
   level: info    # debug|info|warn|error
   format: text   # text|json

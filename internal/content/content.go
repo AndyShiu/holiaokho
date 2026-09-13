@@ -19,6 +19,7 @@ import (
 
 	"github.com/holiaokho/holiaokho/internal/db"
 	"github.com/holiaokho/holiaokho/internal/model"
+	"github.com/holiaokho/holiaokho/internal/secrets"
 	"github.com/holiaokho/holiaokho/internal/storage"
 	fsstore "github.com/holiaokho/holiaokho/internal/storage/fs"
 	s3store "github.com/holiaokho/holiaokho/internal/storage/s3"
@@ -72,6 +73,11 @@ func (s *Service) LoadStorages(ctx context.Context) error {
 }
 
 func openStorage(st model.Storage) (storage.Storage, error) {
+	if dec, err := secrets.DecryptPaths(st.Config, secrets.StorageConfigPaths); err == nil {
+		st.Config = dec
+	} else {
+		return nil, err
+	}
 	switch st.Type {
 	case "fs":
 		var cfg struct {
@@ -130,8 +136,12 @@ func (s *Service) CreateStorage(ctx context.Context, st *model.Storage) error {
 		return err
 	}
 	st.ID = uuid.New()
+	enc, err := secrets.EncryptPaths(st.Config, secrets.StorageConfigPaths)
+	if err != nil {
+		return err
+	}
 	_, err = s.DB.Pool.Exec(ctx, `INSERT INTO storages(id, name, type, config, quota_bytes) VALUES ($1,$2,$3,$4,$5)`,
-		st.ID, st.Name, st.Type, st.Config, st.QuotaBytes)
+		st.ID, st.Name, st.Type, enc, st.QuotaBytes)
 	if err != nil {
 		if isUnique(err) {
 			return ErrConflict
@@ -211,6 +221,13 @@ func scanRepo(row pgx.Row) (*model.Repository, error) {
 	if err := row.Scan(&r.ID, &r.Name, &r.Format, &r.Type, &r.StorageID, &r.Online, &r.Attributes, &r.RoutingRuleID, &r.CreatedAt, &r.UpdatedAt); err != nil {
 		return nil, err
 	}
+	if dec, err := secrets.DecryptPaths(r.Attributes, secrets.RepositoryPaths); err == nil {
+		r.Attributes = dec
+	} else {
+		// Keep the repository usable (its secret fields stay opaque) and
+		// make the problem visible instead of hiding every repository.
+		slog.Error("repository secrets cannot be decrypted; check secrets.key / previous_keys", "repository", r.Name, "err", err)
+	}
 	if err := decodeRepo(&r); err != nil {
 		return nil, err
 	}
@@ -289,8 +306,12 @@ func (s *Service) CreateRepo(ctx context.Context, r *model.Repository) error {
 		}
 		r.StorageID = st.ID
 	}
-	_, err := s.DB.Pool.Exec(ctx, `INSERT INTO repositories(id,name,format,type,storage_id,online,attributes,routing_rule_id)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`, r.ID, r.Name, r.Format, r.Type, r.StorageID, r.Online, r.Attributes, r.RoutingRuleID)
+	enc, err := secrets.EncryptPaths(r.Attributes, secrets.RepositoryPaths)
+	if err != nil {
+		return err
+	}
+	_, err = s.DB.Pool.Exec(ctx, `INSERT INTO repositories(id,name,format,type,storage_id,online,attributes,routing_rule_id)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`, r.ID, r.Name, r.Format, r.Type, r.StorageID, r.Online, enc, r.RoutingRuleID)
 	if err != nil {
 		if isUnique(err) {
 			return ErrConflict
@@ -310,8 +331,12 @@ func (s *Service) UpdateRepo(ctx context.Context, r *model.Repository) error {
 			return err
 		}
 	}
+	enc, err := secrets.EncryptPaths(r.Attributes, secrets.RepositoryPaths)
+	if err != nil {
+		return err
+	}
 	tag, err := s.DB.Pool.Exec(ctx, `UPDATE repositories SET online=$2, attributes=$3, routing_rule_id=$4, updated_at=now() WHERE name=$1`,
-		r.Name, r.Online, r.Attributes, r.RoutingRuleID)
+		r.Name, r.Online, enc, r.RoutingRuleID)
 	if err != nil {
 		return err
 	}

@@ -19,6 +19,7 @@ stringData:
   POSTGRES_PASSWORD: change-me
   DATABASE_URL: postgres://holiaokho:change-me@holiaokho-postgres:5432/holiaokho?sslmode=disable
   ADMIN_PASSWORD: change-me-too
+  SECRET_KEY: change-me-three   # encrypts stored credentials; keep it safe
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -103,6 +104,8 @@ spec:
               valueFrom: { secretKeyRef: { name: holiaokho-db, key: DATABASE_URL } }
             - name: HOLIAOKHO_ADMIN_PASSWORD
               valueFrom: { secretKeyRef: { name: holiaokho-db, key: ADMIN_PASSWORD } }
+            - name: HOLIAOKHO_SECRET_KEY
+              valueFrom: { secretKeyRef: { name: holiaokho-db, key: SECRET_KEY } }
             - { name: HOLIAOKHO_STORAGE_PATH, value: /data/blobs }
             - { name: HOLIAOKHO_LOG_FORMAT, value: json }
           ports:

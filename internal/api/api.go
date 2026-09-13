@@ -26,6 +26,7 @@ import (
 	"github.com/holiaokho/holiaokho/internal/model"
 	"github.com/holiaokho/holiaokho/internal/notify"
 	"github.com/holiaokho/holiaokho/internal/repo"
+	"github.com/holiaokho/holiaokho/internal/secrets"
 	"github.com/holiaokho/holiaokho/internal/task"
 )
 
@@ -345,6 +346,39 @@ func (a *API) repoURL(r *http.Request, name string) string {
 	return a.Deps.BaseURL(r) + "/repository/" + name
 }
 
+// redactRepo returns a copy with secret attributes replaced by "***".
+func redactRepo(rp *model.Repository) *model.Repository {
+	c := *rp
+	c.Attributes = secrets.RedactPaths(rp.Attributes, secrets.RepositoryPaths)
+	return &c
+}
+
+// keepRedacted restores stored secret values where the client sent "***".
+func keepRedacted(existing json.RawMessage, attrs map[string]json.RawMessage) {
+	var old map[string]map[string]any
+	json.Unmarshal(existing, &old)
+	for _, p := range secrets.RepositoryPaths {
+		block, field, _ := strings.Cut(p, ".")
+		raw, ok := attrs[block]
+		if !ok {
+			continue
+		}
+		var m map[string]any
+		if json.Unmarshal(raw, &m) != nil {
+			continue
+		}
+		if v, _ := m[field].(string); v == secrets.Redacted {
+			if ov, ok := old[block][field].(string); ok {
+				m[field] = ov
+			} else {
+				delete(m, field)
+			}
+			nb, _ := json.Marshal(m)
+			attrs[block] = nb
+		}
+	}
+}
+
 func (a *API) listRepos(w http.ResponseWriter, r *http.Request) {
 	repos, err := a.Content.ListRepos(r.Context())
 	if err != nil {
@@ -354,7 +388,7 @@ func (a *API) listRepos(w http.ResponseWriter, r *http.Request) {
 	out := make([]repoView, 0, len(repos))
 	for _, rp := range repos {
 		st, _ := a.Content.RepoStats(r.Context(), rp.ID)
-		out = append(out, repoView{rp, st, a.repoURL(r, rp.Name)})
+		out = append(out, repoView{redactRepo(rp), st, a.repoURL(r, rp.Name)})
 	}
 	writeJSON(w, 200, out)
 }
@@ -366,7 +400,7 @@ func (a *API) getRepo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	st, _ := a.Content.RepoStats(r.Context(), rp.ID)
-	writeJSON(w, 200, repoView{rp, st, a.repoURL(r, rp.Name)})
+	writeJSON(w, 200, repoView{redactRepo(rp), st, a.repoURL(r, rp.Name)})
 }
 
 type repoInput struct {
@@ -511,11 +545,11 @@ func (a *API) createRepo(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, 400, "repo.invalid", "%v", err.Error())
 		return
 	}
-	a.audit_(r, "repository.create", "repository", rp.Name, in)
+	a.audit_(r, "repository.create", "repository", rp.Name, map[string]any{"format": rp.Format, "type": rp.Type})
 	if a.OnRepoChange != nil {
 		a.OnRepoChange()
 	}
-	writeJSON(w, 201, rp)
+	writeJSON(w, 201, redactRepo(rp))
 }
 
 func (a *API) updateRepo(w http.ResponseWriter, r *http.Request) {
@@ -536,6 +570,8 @@ func (a *API) updateRepo(w http.ResponseWriter, r *http.Request) {
 	attrs := in.Attributes
 	if attrs == nil {
 		json.Unmarshal(rp.Attributes, &attrs)
+	} else {
+		keepRedacted(rp.Attributes, attrs)
 	}
 	if err := a.validateRepo(&upd, attrs); err != nil {
 		a.fail(w, err)
@@ -551,11 +587,11 @@ func (a *API) updateRepo(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, 400, "repo.invalid", "%v", err.Error())
 		return
 	}
-	a.audit_(r, "repository.update", "repository", rp.Name, in)
+	a.audit_(r, "repository.update", "repository", rp.Name, map[string]any{"online": upd.Online})
 	if a.OnRepoChange != nil {
 		a.OnRepoChange()
 	}
-	writeJSON(w, 200, &upd)
+	writeJSON(w, 200, redactRepo(&upd))
 }
 
 func (a *API) deleteRepo(w http.ResponseWriter, r *http.Request) {

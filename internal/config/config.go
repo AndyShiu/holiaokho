@@ -19,6 +19,7 @@ type Config struct {
 	Auth     Auth     `yaml:"auth"`
 	Proxy    Proxy    `yaml:"proxy"`
 	Backup   Backup   `yaml:"backup"`
+	Secrets  Secrets  `yaml:"secrets"`
 	Log      Log      `yaml:"log"`
 }
 
@@ -89,6 +90,18 @@ type Proxy struct {
 	CACertFile string `yaml:"ca_cert_file"`
 }
 
+// Secrets controls encryption of stored credentials (upstream passwords,
+// signing keys, LDAP/OIDC/SMTP secrets, S3 keys).
+type Secrets struct {
+	// Key is the current key (base64 32 bytes, hex, or any passphrase).
+	// Empty: read/create KeyFile.
+	Key     string `yaml:"key"`
+	KeyFile string `yaml:"key_file"`
+	// PreviousKeys still decrypt old values after a rotation; run the
+	// re-encrypt-secrets task, then remove them.
+	PreviousKeys []string `yaml:"previous_keys"`
+}
+
 type Backup struct {
 	// Dir enables the scheduled backup task, writing archives here.
 	Dir       string `yaml:"dir"`
@@ -126,8 +139,9 @@ func Default() Config {
 			ConnectTimeout: 20 * time.Second,
 			Timeout:        10 * time.Minute,
 		},
-		Backup: Backup{Keep: 7},
-		Log:    Log{Level: "info", Format: "text"},
+		Backup:  Backup{Keep: 7},
+		Secrets: Secrets{KeyFile: "./data/secret.key"},
+		Log:     Log{Level: "info", Format: "text"},
 	}
 }
 
@@ -193,6 +207,11 @@ func applyEnv(c *Config) {
 	str("HTTP_PROXY", &c.Proxy.HTTPProxy)
 	str("NO_PROXY", &c.Proxy.NoProxy)
 	str("CA_CERT_FILE", &c.Proxy.CACertFile)
+	str("SECRET_KEY", &c.Secrets.Key)
+	str("SECRET_KEY_FILE", &c.Secrets.KeyFile)
+	if v, ok := os.LookupEnv("HOLIAOKHO_SECRET_PREVIOUS_KEYS"); ok && v != "" {
+		c.Secrets.PreviousKeys = strings.Split(v, ",")
+	}
 	str("BACKUP_DIR", &c.Backup.Dir)
 	boolean("BACKUP_WITH_BLOBS", &c.Backup.WithBlobs)
 	str("LOG_LEVEL", &c.Log.Level)

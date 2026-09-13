@@ -23,6 +23,7 @@ services:
     environment:
       HOLIAOKHO_DATABASE_URL: postgres://holiaokho:holiaokho@postgres:5432/holiaokho?sslmode=disable
       HOLIAOKHO_ADMIN_PASSWORD: admin123
+      HOLIAOKHO_SECRET_KEY: change-me   # encrypts stored credentials
       HOLIAOKHO_LOG_FORMAT: json
     ports:
       - "8081:8081"

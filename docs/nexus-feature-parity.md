@@ -101,7 +101,7 @@ Nexus 3.95 CE 支援的格式（從公司 DB 的 `<fmt>_component` 表確認）�
 | Conan / Hugging Face / Pub / Terraform / Ansible Galaxy token realm | ✅ | ✅ 各格式接受 user token |
 | OCI Bearer token realm（與 Docker 分開） | ✅ | **P3** |
 | 登入失敗限流（連續失敗回 429） | ✅ | ✅（預設 10 次／分鐘，依 IP） |
-| Secret 加密金鑰（`nexus.secrets.file`）、金鑰輪替與 re-encryption 任務 | ✅ | 後（目前 secrets 明文存 DB；API 回應已遮蔽） |
+| Secret 加密金鑰（`nexus.secrets.file`）、金鑰輪替與 re-encryption 任務 | ✅ | ✅ AES-256-GCM（`secrets.key`／key_file）、`previous_keys` + `re-encrypt-secrets` 任務 |
 | Privilege 類型：wildcard / application / repository-admin / repository-view / script | ✅（預設 365 個） | ✅ target/actions 模型 |
 | Rut Auth（反向代理 header 認證） | ✅ | ✅ |
 | Default Role realm | ✅ | ✅ |
