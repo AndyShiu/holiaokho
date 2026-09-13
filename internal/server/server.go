@@ -33,12 +33,14 @@ import (
 	"github.com/holiaokho/holiaokho/internal/format/conda"
 	"github.com/holiaokho/holiaokho/internal/format/cran"
 	"github.com/holiaokho/holiaokho/internal/format/docker"
+	"github.com/holiaokho/holiaokho/internal/format/gitlfs"
 	"github.com/holiaokho/holiaokho/internal/format/goproxy"
 	"github.com/holiaokho/holiaokho/internal/format/helm"
 	"github.com/holiaokho/holiaokho/internal/format/maven"
 	"github.com/holiaokho/holiaokho/internal/format/npm"
 	"github.com/holiaokho/holiaokho/internal/format/nuget"
 	"github.com/holiaokho/holiaokho/internal/format/p2"
+	"github.com/holiaokho/holiaokho/internal/format/pub"
 	"github.com/holiaokho/holiaokho/internal/format/pypi"
 	"github.com/holiaokho/holiaokho/internal/format/raw"
 	"github.com/holiaokho/holiaokho/internal/format/rubygems"
@@ -139,6 +141,8 @@ func New(ctx context.Context, cfg config.Config, log *slog.Logger, sys *System) 
 	s.Formats.Register(p2.Format{})
 	s.Formats.Register(cocoapods.Format{})
 	s.Formats.Register(terraform.Format{})
+	s.Formats.Register(pub.Format{})
+	s.Formats.Register(gitlfs.Format{})
 	s.Formats.Register(s.Docker)
 
 	s.Tasks = task.NewScheduler(d, log)
