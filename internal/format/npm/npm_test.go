@@ -1,6 +1,9 @@
 package npm
 
-import "testing"
+import (
+	"encoding/json"
+	"testing"
+)
 
 func TestSemverLess(t *testing.T) {
 	cases := []struct {
@@ -40,8 +43,9 @@ func TestMergePackuments(t *testing.T) {
 	a := map[string]any{"name": "x", "versions": map[string]any{"1.0.0": map[string]any{"v": "hosted"}}, "dist-tags": map[string]any{"latest": "1.0.0"}}
 	b := map[string]any{"name": "x", "description": "up", "versions": map[string]any{"1.0.0": map[string]any{"v": "proxy"}, "2.0.0": map[string]any{}}, "dist-tags": map[string]any{"latest": "2.0.0", "next": "2.0.0"}}
 	m := MergePackuments([]map[string]any{a, b})
-	vs := m["versions"].(map[string]any)
-	if len(vs) != 2 || vs["1.0.0"].(map[string]any)["v"] != "hosted" {
+	// Versions are carried as raw JSON so large packuments are not decoded.
+	vs := m["versions"].(map[string]json.RawMessage)
+	if len(vs) != 2 || string(vs["1.0.0"]) != `{"v":"hosted"}` {
 		t.Fatalf("versions merge wrong: %v", vs)
 	}
 	tags := m["dist-tags"].(map[string]any)

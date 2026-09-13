@@ -21,6 +21,7 @@ import (
 	"github.com/holiaokho/holiaokho/internal/auth"
 	"github.com/holiaokho/holiaokho/internal/content"
 	"github.com/holiaokho/holiaokho/internal/format"
+	"github.com/holiaokho/holiaokho/internal/logx"
 	"github.com/holiaokho/holiaokho/internal/model"
 	"github.com/holiaokho/holiaokho/internal/repo"
 )
@@ -198,15 +199,65 @@ func (h *handler) readPackument(r *http.Request, rp *model.Repository, name stri
 	if err != nil {
 		return nil, time.Time{}, err
 	}
-	var doc map[string]any
-	if err := json.Unmarshal(b, &doc); err != nil {
-		return nil, time.Time{}, fmt.Errorf("%w: bad packument", repo.ErrUpstream)
+	doc, err := decodePackument(b)
+	if err != nil {
+		return nil, time.Time{}, err
 	}
 	var t time.Time
 	if res.Asset != nil {
 		t = res.Asset.UpdatedAt
 	}
 	return doc, t, nil
+}
+
+// decodePackument decodes a packument but leaves each version object as raw
+// bytes. A popular package has thousands of versions, each a deep object, and
+// decoding them into map[string]any turns a few MB of JSON into hundreds of MB
+// of heap — which is what pushed a real deployment into the OOM killer. Nothing
+// here reads inside a version except the dist.tarball rewrite, which unpacks
+// just the one version it is touching.
+func decodePackument(b []byte) (map[string]any, error) {
+	var doc map[string]json.RawMessage
+	if err := json.Unmarshal(b, &doc); err != nil {
+		return nil, fmt.Errorf("%w: bad packument", repo.ErrUpstream)
+	}
+	out := make(map[string]any, len(doc))
+	for k, raw := range doc {
+		if k == "versions" {
+			var vs map[string]json.RawMessage
+			if err := json.Unmarshal(raw, &vs); err != nil {
+				return nil, fmt.Errorf("%w: bad packument versions", repo.ErrUpstream)
+			}
+			out[k] = vs
+			continue
+		}
+		var v any
+		if err := json.Unmarshal(raw, &v); err != nil {
+			return nil, fmt.Errorf("%w: bad packument", repo.ErrUpstream)
+		}
+		out[k] = v
+	}
+	return out, nil
+}
+
+// rawVersions normalises the "versions" value, which is raw when it came from
+// decodePackument and decoded when a caller (or a test) built it by hand.
+func rawVersions(v any) map[string]json.RawMessage {
+	switch m := v.(type) {
+	case map[string]json.RawMessage:
+		return m
+	case map[string]any:
+		out := make(map[string]json.RawMessage, len(m))
+		for k, vv := range m {
+			b, err := json.Marshal(vv)
+			if err != nil {
+				continue
+			}
+			out[k] = b
+		}
+		return out
+	}
+	return nil
 }
 
 // upstreamName encodes a scoped name for the upstream URL (@scope%2Fname).
@@ -231,7 +282,11 @@ func (h *handler) mergedPackument(r *http.Request, name string) (map[string]any,
 		doc, t, err := mh.mergedPackument(r, name)
 		if err != nil {
 			if !errors.Is(err, repo.ErrNotFound) {
-				h.d.Log.Warn("npm group member", "member", m.Name, "name", name, "err", err)
+				if logx.Disconnected(err) {
+					h.d.Log.Debug("npm group member cancelled", "member", m.Name, "name", name)
+				} else {
+					h.d.Log.Warn("npm group member", "member", m.Name, "name", name, "err", err)
+				}
 			}
 			continue
 		}
@@ -249,7 +304,7 @@ func (h *handler) mergedPackument(r *http.Request, name string) (map[string]any,
 // MergePackuments unions versions and dist-tags; earlier documents win.
 func MergePackuments(docs []map[string]any) map[string]any {
 	out := map[string]any{}
-	versions := map[string]any{}
+	versions := map[string]json.RawMessage{}
 	tags := map[string]any{}
 	times := map[string]any{}
 	for _, d := range docs {
@@ -262,11 +317,9 @@ func MergePackuments(docs []map[string]any) map[string]any {
 				out[k] = v
 			}
 		}
-		if vs, ok := d["versions"].(map[string]any); ok {
-			for ver, v := range vs {
-				if _, ok := versions[ver]; !ok {
-					versions[ver] = v
-				}
+		for ver, v := range rawVersions(d["versions"]) {
+			if _, ok := versions[ver]; !ok {
+				versions[ver] = v
 			}
 		}
 		if ts, ok := d["dist-tags"].(map[string]any); ok {
@@ -303,17 +356,47 @@ func MergePackuments(docs []map[string]any) map[string]any {
 // rewriteTarballs points every dist.tarball at this repository.
 func (h *handler) rewriteTarballs(r *http.Request, name string, doc map[string]any) {
 	base := h.base(r) + "/" + name + "/-/"
-	vs, _ := doc["versions"].(map[string]any)
-	for _, v := range vs {
-		vm, _ := v.(map[string]any)
-		dist, _ := vm["dist"].(map[string]any)
-		if dist == nil {
-			continue
-		}
-		if tb, _ := dist["tarball"].(string); tb != "" {
-			dist["tarball"] = base + path.Base(tb)
+	vs := rawVersions(doc["versions"])
+	for ver, raw := range vs {
+		patched, ok := rewriteVersionTarball(raw, base)
+		if ok {
+			vs[ver] = patched
 		}
 	}
+	doc["versions"] = vs
+}
+
+// rewriteVersionTarball repoints dist.tarball without decoding the rest of the
+// version: only the top level and the small dist object are unpacked, so
+// dependencies, scripts and the like stay as bytes.
+func rewriteVersionTarball(raw json.RawMessage, base string) (json.RawMessage, bool) {
+	var v map[string]json.RawMessage
+	if json.Unmarshal(raw, &v) != nil {
+		return nil, false
+	}
+	rawDist, ok := v["dist"]
+	if !ok {
+		return nil, false
+	}
+	var dist map[string]any
+	if json.Unmarshal(rawDist, &dist) != nil {
+		return nil, false
+	}
+	tb, _ := dist["tarball"].(string)
+	if tb == "" {
+		return nil, false
+	}
+	dist["tarball"] = base + path.Base(tb)
+	nd, err := json.Marshal(dist)
+	if err != nil {
+		return nil, false
+	}
+	v["dist"] = nd
+	nv, err := json.Marshal(v)
+	if err != nil {
+		return nil, false
+	}
+	return nv, true
 }
 
 func (h *handler) packument(w http.ResponseWriter, r *http.Request, name string) {
@@ -334,21 +417,21 @@ func (h *handler) versionDoc(w http.ResponseWriter, r *http.Request, name, versi
 		return
 	}
 	h.rewriteTarballs(r, name, doc)
-	vs, _ := doc["versions"].(map[string]any)
+	vs := rawVersions(doc["versions"])
 	v, ok := vs[version]
 	if !ok {
 		if tags, _ := doc["dist-tags"].(map[string]any); tags != nil {
 			if tv, ok := tags[version].(string); ok {
-				v, ok = vs[tv]
+				v = vs[tv]
 			}
 		}
 	}
-	if v == nil {
+	if len(v) == 0 {
 		writeJSON(w, 404, map[string]any{"error": "version not found"})
 		return
 	}
-	b, _ := json.Marshal(v)
-	format.ServeBytes(w, r, "application/json", b, t)
+	// Already JSON: serve the stored bytes instead of re-encoding.
+	format.ServeBytes(w, r, "application/json", v, t)
 }
 
 // -------------------------------------------------------------- tarballs

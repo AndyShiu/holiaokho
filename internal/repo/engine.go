@@ -25,6 +25,7 @@ import (
 
 	"github.com/holiaokho/holiaokho/internal/config"
 	"github.com/holiaokho/holiaokho/internal/content"
+	"github.com/holiaokho/holiaokho/internal/logx"
 	"github.com/holiaokho/holiaokho/internal/model"
 	"github.com/holiaokho/holiaokho/internal/storage"
 )
@@ -133,10 +134,17 @@ func (e *Engine) emit(name string, repo *model.Repository, data map[string]any) 
 
 func NewEngine(c *content.Service, log *slog.Logger, repos RepoResolver, pc config.Proxy) (*Engine, error) {
 	tr := &http.Transport{
-		Proxy:                 http.ProxyFromEnvironment,
-		DialContext:           (&net.Dialer{Timeout: pc.ConnectTimeout, KeepAlive: 30 * time.Second}).DialContext,
-		MaxIdleConns:          100,
-		MaxIdleConnsPerHost:   20,
+		Proxy: http.ProxyFromEnvironment,
+		// Providing DialContext (or TLSClientConfig, below) stops net/http from
+		// enabling HTTP/2 on its own, so ask for it explicitly: every upstream
+		// that matters here (npmjs, Maven Central, Docker Hub, PyPI) serves h2,
+		// and multiplexing is what makes a CI burst cheap.
+		ForceAttemptHTTP2: true,
+		DialContext:       (&net.Dialer{Timeout: pc.ConnectTimeout, KeepAlive: 30 * time.Second}).DialContext,
+		// A CI run fetches hundreds of artifacts from a handful of hosts. With
+		// a small per-host idle pool most of them pay for a fresh TLS handshake.
+		MaxIdleConns:          256,
+		MaxIdleConnsPerHost:   64,
 		IdleConnTimeout:       90 * time.Second,
 		TLSHandshakeTimeout:   15 * time.Second,
 		ResponseHeaderTimeout: 60 * time.Second,
@@ -414,7 +422,11 @@ func (e *Engine) refresh(ctx context.Context, repo *model.Repository, path strin
 	resp, err := e.doUpstream(req, pol)
 	if err != nil {
 		e.noteFailure(repo)
-		e.Log.Warn("upstream request failed", "repo", repo.Name, "url", u, "err", err)
+		if logx.Disconnected(err) {
+			e.Log.Debug("upstream request cancelled", "repo", repo.Name, "url", u)
+		} else {
+			e.Log.Warn("upstream request failed", "repo", repo.Name, "url", u, "err", err)
+		}
 		return nil, fmt.Errorf("%w: %v", ErrUpstream, err)
 	}
 	defer resp.Body.Close()

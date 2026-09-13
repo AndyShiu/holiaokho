@@ -20,6 +20,7 @@ import (
 	"github.com/holiaokho/holiaokho/internal/auth"
 	"github.com/holiaokho/holiaokho/internal/content"
 	"github.com/holiaokho/holiaokho/internal/format"
+	"github.com/holiaokho/holiaokho/internal/logx"
 	"github.com/holiaokho/holiaokho/internal/model"
 	"github.com/holiaokho/holiaokho/internal/repo"
 )
@@ -340,7 +341,11 @@ func (h *handler) groupMetadata(w http.ResponseWriter, r *http.Request, p string
 				}
 			} else {
 				if !errors.Is(err, repo.ErrNotFound) {
-					h.d.Log.Warn("group member metadata", "group", h.repo.Name, "member", m.Name, "path", base, "err", err)
+					if logx.Disconnected(err) {
+						h.d.Log.Debug("group member metadata cancelled", "member", m.Name, "path", base)
+					} else {
+						h.d.Log.Warn("group member metadata", "group", h.repo.Name, "member", m.Name, "path", base, "err", err)
+					}
 				}
 				continue
 			}

@@ -67,6 +67,7 @@ func setup(fs *flag.FlagSet, args []string) (config.Config, *slog.Logger, *serve
 
 func runServe(args []string) {
 	cfg, log, sys := setup(flag.NewFlagSet("serve", flag.ExitOnError), args)
+	server.SetMemoryLimitFromCgroup(log)
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	srv, err := server.New(ctx, cfg, log, sys)
