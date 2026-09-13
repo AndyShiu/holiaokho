@@ -34,6 +34,12 @@ type Server struct {
 	WriteTimeout   time.Duration `yaml:"write_timeout"`
 	// UIDir optionally overrides the embedded web UI with a directory on disk.
 	UIDir string `yaml:"ui_dir"`
+	// TLSCert/TLSKey (PEM paths) serve the main listener over HTTPS.
+	TLSCert string `yaml:"tls_cert"`
+	TLSKey  string `yaml:"tls_key"`
+	// TLSListen is an additional HTTPS listener while Listen stays HTTP
+	// (e.g. ":8443" next to ":8081"). Ignored when empty.
+	TLSListen string `yaml:"tls_listen"`
 }
 
 type Database struct {
@@ -154,6 +160,9 @@ func applyEnv(c *Config) {
 	str("BASE_URL", &c.Server.BaseURL)
 	boolean("TRUST_FORWARDED", &c.Server.TrustForwarded)
 	str("UI_DIR", &c.Server.UIDir)
+	str("TLS_CERT", &c.Server.TLSCert)
+	str("TLS_KEY", &c.Server.TLSKey)
+	str("TLS_LISTEN", &c.Server.TLSListen)
 	str("DATABASE_URL", &c.Database.URL)
 	if v, ok := os.LookupEnv("HOLIAOKHO_DATABASE_MAX_CONNS"); ok {
 		if n, err := strconv.Atoi(v); err == nil {

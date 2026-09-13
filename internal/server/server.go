@@ -42,6 +42,7 @@ import (
 	"github.com/holiaokho/holiaokho/internal/format/pypi"
 	"github.com/holiaokho/holiaokho/internal/format/raw"
 	"github.com/holiaokho/holiaokho/internal/format/rubygems"
+	"github.com/holiaokho/holiaokho/internal/format/terraform"
 	"github.com/holiaokho/holiaokho/internal/format/yum"
 	"github.com/holiaokho/holiaokho/internal/model"
 	"github.com/holiaokho/holiaokho/internal/notify"
@@ -69,6 +70,7 @@ type Server struct {
 	Sys     *System
 
 	main    *http.Server
+	tlsSrv  *http.Server
 	metrics metrics
 
 	mu         sync.Mutex
@@ -136,6 +138,7 @@ func New(ctx context.Context, cfg config.Config, log *slog.Logger, sys *System) 
 	s.Formats.Register(cran.Format{})
 	s.Formats.Register(p2.Format{})
 	s.Formats.Register(cocoapods.Format{})
+	s.Formats.Register(terraform.Format{})
 	s.Formats.Register(s.Docker)
 
 	s.Tasks = task.NewScheduler(d, log)
@@ -267,6 +270,24 @@ func (s *Server) Router() http.Handler {
 	r.HandleFunc("/repository/{name}/*", s.repositoryHandler)
 	r.HandleFunc("/repository/{name}", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, r.URL.Path+"/", http.StatusMovedPermanently)
+	})
+	// Terraform service discovery is host-level: point it at the first
+	// terraform group (or any terraform repository).
+	r.Get("/.well-known/terraform.json", func(w http.ResponseWriter, req *http.Request) {
+		repos, _ := s.Content.ListRepos(req.Context())
+		var pick *model.Repository
+		for _, rp := range repos {
+			if rp.Format == "terraform" && (pick == nil || rp.Type == model.Group) {
+				pick = rp
+			}
+		}
+		if pick == nil {
+			format.WriteError(w, 404, "not_found", "no terraform repository configured")
+			return
+		}
+		base := s.baseURL(req) + "/repository/" + pick.Name
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, `{"providers.v1":"%s/v1/providers/","modules.v1":"%s/v1/modules/"}`, base, base)
 	})
 	r.Handle("/v2/token", s.Tokens)
 	r.HandleFunc("/v2", s.dockerPathHandler)
@@ -490,15 +511,36 @@ func (s *Server) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	s.Log.Info("holiaokho listening", "addr", s.Cfg.Server.Listen, "version", Version)
 	errc := make(chan error, 1)
-	go func() { errc <- s.main.Serve(ln) }()
+	cfg := s.Cfg.Server
+	switch {
+	case cfg.TLSCert != "" && cfg.TLSListen != "":
+		// HTTP on Listen plus HTTPS on TLSListen.
+		s.Log.Info("holiaokho listening", "addr", cfg.Listen, "https", cfg.TLSListen, "version", Version)
+		go func() { errc <- s.main.Serve(ln) }()
+		tlsSrv := &http.Server{Addr: cfg.TLSListen, Handler: s.main.Handler, ReadHeaderTimeout: 30 * time.Second}
+		tln, err := net.Listen("tcp", cfg.TLSListen)
+		if err != nil {
+			return err
+		}
+		s.tlsSrv = tlsSrv
+		go func() { errc <- tlsSrv.ServeTLS(tln, cfg.TLSCert, cfg.TLSKey) }()
+	case cfg.TLSCert != "":
+		s.Log.Info("holiaokho listening (TLS)", "addr", cfg.Listen, "version", Version)
+		go func() { errc <- s.main.ServeTLS(ln, cfg.TLSCert, cfg.TLSKey) }()
+	default:
+		s.Log.Info("holiaokho listening", "addr", cfg.Listen, "version", Version)
+		go func() { errc <- s.main.Serve(ln) }()
+	}
 	select {
 	case <-ctx.Done():
 		s.Log.Info("shutting down")
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 		defer cancel()
 		s.main.Shutdown(shutdownCtx)
+		if s.tlsSrv != nil {
+			s.tlsSrv.Shutdown(shutdownCtx)
+		}
 		s.mu.Lock()
 		for _, l := range s.listeners {
 			l.Shutdown(shutdownCtx)
