@@ -74,6 +74,9 @@ type Policy struct {
 	// engine reuse an already-stored blob without contacting upstream, and
 	// verifies downloaded content.
 	ExpectedDigest storage.Digest
+	// KeepHeaders lists upstream response headers to store in the asset
+	// attributes ("headers" map) so the format can replay them.
+	KeepHeaders []string
 }
 
 // Result is a resolved asset with an open body.
@@ -476,6 +479,15 @@ func (e *Engine) refresh(ctx context.Context, repo *model.Repository, path strin
 	}
 	for k, v := range pol.Attrs {
 		at[k] = v
+	}
+	if len(pol.KeepHeaders) > 0 {
+		kept := map[string]string{}
+		for _, k := range pol.KeepHeaders {
+			if v := resp.Header.Get(k); v != "" {
+				kept[k] = v
+			}
+		}
+		at["headers"] = kept
 	}
 	na.Attrs, _ = json.Marshal(at)
 	if pol.Package != nil {

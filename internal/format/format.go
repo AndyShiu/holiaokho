@@ -251,6 +251,20 @@ func parseRange(h string, size int64) (int64, int64, bool) {
 	return start, end, true
 }
 
+// ReplayHeaders sets response headers stored by Policy.KeepHeaders.
+func ReplayHeaders(w http.ResponseWriter, a *model.Asset) {
+	if a == nil {
+		return
+	}
+	var attrs struct {
+		Headers map[string]string `json:"headers"`
+	}
+	json.Unmarshal(a.Attrs, &attrs)
+	for k, v := range attrs.Headers {
+		w.Header().Set(k, v)
+	}
+}
+
 // ServeBytes writes an in-memory document (merged metadata).
 func ServeBytes(w http.ResponseWriter, r *http.Request, contentType string, b []byte, modified time.Time) {
 	w.Header().Set("Content-Type", contentType)
