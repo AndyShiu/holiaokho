@@ -643,6 +643,37 @@ func deleteAssetTx(ctx context.Context, tx pgx.Tx, repoID uuid.UUID, path string
 	return err
 }
 
+// PurgeRepoContent removes every package and asset of a repository in one
+// statement, decrementing the blob reference counts as it goes. The blobs
+// themselves are freed by blob-gc and the disk space returned by
+// compact-blobs, exactly as for a single delete.
+//
+// For a proxy this empties the cache; for a hosted repository it deletes the
+// artifacts, so callers must confirm first.
+func (s *Service) PurgeRepoContent(ctx context.Context, repoID uuid.UUID) (assets int64, packages int64, err error) {
+	err = s.DB.Tx(ctx, func(tx pgx.Tx) error {
+		// One UPDATE per distinct digest rather than per asset row.
+		if _, err := tx.Exec(ctx, `
+			UPDATE blobs b SET ref_count = GREATEST(b.ref_count - d.n, 0)
+			FROM (SELECT blob_digest AS digest, count(*) AS n FROM assets
+			      WHERE repo_id=$1 AND blob_digest IS NOT NULL GROUP BY blob_digest) d
+			WHERE b.digest = d.digest`, repoID); err != nil {
+			return err
+		}
+		ta, err := tx.Exec(ctx, `DELETE FROM assets WHERE repo_id=$1`, repoID)
+		if err != nil {
+			return err
+		}
+		tp, err := tx.Exec(ctx, `DELETE FROM packages WHERE repo_id=$1`, repoID)
+		if err != nil {
+			return err
+		}
+		assets, packages = ta.RowsAffected(), tp.RowsAffected()
+		return nil
+	})
+	return assets, packages, err
+}
+
 // ListAssets lists assets under a path prefix (for browse / group merge).
 func (s *Service) ListAssets(ctx context.Context, repoID uuid.UUID, prefix string, limit int) ([]*model.Asset, error) {
 	if limit <= 0 {

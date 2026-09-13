@@ -73,6 +73,7 @@ func (a *API) Router() http.Handler {
 		r.Put("/{name}", a.need("app:repositories", auth.Write, a.updateRepo))
 		r.Delete("/{name}", a.need("app:repositories", auth.Delete, a.deleteRepo))
 		r.Post("/{name}/invalidate-cache", a.need("app:repositories", auth.Write, a.invalidateCache))
+		r.Post("/{name}/purge-content", a.need("app:repositories", auth.Delete, a.purgeContent))
 		r.Get("/{name}/browse", a.browse)
 		r.Post("/{name}/upload", a.upload)
 		r.Get("/{name}/packages", a.listPackages)
@@ -628,6 +629,24 @@ func (a *API) deleteRepo(w http.ResponseWriter, r *http.Request) {
 		a.OnRepoChange()
 	}
 	w.WriteHeader(204)
+}
+
+// purgeContent deletes everything a repository holds. For a proxy this is the
+// "really empty the cache" companion to invalidate-cache, which only marks
+// entries stale.
+func (a *API) purgeContent(w http.ResponseWriter, r *http.Request) {
+	rp, err := a.Content.Repo(r.Context(), chi.URLParam(r, "name"))
+	if err != nil {
+		a.fail(w, err)
+		return
+	}
+	assets, packages, err := a.Content.PurgeRepoContent(r.Context(), rp.ID)
+	if err != nil {
+		a.fail(w, err)
+		return
+	}
+	a.audit_(r, "repository.purge_content", "repository", rp.Name, map[string]any{"assets": assets, "packages": packages})
+	writeJSON(w, 200, map[string]any{"assets": assets, "packages": packages})
 }
 
 func (a *API) invalidateCache(w http.ResponseWriter, r *http.Request) {

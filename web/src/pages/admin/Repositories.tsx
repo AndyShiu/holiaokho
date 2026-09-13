@@ -4,7 +4,7 @@ import { App, Button, Dropdown, Input, Select, Switch, Table } from 'antd'
 import { MoreOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { del, get, put } from '@/api/client'
+import { del, get, post, put } from '@/api/client'
 import type { CleanupPolicy, Repository, RoutingRule } from '@/api/types'
 import { useAuth } from '@/auth/AuthContext'
 import { FormatIcon } from '@/components/FormatIcon'
@@ -27,6 +27,7 @@ export default function Repositories() {
   const [fmt, setFmt] = useState<string | undefined>()
   const [type, setType] = useState<string | undefined>()
   const [toDelete, setToDelete] = useState<Repository | null>(null)
+  const [toPurge, setToPurge] = useState<Repository | null>(null)
   const repos = useQuery({ queryKey: ['repositories'], queryFn: () => get<Repository[]>('repositories') })
   const rules = useQuery({ queryKey: ['routing-rules'], queryFn: () => get<RoutingRule[]>('routing-rules') })
   const policies = useQuery({ queryKey: ['cleanup-policies'], queryFn: () => get<CleanupPolicy[]>('cleanup-policies') })
@@ -37,6 +38,15 @@ export default function Repositories() {
   const toggleOnline = useMutation({
     mutationFn: ({ name, online }: { name: string; online: boolean }) => put(`repositories/${name}`, { online }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['repositories'] }),
+    onError: (e) => message.error(errText(e)),
+  })
+  const purge = useMutation({
+    mutationFn: (name: string) => post<{ assets: number; packages: number }>(`repositories/${name}/purge-content`),
+    onSuccess: (res, name) => {
+      message.success(t('repos.purged', 'Removed {{packages}} packages and {{assets}} files from {{name}}. Disk space is freed by blob-gc and compact-blobs.', { ...res, name }))
+      setToPurge(null)
+      qc.invalidateQueries({ queryKey: ['repositories'] })
+    },
     onError: (e) => message.error(errText(e)),
   })
   const remove = useMutation({
@@ -82,7 +92,8 @@ export default function Repositories() {
                       { key: 'edit', label: t('common.edit', 'Edit'), onClick: () => navigate(`/admin/repositories/${r.name}`) },
                       { key: 'browse', label: t('repos.browseContent', 'Browse content'), onClick: () => navigate(`/browse/${r.name}`) },
                       { key: 'usage', label: t('repos.usage', 'Usage'), onClick: () => navigate(`/admin/repositories/${r.name}/usage`) },
-                      ...(r.type !== 'hosted' && canWrite ? [{ key: 'inv', label: <span>{t('repos.invalidate', 'Invalidate cache')} <span style={{ fontSize: 11, color: 'var(--hlk-text-tertiary)' }}>{r.type}</span></span>, onClick: async () => { try { await invalidate(r.name); message.success(t('repos.invalidated', 'Cache invalidated')) } catch (e) { message.error(errText(e)) } } }] : []),
+                      ...(r.type !== 'hosted' && canWrite ? [{ key: 'inv', label: <span>{t('repos.invalidate', 'Invalidate cache')} <span style={{ fontSize: 11, color: 'var(--hlk-text-tertiary)' }}>{r.type}</span></span>, onClick: async () => { try { await invalidate(r.name); message.success(t('repos.invalidatedHint', 'Marked as stale — the next request refetches from upstream. Nothing is deleted yet.')) } catch (e) { message.error(errText(e)) } } }] : []),
+                      ...(can('app:repositories', 'delete') ? [{ key: 'purge', label: t('repos.purge', 'Delete all content…'), onClick: () => setToPurge(r) }] : []),
                       ...(canDelete ? [{ type: 'divider' as const }, { key: 'del', danger: true, label: t('common.delete', 'Delete…'), onClick: () => setToDelete(r) }] : []),
                     ],
                   }}
@@ -94,6 +105,19 @@ export default function Repositories() {
           ]}
         />
       </div>
+      <ConfirmDelete
+        open={!!toPurge} name={toPurge?.name ?? ''} loading={purge.isPending}
+        title={<span>{t('repos.purgeTitle', 'Delete all content of')} <span className="hlk-mono">{toPurge?.name}</span>?</span>}
+        description={
+          toPurge && (
+            <ul style={{ paddingLeft: 18, margin: 0 }}>
+              <li>{t('repos.purgeWhat', '{{n}} packages and {{size}} are removed. The repository and its settings stay.', { n: toPurge.stats?.packages ?? 0, size: fmtBytes(toPurge.stats?.size) })}</li>
+              <li>{toPurge.type === 'proxy' ? t('repos.purgeProxy', 'A proxy refills itself from upstream on the next request.') : t('repos.purgeHosted', 'This repository is not a cache: the artifacts are gone unless you have a backup.')}</li>
+            </ul>
+          )
+        }
+        confirmLabel={t('repos.purge', 'Delete all content…')} onCancel={() => setToPurge(null)} onConfirm={() => { if (toPurge) purge.mutate(toPurge.name) }}
+      />
       <ConfirmDelete
         open={!!toDelete} name={toDelete?.name ?? ''} loading={remove.isPending}
         title={<span>{t('repos.deleteTitle', 'Delete repository')} <span className="hlk-mono">{toDelete?.name}</span>?</span>}
