@@ -1,58 +1,110 @@
-# Holiaokho (hó-liāu-khòo, "the good-stuff store")
+# Holiaokho 好料庫
 
-Pronounced: ho-LIAO-kho · CLI: `holiao`
+**繁體中文:[README.zh-TW.md](README.zh-TW.md)**
 
-好料庫 — a self-hosted artifact repository manager built as a drop-in
-replacement for Sonatype Nexus Repository OSS/CE: same repository URLs, same
-Docker port connectors, same accounts, so existing CI/CD keeps working after
-the swap. Single Go binary, PostgreSQL, local or S3-compatible blob storage.
+> hó-liāu-khòo — Taiwanese for *the place you keep the good stuff*.
+> A self-hosted artifact repository, built to replace Sonatype Nexus without
+> asking anyone to change how they work.
 
-## Status
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
-Backend feature-complete against Nexus Repository 3 CE (see `docs/nexus-feature-parity.md`):
+Holiaokho stores the packages your builds depend on and the artefacts they
+produce — Maven, npm, Docker/OCI, PyPI, NuGet and twenty more — behind one
+address, one binary and one PostgreSQL database.
 
-- **26 formats**, each verified with its official client in Docker (`scripts/e2e-formats.sh`): Maven, npm, Docker/OCI, PyPI, raw, NuGet, Helm, Go, APT, YUM, Alpine, RubyGems, Cargo, Composer, Conda, R/CRAN, p2, CocoaPods, Terraform, pub, Git LFS, Hugging Face, Ansible Galaxy, Conan, Swift.
-- hosted / proxy / group for every format (groups forward publishes to their first hosted member where the client can only target one URL).
-- Auth: local users (argon2; Nexus Shiro hashes accepted on import), LDAP, OIDC, reverse-proxy header (Rut), RBAC with content selectors, user tokens, login rate limiting.
-- Ops: routing rules, cleanup policies (+ preview), soft-delete + compact GC, storage quotas, cron-scheduled tasks, webhooks (HMAC), e-mail, audit log, backup/restore (DB + blobs), rebuild-indexes, system info / logs / support zip, Prometheus metrics.
-- Storage: local filesystem or any S3-compatible service. TLS on the main listener; Docker port / TLS / subdomain connectors.
-- Nexus-compatible URLs, Docker ports and credentials, so existing CI keeps working. `/service/rest/v1` compatibility subset for CI scripts.
-- Web UI: not started (placeholder page); the management API and CLI cover everything.
+## Why this instead of what you have
 
-## Run
+**Switching does not hurt.** Repository paths, the Docker port connectors and
+the credential model follow Nexus conventions. A production cut-over ran on the
+same host and the same ports without changing one line of CI configuration.
 
-```sh
-# PostgreSQL
-docker run -d --name holiaokho-pg -e POSTGRES_USER=holiaokho -e POSTGRES_PASSWORD=holiaokho \
-  -e POSTGRES_DB=holiaokho -p 5432:5432 postgres:16-alpine
+**It is small.** A single Go binary. No JVM, no plugins, no application server.
+It starts serving in seconds and runs comfortably in a few hundred megabytes —
+under real CI load, with several pipelines pulling at once.
 
-go build -o bin/holiaokho ./cmd/holiaokho && go build -o bin/holiao ./cmd/holiao
-./bin/holiaokho                      # http://localhost:8081, admin / admin123 (change it)
-```
+**It keeps working when upstream does not.** Cached artefacts are still served
+while a public registry is unreachable, so a bad afternoon at Maven Central
+does not stop your builds. Upstreams that keep failing are blocked
+automatically instead of making every request wait out a timeout.
 
-Or `docker compose -f deploy/docker-compose.yml up -d`, or `kubectl apply -f deploy/k8s/holiaokho.yaml`.
-Configuration: `config.example.yaml` or `HOLIAOKHO_*` environment variables.
+**Nothing is held back for a paid tier.** There is no paid tier.
 
-## Use
+## Quick start
 
 ```sh
-holiao login http://localhost:8081
-holiao repo create maven-central --format maven --type proxy --remote https://repo1.maven.org/maven2/
-holiao repo create maven-releases --format maven --type hosted --write-policy allow_once
-holiao repo create maven-public --format maven --type group --members maven-releases,maven-central
-holiao repo ls
+docker compose -f deploy/docker-compose.yml up -d
 ```
 
-Clients point at `http://host:8081/repository/<name>/` exactly as with Nexus.
-Docker repositories get a dedicated port via `docker.httpPort` (Nexus style) and
-are also reachable as `host:8081/<repo>/<image>` (path mode).
+Then open <http://localhost:8081/ui/>. The first login uses the password from
+`HOLIAOKHO_ADMIN_PASSWORD`, and the account cannot do anything else until that
+password is changed — a password somebody else chose is a password too many
+people know.
 
-## Develop
+Point a client at it exactly as you would at Nexus:
 
 ```sh
-scripts/dev-restart.sh          # build + restart local server on :18081
-go test ./...
+# Maven: settings.xml
+<mirror><id>holiaokho</id><url>http://localhost:8081/repository/maven-public/</url><mirrorOf>*</mirrorOf></mirror>
+
+# npm
+npm config set registry http://localhost:8081/repository/npm-group/
+
+# Docker (path mode, no extra port needed)
+docker pull localhost:8081/docker-hub/alpine:3.19
 ```
 
-Docs: `docs/holiaokho-naming-handover.md`, `docs/holiaokho-architecture-draft.md`,
-`docs/nexus-feature-parity.md`.
+A fresh install creates the same starter repositories Nexus would, plus a
+Docker group on port 8082 so a daemon's `registry-mirrors` has somewhere to
+point.
+
+## What it does
+
+**25 package formats**, each verified against its official client running in
+Docker (`scripts/e2e-formats.sh`): Maven, npm, Docker/OCI, PyPI, raw, NuGet,
+Helm, Go, APT, YUM, Alpine, RubyGems, Cargo, Composer, Conda, R/CRAN, p2,
+CocoaPods, Terraform, pub, Git LFS, Hugging Face, Ansible Galaxy, Conan, Swift.
+Hosted, proxy and group for every one of them.
+
+**Access control** — local accounts (argon2; Nexus Shiro hashes accepted on
+import), LDAP, OIDC, reverse-proxy header auth. Roles read as targets times
+actions, down to a single repository; content selectors narrow that further by
+path. User tokens, login rate limiting, a password policy.
+
+**Operations** — routing rules, cleanup policies with a preview, soft delete
+and compacting GC, storage quotas, cron-scheduled tasks, webhooks with HMAC
+signing, e-mail, an audit log, backup and restore including blobs, Prometheus
+metrics.
+
+**Storage** — local filesystem or any S3-compatible service, content-addressed
+and reference-counted, so an identical file referenced by ten repositories
+occupies the disk once.
+
+**A web interface** — in Traditional Chinese, Simplified Chinese, English,
+Japanese and Korean, with a dark mode that was actually looked at.
+
+## Configuration
+
+Every key in [`config.example.yaml`](config.example.yaml) can be set as a
+`HOLIAOKHO_*` environment variable instead. Kubernetes manifests are in
+[`deploy/k8s/`](deploy/k8s/).
+
+## Documentation
+
+- [`docs/nexus-feature-parity.md`](docs/nexus-feature-parity.md) — what Nexus
+  does and whether this does it
+- [`docs/security.md`](docs/security.md) — the trust boundaries, what is
+  protected, and what is knowingly not
+- [`docs/holiaokho-ui-brief.md`](docs/holiaokho-ui-brief.md) — the interface
+  specification, if you are working on the UI
+
+## Contributing
+
+Bug reports and patches are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md);
+pull requests need a signed [CLA](CLA.md).
+
+Security problems should go through GitHub's private vulnerability reporting
+rather than a public issue — see [SECURITY.md](SECURITY.md).
+
+## License
+
+[Apache License 2.0](LICENSE). Copyright 2026 Pei-En Hsu.

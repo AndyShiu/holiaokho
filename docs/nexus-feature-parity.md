@@ -40,7 +40,7 @@ Nexus 3.95 CE 支援的格式（從公司 DB 的 `<fmt>_component` 表確認）�
 | pub (Dart) | ✅ | ✅（dart 實測） | |
 | Terraform | ✅ | ✅ provider mirror + module registry（terraform 實測） | |
 
-所有 26 種格式已實作（2026-09-13），各以官方 client 於 Docker 容器中實測；見 `scripts/e2e-formats.sh`。
+所有 25 種格式已實作（2026-09-13），各以官方 client 於 Docker 容器中實測；見 `scripts/e2e-formats.sh`。
 
 ## 2. Repository 型態與行為
 
@@ -180,7 +180,10 @@ Nexus 內建的 scheduled tasks：
 | Branding、Outreach、Analytics 上傳 | ✅ | 不做 |
 | Malware remediation / Repository Firewall / RHC | IQ / Pro | 不做（可外掛整合 Trivy／Grype，後） |
 
-## 7. Pro-only 功能（我們可以做為超越 CE 的賣點）
+## 7. Nexus 付費版才有的功能
+
+> 下表的 Nexus 授權條件依 Sonatype 公告會變動，請以其官方最新條款為準；
+> 此處僅記錄規劃對照，不作為商業比較依據。
 
 | 功能 | 規劃 |
 |---|---|

@@ -130,9 +130,12 @@ spec:
               valueFrom: { secretKeyRef: { name: holiaokho-app, key: secret-key } }
             - { name: HOLIAOKHO_LISTEN, value: ":8081" }
             - { name: HOLIAOKHO_STORAGE_PATH, value: /data/blobs }
-            # Used to build absolute URLs (npm tarballs, Maven redirects), so
-            # it must be an address clients can actually reach.
-            - { name: HOLIAOKHO_BASE_URL, value: "http://your-host:32081" }
+            # HOLIAOKHO_BASE_URL is deliberately unset: absolute URLs (npm
+            # tarballs, Maven redirects) are then derived from the Host header
+            # of the request, which is right whether a client arrives through
+            # the NodePort or the Ingress. Set it only when clients reach the
+            # server at an address it cannot see — behind a proxy that rewrites
+            # Host, for instance.
             - { name: HOLIAOKHO_LOG_LEVEL, value: info }
           ports:
             - { name: http, containerPort: 8081 }
@@ -202,28 +205,6 @@ spec:
                 name: holiaokho
                 port: { number: 8081 }
     - host: holiao-docker.example.com
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: holiaokho
-                port: { number: 8082 }
-    # The old Nexus hostnames, kept pointing here so anything still
-    # configured against them keeps working. Delete the Ingress in the old
-    # namespace before applying this, or the two claim the same hosts.
-    # These two rules can be dropped once nothing uses the names.
-    - host: nexus.example.com
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: holiaokho
-                port: { number: 8081 }
-    - host: nexus-docker.example.com
       http:
         paths:
           - path: /

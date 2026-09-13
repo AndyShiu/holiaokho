@@ -30,7 +30,7 @@
 | **Storage** | blob 存哪裡：本機磁碟或 S3 相容儲存 | Storage |
 | **Format** | 套件生態系協定 | Format |
 
-**26 種格式**：Maven、npm、Docker/OCI、PyPI、raw、NuGet、Helm、Go、APT、YUM、Alpine、RubyGems、Cargo、Composer、Conda、R、p2、CocoaPods、Terraform、pub（Dart）、Git LFS、Hugging Face、Ansible Galaxy、Conan、Swift。每種都有自己的 icon 需求（可用該生態系的慣用色／字母縮寫，不可直接用各生態系的商標 logo）。
+**25 種格式**：Maven、npm、Docker/OCI、PyPI、raw、NuGet、Helm、Go、APT、YUM、Alpine、RubyGems、Cargo、Composer、Conda、R、p2、CocoaPods、Terraform、pub（Dart）、Git LFS、Hugging Face、Ansible Galaxy、Conan、Swift。每種都有自己的 icon 需求（可用該生態系的慣用色／字母縮寫，不可直接用各生態系的商標 logo）。
 
 ---
 

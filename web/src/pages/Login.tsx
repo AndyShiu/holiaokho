@@ -120,7 +120,7 @@ export default function Login() {
   }
 
   const version = status.data?.version ? `v${status.data.version}` : ''
-  const sellingPoints = [t('login.sp1', '26 formats, one address'), t('login.sp2', 'Single binary, low memory'), t('login.sp3', 'Replace Nexus without touching CI')]
+  const sellingPoints = [t('login.sp1', '25 formats, one address'), t('login.sp2', 'Single binary, low memory'), t('login.sp3', 'Replace Nexus without touching CI')]
 
   return (
     <div className="hlk-login">
