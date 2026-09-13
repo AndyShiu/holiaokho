@@ -5,7 +5,13 @@ name: Release
 on:
   push:
     tags: ["v*"]
+  # Re-run a release by hand — useful after adding a registry credential
+  # that was missing the first time round.
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to build, e.g. v1.0.5"
+        required: true
 
 permissions:
   # write, not read: the last step creates the GitHub release for this tag.
@@ -20,10 +26,24 @@ jobs:
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          # A manual run builds the tag it was given, not whatever main
+          # happens to be at.
+          ref: ${{ inputs.tag || github.ref_name }}
+          # Needed by the newest-tag check below; the default shallow clone
+          # would see only the tag being built and always call it newest.
+          fetch-depth: 0
 
       - name: Derive version from the tag
         id: version
-        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+        run: |
+          tag="${{ inputs.tag || github.ref_name }}"
+          echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+          # Only the newest release should own `latest`. Re-running an older
+          # tag to backfill a registry must not drag `latest` backwards.
+          newest=$(git tag -l 'v*' --sort=-v:refname | head -1)
+          [ "$tag" = "$newest" ] && echo "latest=true" >> "$GITHUB_OUTPUT" || echo "latest=false" >> "$GITHUB_OUTPUT"
 
       # arm64 matters: a large share of the people who will try this are on
       # Apple Silicon, and an amd64-only image fails for them at `docker run`.
@@ -55,10 +75,12 @@ jobs:
         run: |
           v="${{ steps.version.outputs.version }}"
           repo="${GITHUB_REPOSITORY,,}"
-          tags="ghcr.io/${repo}:${v},ghcr.io/${repo}:latest"
+          latest="${{ steps.version.outputs.latest }}"
+          tags="ghcr.io/${repo}:${v}"
+          [ "$latest" = "true" ] && tags="${tags},ghcr.io/${repo}:latest"
           if [ "${{ steps.dockerhub.outcome }}" = "success" ]; then
             tags="${tags},docker.io/${DOCKERHUB_USERNAME}/holiaokho:${v}"
-            tags="${tags},docker.io/${DOCKERHUB_USERNAME}/holiaokho:latest"
+            [ "$latest" = "true" ] && tags="${tags},docker.io/${DOCKERHUB_USERNAME}/holiaokho:latest"
           fi
           echo "tags=${tags}" >> "$GITHUB_OUTPUT"
 
@@ -98,7 +120,12 @@ jobs:
             echo "Built for \`linux/amd64\` and \`linux/arm64\`."
             echo
           } > notes.md
-          gh release create "$GITHUB_REF_NAME" \
-            --title "Holiaokho ${VERSION}" \
-            --notes-file notes.md \
-            --generate-notes
+          tag="${{ steps.version.outputs.tag }}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "release $tag already exists, leaving it alone"
+          else
+            gh release create "$tag" \
+              --title "Holiaokho ${VERSION}" \
+              --notes-file notes.md \
+              --generate-notes
+          fi
