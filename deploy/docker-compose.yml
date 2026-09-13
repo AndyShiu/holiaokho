@@ -16,14 +16,20 @@ services:
 
   holiaokho:
     build: ..
-    image: holiaokho/holiaokho:dev
     depends_on:
       postgres:
         condition: service_healthy
     environment:
       HOLIAOKHO_DATABASE_URL: postgres://holiaokho:holiaokho@postgres:5432/holiaokho?sslmode=disable
-      HOLIAOKHO_ADMIN_PASSWORD: admin123
-      HOLIAOKHO_SECRET_KEY: change-me   # encrypts stored credentials
+      # Only used to create the admin account on the very first start. The
+      # account cannot do anything until this password is replaced at first
+      # login, so it is a starting point rather than a secret.
+      HOLIAOKHO_ADMIN_PASSWORD: Holiaokho-First-Login-1
+      # Encrypts stored credentials (upstream passwords, LDAP/OIDC/SMTP
+      # secrets, S3 keys). Left unset so the server generates one into the
+      # data volume on first start — that file is what you back up. To supply
+      # your own instead, set HOLIAOKHO_SECRET_KEY.
+      HOLIAOKHO_SECRET_KEY_FILE: /data/secret.key
       HOLIAOKHO_LOG_FORMAT: json
     ports:
       - "8081:8081"

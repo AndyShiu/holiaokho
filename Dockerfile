@@ -18,9 +18,15 @@ RUN CGO_ENABLED=0 go build -trimpath -ldflags="$LDFLAGS" -o /out/holiaokho ./cmd
  && CGO_ENABLED=0 go build -trimpath -ldflags="$LDFLAGS" -o /out/holiao ./cmd/holiao
 
 FROM alpine:3.20
-RUN apk add --no-cache ca-certificates tzdata && adduser -D -u 10001 holiaokho
+RUN apk add --no-cache ca-certificates tzdata && adduser -D -u 10001 holiaokho \
+ && mkdir -p /data && chown holiaokho:holiaokho /data
 COPY --from=build /out/holiaokho /out/holiao /usr/local/bin/
 USER holiaokho
+# /data must exist in the image and belong to the runtime user: a named volume
+# inherits the ownership of the directory it covers, and without this the
+# container starts as uid 10001 against a root-owned volume and cannot write
+# its blobs or its secret key. Kubernetes hides this with fsGroup; plain
+# `docker compose up` does not.
 VOLUME ["/data"]
 ENV HOLIAOKHO_STORAGE_PATH=/data/blobs HOLIAOKHO_LISTEN=:8081
 EXPOSE 8081
