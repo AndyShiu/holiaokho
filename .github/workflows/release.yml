@@ -14,6 +14,9 @@ permissions:
 jobs:
   images:
     runs-on: ubuntu-latest
+    env:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
@@ -35,13 +38,16 @@ jobs:
 
       # Optional: only runs when the two secrets exist, so a fork or a
       # repository without a Docker Hub account still publishes to ghcr.
+      # The secrets have to be copied into env first — `secrets` is not
+      # available to a step's `if`, and using it there makes GitHub reject
+      # the whole workflow file rather than just that step.
       - name: Log in to Docker Hub
         id: dockerhub
-        if: ${{ secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != '' }}
+        if: env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != ''
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ env.DOCKERHUB_TOKEN }}
 
       - name: Tags
         id: tags
@@ -50,8 +56,8 @@ jobs:
           repo="${GITHUB_REPOSITORY,,}"
           tags="ghcr.io/${repo}:${v},ghcr.io/${repo}:latest"
           if [ "${{ steps.dockerhub.outcome }}" = "success" ]; then
-            tags="${tags},docker.io/${{ secrets.DOCKERHUB_USERNAME }}/holiaokho:${v}"
-            tags="${tags},docker.io/${{ secrets.DOCKERHUB_USERNAME }}/holiaokho:latest"
+            tags="${tags},docker.io/${DOCKERHUB_USERNAME}/holiaokho:${v}"
+            tags="${tags},docker.io/${DOCKERHUB_USERNAME}/holiaokho:latest"
           fi
           echo "tags=${tags}" >> "$GITHUB_OUTPUT"
 
