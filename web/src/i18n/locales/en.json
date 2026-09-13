@@ -82,17 +82,27 @@
     "addLdapRealm2": "Add the LDAP realm",
     "addMapping": "Add mapping",
     "anonymous": "Anonymous access",
-    "anonymousHint": "Read-only here: set it in the config file as auth.anonymous_enabled. What anonymous users may do comes from the anonymous role.",
+    "anonymousHint": "Lets clients read without logging in. Exactly what they may do comes from the anonymous role.",
     "autoCreate": "Auto-create users",
     "bindPassword": "Bind password",
     "connOk": "Connected",
     "defaultRoles": "Default roles",
     "defaultRolesHint": "Granted to every authenticated user in addition to their own roles.",
     "disallowCommon": "Reject common passwords (built-in list)",
+    "displayNameAttr": "Display name attribute",
+    "emailAttr": "Email attribute",
+    "groupBaseDn": "Group base DN",
+    "groupClaim": "GROUP CLAIM",
+    "groupFilter": "Group filter",
+    "groupNameAttr": "Group name attribute",
+    "groupsClaim": "Groups claim",
+    "header": "Header",
     "ldapDefaultRoles": "Default roles for LDAP users",
+    "ldapGroup": "LDAP GROUP",
     "ldapNotInRealms": "LDAP is enabled but not in the realm order, so it will not be used for login.",
     "loginOk": "Login succeeded",
     "maxLength": "Maximum length",
+    "memberOfAttr": "memberOf attribute",
     "minLength": "Minimum length",
     "oidcDefaultRoles": "Default roles for OIDC users",
     "options": "Options",
@@ -108,6 +118,7 @@
     "realmsHint2": "On login the realms are tried from top to bottom; the first one that accepts the password wins. Drag to reorder.",
     "redirect": "Redirect URL (register at the IdP)",
     "role": "role",
+    "roleColumn": "ROLE",
     "roleMapping": "Role mapping",
     "rutWarn": "Enable only behind a reverse proxy that strips this header from client requests, and only when server.trusted_proxies is configured.",
     "saved": "Saved — takes effect within 30 seconds",
@@ -118,7 +129,10 @@
     "testLogin": "Test connection / login",
     "testLoginBtn": "Test login",
     "timeout": "Timeout (s)",
+    "userBaseDn": "User base DN",
+    "userFilter": "User filter",
     "userSubtree": "Search subtree",
+    "usernameClaim": "Username claim",
     "viewAnonRole": "View the anonymous role →"
   },
   "backup": {
@@ -274,6 +288,9 @@
   },
   "email": {
     "encryption": "Encryption",
+    "from": "From",
+    "host": "Host",
+    "port": "Port",
     "recipients": "Notification recipients",
     "recipientsHint": "Receive task failures and storage quota warnings.",
     "sendTest": "Send test email",
@@ -352,6 +369,13 @@
     "changeNow": "Change now",
     "check": "Check",
     "message": "Message",
+    "msg": {
+      "db_unreachable": "Cannot reach the database",
+      "default_admin_password": "admin still uses the default password",
+      "quota_exceeded": "Quota exceeded",
+      "quota_warning": "Above 90% of the quota",
+      "storage_unavailable": "Storage is unavailable"
+    },
     "ok": "OK",
     "problems": "Problems detected",
     "recheck": "Re-check",
@@ -387,6 +411,7 @@
     "auto": "Auto refresh",
     "copyAll": "Copy all",
     "filter": "Filter",
+    "level": "Log level",
     "levelSet": "Log level set to {{v}} (resets on restart)",
     "wrap": "Wrap"
   },
@@ -453,6 +478,7 @@
     "title": "Change password"
   },
   "priv": {
+    "actions": "ACTIONS",
     "add": "Add a row",
     "allActions": "full control",
     "allAreas": "all",
@@ -470,6 +496,7 @@
     "sumFormat": "{{acts}} on all {{format}} repositories",
     "sumRepo": "{{acts}} on repository {{name}}",
     "sumSelector": "{{acts}} on content matching selector {{sel}}",
+    "target": "TARGET",
     "value": "VALUE"
   },
   "repos": {
@@ -515,6 +542,7 @@
     "genKeyTitle": "Generate a signing key",
     "invalidate": "Invalidate cache",
     "invalidated": "Cache invalidated",
+    "keyEmail": "Email",
     "nameExists": "A repository named {{name}} already exists.",
     "nameInvalid": "Only letters, digits, . _ -",
     "online": "Online",
@@ -547,6 +575,7 @@
     "deleteTitle": "Delete role",
     "edit": "Edit role",
     "idHint": "Leave empty to derive from the name",
+    "privileges": "Privileges",
     "summary": "What this role can do",
     "summaryEmpty": "Nothing yet — add at least one privilege.",
     "usedBy": "Used by {{u}} users, {{m}} LDAP/OIDC mappings"
@@ -589,10 +618,13 @@
     "usedBy": "Used by roles"
   },
   "storages": {
+    "accessKey": "Access key",
+    "bucket": "Bucket",
     "create": "Create Storage",
     "dedupHint": "A file that exists in several repositories is stored once. Deleted content is released by the blob-gc task; compact-blobs then frees the disk space.",
     "dedupTitle": "Content-addressed storage",
     "edit": "Edit {{name}}",
+    "endpoint": "Endpoint",
     "endpointHint": "Empty = AWS",
     "fs": "Local filesystem",
     "location": "Location",
@@ -600,9 +632,12 @@
     "path": "Path",
     "pathHint": "Absolute path on the server (inside the container when deployed with Docker/K8s).",
     "pathStyle": "Path-style addressing (MinIO and most self-hosted S3)",
+    "prefix": "Prefix",
     "quota": "Quota",
     "quotaHint": "0 = unlimited. Uploads are rejected with 507 when exceeded; a warning shows above 90%.",
+    "region": "Region",
     "s3": "S3-compatible object storage",
+    "secretKey": "Secret key",
     "test": "Test connection",
     "testOk": "OK · {{ms}} ms",
     "usage": "Usage"
@@ -624,6 +659,15 @@
   "tasks": {
     "cleanupNote": "Cleanup policies only take effect when this task runs.",
     "defaultInterval": "Default interval ({{i}})",
+    "desc": {
+      "backup": "Write a scheduled backup archive to the configured directory",
+      "blob-gc": "Soft-delete blobs no longer referenced by any asset (after a 1h grace period)",
+      "cleanup-policies": "Apply cleanup policies to their repositories",
+      "compact-blobs": "Permanently remove soft-deleted blobs from storage (Nexus 'Compact blob store')",
+      "prune-expired": "Remove expired sessions, negative cache entries and stale task runs",
+      "re-encrypt-secrets": "Re-encrypt stored secrets with the current key (run after rotating secrets.key)",
+      "rebuild-indexes": "Regenerate hosted repository indexes (Maven metadata, APT/YUM/apk/CRAN/Conda index files)"
+    },
     "duration": "Duration",
     "every": "every",
     "failedNotice": "Task {{name}} failed",
@@ -681,7 +725,8 @@
     "secretWarn": "You will not be able to see this secret again. Store it now, e.g. as a CI secret variable (HLK_TOKEN).",
     "sub": "Personal access tokens for CI and command-line clients. They act as {{user}}.",
     "useBasic": "Basic (any client)",
-    "useBasicHint": "Username + the token as the password."
+    "useBasicHint": "Username + the token as the password.",
+    "useHeader": "HTTP header"
   },
   "type": {
     "blocked": "Blocked",
@@ -739,6 +784,7 @@
     "deleteTitle": "Delete user",
     "displayName": "Display name",
     "edit": "Edit {{name}}",
+    "email": "Email",
     "exists": "That username already exists",
     "externalHint": "Synced from {{source}}. Roles from the mapping are applied at login; roles set here are added on top.",
     "pwReset": "Password updated",
@@ -758,6 +804,7 @@
     "payload": "Payload example",
     "queued": "Test event queued — check Logs for the delivery result",
     "repoHint": "Empty = all repositories",
+    "secret": "Secret",
     "sendTest": "Send test",
     "signature": "Signature: X-Holiaokho-Signature (HMAC-SHA256 of the body)"
   },

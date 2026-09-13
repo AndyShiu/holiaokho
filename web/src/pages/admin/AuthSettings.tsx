@@ -46,11 +46,12 @@ function Card({ id, title, summary, dirty, children, onSave, saving, disabled }:
 
 function MappingTable({ value, onChange, roles, leftLabel }: { value: Record<string, string>; onChange: (v: Record<string, string>) => void; roles: Role[]; leftLabel: string }) {
   const { t } = useTranslation()
+  const roleLabel = t('auth.roleColumn', 'ROLE')
   const rows = Object.entries(value)
   const [newKey, setNewKey] = useState('')
   return (
     <div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 20px 1fr 32px', gap: 8, fontSize: 10, letterSpacing: '.06em', color: 'var(--hlk-text-tertiary)', marginBottom: 4 }} className="hlk-mono"><span>{leftLabel}</span><span /><span>ROLE</span><span /></div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 20px 1fr 32px', gap: 8, fontSize: 10, letterSpacing: '.06em', color: 'var(--hlk-text-tertiary)', marginBottom: 4 }} className="hlk-mono"><span>{leftLabel}</span><span /><span>{roleLabel}</span><span /></div>
       {rows.map(([g, r]) => (
         <div key={g} style={{ display: 'grid', gridTemplateColumns: '1fr 20px 1fr 32px', gap: 8, alignItems: 'center', marginBottom: 6 }}>
           <span className="hlk-mono" style={{ fontSize: 12 }}>{g}</span>
@@ -253,18 +254,18 @@ export default function AuthSettings() {
                   <F label={t('auth.options', 'Options')}><span style={{ display: 'flex', gap: 12 }}><Checkbox checked={draft.ldap.startTls} onChange={(e) => setL({ startTls: e.target.checked })}>StartTLS</Checkbox><Checkbox checked={draft.ldap.insecureSkipVerify} onChange={(e) => setL({ insecureSkipVerify: e.target.checked })}>{t('auth.skipVerify', 'Skip TLS verify')}</Checkbox></span></F>
                   <F label="Bind DN"><Input className="hlk-mono" value={draft.ldap.bindDn} onChange={(e) => setL({ bindDn: e.target.value })} /></F>
                   <F label={t('auth.bindPassword', 'Bind password')}><Input.Password value={draft.ldap.bindPassword ?? ''} onChange={(e) => setL({ bindPassword: e.target.value })} autoComplete="new-password" placeholder="***" /><SecretHint /></F>
-                  <F label="User base DN"><Input className="hlk-mono" value={draft.ldap.userBaseDn} onChange={(e) => setL({ userBaseDn: e.target.value })} /></F>
-                  <F label="User filter"><Input className="hlk-mono" value={draft.ldap.userFilter} onChange={(e) => setL({ userFilter: e.target.value })} placeholder="(uid={username})" /></F>
-                  <F label="Email attr"><Input className="hlk-mono" value={draft.ldap.emailAttr} onChange={(e) => setL({ emailAttr: e.target.value })} /></F>
-                  <F label="Display name attr"><Input className="hlk-mono" value={draft.ldap.displayNameAttr} onChange={(e) => setL({ displayNameAttr: e.target.value })} /></F>
-                  <F label="Group base DN"><Input className="hlk-mono" value={draft.ldap.groupBaseDn} onChange={(e) => setL({ groupBaseDn: e.target.value })} /></F>
-                  <F label="Group filter"><Input className="hlk-mono" value={draft.ldap.groupFilter} onChange={(e) => setL({ groupFilter: e.target.value })} placeholder="(member={dn})" /></F>
-                  <F label="Group name attr"><Input className="hlk-mono" value={draft.ldap.groupNameAttr} onChange={(e) => setL({ groupNameAttr: e.target.value })} /></F>
-                  <F label="memberOf attr"><Input className="hlk-mono" value={draft.ldap.memberOfAttr} onChange={(e) => setL({ memberOfAttr: e.target.value })} /></F>
+                  <F label={t('auth.userBaseDn', 'User base DN')}><Input className="hlk-mono" value={draft.ldap.userBaseDn} onChange={(e) => setL({ userBaseDn: e.target.value })} /></F>
+                  <F label={t('auth.userFilter', 'User filter')}><Input className="hlk-mono" value={draft.ldap.userFilter} onChange={(e) => setL({ userFilter: e.target.value })} placeholder="(uid={username})" /></F>
+                  <F label={t('auth.emailAttr', 'Email attribute')}><Input className="hlk-mono" value={draft.ldap.emailAttr} onChange={(e) => setL({ emailAttr: e.target.value })} /></F>
+                  <F label={t('auth.displayNameAttr', 'Display name attribute')}><Input className="hlk-mono" value={draft.ldap.displayNameAttr} onChange={(e) => setL({ displayNameAttr: e.target.value })} /></F>
+                  <F label={t('auth.groupBaseDn', 'Group base DN')}><Input className="hlk-mono" value={draft.ldap.groupBaseDn} onChange={(e) => setL({ groupBaseDn: e.target.value })} /></F>
+                  <F label={t('auth.groupFilter', 'Group filter')}><Input className="hlk-mono" value={draft.ldap.groupFilter} onChange={(e) => setL({ groupFilter: e.target.value })} placeholder="(member={dn})" /></F>
+                  <F label={t('auth.groupNameAttr', 'Group name attribute')}><Input className="hlk-mono" value={draft.ldap.groupNameAttr} onChange={(e) => setL({ groupNameAttr: e.target.value })} /></F>
+                  <F label={t('auth.memberOfAttr', 'memberOf attribute')}><Input className="hlk-mono" value={draft.ldap.memberOfAttr} onChange={(e) => setL({ memberOfAttr: e.target.value })} /></F>
                   <F label={t('auth.timeout', 'Timeout (s)')}><InputNumber min={1} value={draft.ldap.timeoutSeconds} onChange={(v) => setL({ timeoutSeconds: v ?? 10 })} /></F>
                   <F label={t('auth.userSubtree', 'Search subtree')}><Checkbox checked={draft.ldap.userSubtree} onChange={(e) => setL({ userSubtree: e.target.checked })} /></F>
                 </div>
-                <F label={t('auth.roleMapping', 'Role mapping')} span><MappingTable value={draft.ldap.roleMapping ?? {}} onChange={(v) => setL({ roleMapping: v })} roles={roleList} leftLabel="LDAP GROUP" /></F>
+                <F label={t('auth.roleMapping', 'Role mapping')} span><MappingTable value={draft.ldap.roleMapping ?? {}} onChange={(v) => setL({ roleMapping: v })} roles={roleList} leftLabel={t('auth.ldapGroup', 'LDAP GROUP')} /></F>
                 <F label={t('auth.ldapDefaultRoles', 'Default roles for LDAP users')}><Select mode="multiple" style={{ width: '100%', maxWidth: 400 }} value={draft.ldap.defaultRoles ?? []} onChange={(v) => setL({ defaultRoles: v })} options={roleList.map((r) => ({ value: r.id }))} /></F>
               </div>
               <TestPanel title={t('auth.testLogin', 'Test connection / login')}>
@@ -293,10 +294,10 @@ export default function AuthSettings() {
               <F label="Client ID"><Input className="hlk-mono" value={draft.oidc.clientId} onChange={(e) => setO({ clientId: e.target.value })} /></F>
               <F label="Client secret"><Input.Password value={draft.oidc.clientSecret ?? ''} onChange={(e) => setO({ clientSecret: e.target.value })} autoComplete="new-password" placeholder="***" /><SecretHint /></F>
               <F label="Scopes"><Select mode="tags" style={{ width: '100%' }} value={draft.oidc.scopes ?? []} onChange={(v) => setO({ scopes: v })} tokenSeparators={[' ', ',']} /></F>
-              <F label="Username claim"><Input className="hlk-mono" value={draft.oidc.usernameClaim} onChange={(e) => setO({ usernameClaim: e.target.value })} placeholder="preferred_username" /></F>
-              <F label="Groups claim"><Input className="hlk-mono" value={draft.oidc.groupsClaim} onChange={(e) => setO({ groupsClaim: e.target.value })} placeholder="groups" /></F>
+              <F label={t('auth.usernameClaim', 'Username claim')}><Input className="hlk-mono" value={draft.oidc.usernameClaim} onChange={(e) => setO({ usernameClaim: e.target.value })} placeholder="preferred_username" /></F>
+              <F label={t('auth.groupsClaim', 'Groups claim')}><Input className="hlk-mono" value={draft.oidc.groupsClaim} onChange={(e) => setO({ groupsClaim: e.target.value })} placeholder="groups" /></F>
               <F label={t('auth.redirect', 'Redirect URL (register at the IdP)')} span><Copyable text={redirect} style={{ fontSize: 12 }} /></F>
-              <F label={t('auth.roleMapping', 'Role mapping')} span><MappingTable value={draft.oidc.roleMapping ?? {}} onChange={(v) => setO({ roleMapping: v })} roles={roleList} leftLabel="GROUP CLAIM" /></F>
+              <F label={t('auth.roleMapping', 'Role mapping')} span><MappingTable value={draft.oidc.roleMapping ?? {}} onChange={(v) => setO({ roleMapping: v })} roles={roleList} leftLabel={t('auth.groupClaim', 'GROUP CLAIM')} /></F>
               <F label={t('auth.oidcDefaultRoles', 'Default roles for OIDC users')}><Select mode="multiple" style={{ width: '100%' }} value={draft.oidc.defaultRoles ?? []} onChange={(v) => setO({ defaultRoles: v })} options={roleList.map((r) => ({ value: r.id }))} /></F>
               <F label={t('auth.options', 'Options')}><Checkbox checked={draft.oidc.insecureSkipIssuerVerify} onChange={(e) => setO({ insecureSkipIssuerVerify: e.target.checked })}>{t('auth.skipIssuer', 'Skip issuer verification')}</Checkbox></F>
             </div>
@@ -306,7 +307,7 @@ export default function AuthSettings() {
             <Alert type="error" showIcon style={{ marginBottom: 14 }} message={t('auth.rutWarn', 'Enable only behind a reverse proxy that strips this header from client requests, and only when server.trusted_proxies is configured.')} description={<span className="hlk-mono" style={{ fontSize: 12 }}>trusted_proxies: {Array.isArray(trusted) && trusted.length ? trusted.join(', ') : t('common.none', 'None')}</span>} />
             <div style={{ marginBottom: 14 }}><Switch checked={draft.rut.enabled} disabled={!Array.isArray(trusted) || !trusted.length} onChange={(v) => setR({ enabled: v })} /> <span style={{ marginLeft: 8 }}>{draft.rut.enabled ? t('common.enabled', 'enabled') : t('common.off', 'off')}</span></div>
             <div style={grid2}>
-              <F label="Header"><Input className="hlk-mono" value={draft.rut.header} onChange={(e) => setR({ header: e.target.value })} placeholder="X-Forwarded-User" /></F>
+              <F label={t('auth.header', 'Header')}><Input className="hlk-mono" value={draft.rut.header} onChange={(e) => setR({ header: e.target.value })} placeholder="X-Forwarded-User" /></F>
               <F label={t('auth.autoCreate', 'Auto-create users')}><Checkbox checked={draft.rut.autoCreate} onChange={(e) => setR({ autoCreate: e.target.checked })} /></F>
               <F label={t('auth.defaultRoles', 'Default roles')}><Select mode="multiple" style={{ width: '100%' }} value={draft.rut.defaultRoles ?? []} onChange={(v) => setR({ defaultRoles: v })} options={roleList.map((r) => ({ value: r.id }))} /></F>
             </div>

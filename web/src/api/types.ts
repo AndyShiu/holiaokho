@@ -40,7 +40,7 @@ export interface ContentSelector { id: string; name: string; description: string
 export interface Webhook { id: string; name: string; url: string; secret?: string; events: string[]; repository: string; enabled: boolean; createdAt: string }
 export interface EmailSettings { enabled: boolean; host: string; port: number; username: string; password?: string; from: string; startTls: boolean; ssl: boolean; recipients: string[] }
 export interface AuditEntry { id: string; at: string; actor: string; action: string; targetType: string; targetId: string; detail?: any }
-export interface HealthCheck { healthy: boolean; message?: string; type?: string; usedBytes?: number; quotaBytes?: number }
+export interface HealthCheck { healthy: boolean; code?: string; message?: string; type?: string; usedBytes?: number; quotaBytes?: number }
 export interface Health { healthy: boolean; checks: Record<string, HealthCheck> }
 export interface Status { name: string; version: string; uptime: string; formats: string[]; baseUrl?: string }
 export interface LDAPConfig { enabled: boolean; url: string; startTls: boolean; insecureSkipVerify: boolean; bindDn: string; bindPassword?: string; userBaseDn: string; userFilter: string; userSubtree: boolean; emailAttr: string; displayNameAttr: string; groupBaseDn: string; groupFilter: string; groupNameAttr: string; memberOfAttr: string; roleMapping: Record<string, string>; defaultRoles: string[]; timeoutSeconds: number }

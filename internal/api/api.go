@@ -264,10 +264,12 @@ func (a *API) status(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) statusCheck(w http.ResponseWriter, r *http.Request) {
+	// Each unhealthy check carries a stable "code" alongside the English
+	// message so clients can localise it.
 	checks := map[string]any{}
 	ok := true
 	if err := a.Content.DB.Pool.Ping(r.Context()); err != nil {
-		checks["database"] = map[string]any{"healthy": false, "message": err.Error()}
+		checks["database"] = map[string]any{"healthy": false, "code": "db_unreachable", "message": err.Error()}
 		ok = false
 	} else {
 		checks["database"] = map[string]any{"healthy": true}
@@ -276,7 +278,7 @@ func (a *API) statusCheck(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		for _, st := range stores {
 			if _, err := a.Content.Store(st.ID); err != nil {
-				checks["storage:"+st.Name] = map[string]any{"healthy": false, "message": err.Error()}
+				checks["storage:"+st.Name] = map[string]any{"healthy": false, "code": "storage_unavailable", "message": err.Error()}
 				ok = false
 				continue
 			}
@@ -285,10 +287,10 @@ func (a *API) statusCheck(w http.ResponseWriter, r *http.Request) {
 			if st.QuotaBytes > 0 {
 				c["quotaBytes"] = st.QuotaBytes
 				if used >= st.QuotaBytes {
-					c["healthy"], c["message"] = false, "quota exceeded"
+					c["healthy"], c["code"], c["message"] = false, "quota_exceeded", "quota exceeded"
 					ok = false
 				} else if used*10 >= st.QuotaBytes*9 {
-					c["message"] = "above 90% of quota"
+					c["code"], c["message"] = "quota_warning", "above 90% of quota"
 				}
 			}
 			checks["storage:"+st.Name] = c
@@ -296,7 +298,7 @@ func (a *API) statusCheck(w http.ResponseWriter, r *http.Request) {
 	}
 	if u, err := a.Auth.User(r.Context(), "admin"); err == nil {
 		if okpw, _, _ := auth.VerifyPassword(u.PasswordHash, "admin123"); okpw {
-			checks["default_admin_password"] = map[string]any{"healthy": false, "message": "admin still uses the default password"}
+			checks["default_admin_password"] = map[string]any{"healthy": false, "code": "default_admin_password", "message": "admin still uses the default password"}
 		} else {
 			checks["default_admin_password"] = map[string]any{"healthy": true}
 		}

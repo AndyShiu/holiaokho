@@ -82,17 +82,27 @@
     "addLdapRealm2": "加入 LDAP 認證來源",
     "addMapping": "新增對應",
     "anonymous": "匿名存取",
-    "anonymousHint": "此處僅供檢視，開關在設定檔的 auth.anonymous_enabled。匿名使用者能做什麼，由 anonymous 角色決定。",
+    "anonymousHint": "開啟後，未登入的用戶端也能讀取。實際能做什麼由 anonymous 角色決定。",
     "autoCreate": "自動建立使用者",
     "bindPassword": "Bind 密碼",
     "connOk": "連線成功",
     "defaultRoles": "預設角色",
     "defaultRolesHint": "除了使用者自己的角色外，額外授予每位已登入的使用者。",
     "disallowCommon": "拒絕常見密碼（內建清單）",
+    "displayNameAttr": "顯示名稱屬性",
+    "emailAttr": "Email 屬性",
+    "groupBaseDn": "群組 base DN",
+    "groupClaim": "群組 CLAIM",
+    "groupFilter": "群組篩選條件",
+    "groupNameAttr": "群組名稱屬性",
+    "groupsClaim": "群組 claim",
+    "header": "Header 名稱",
     "ldapDefaultRoles": "LDAP 使用者的預設角色",
+    "ldapGroup": "LDAP 群組",
     "ldapNotInRealms": "LDAP 已啟用，但不在認證來源順序中，因此不會用於登入。",
     "loginOk": "登入成功",
     "maxLength": "最大長度",
+    "memberOfAttr": "memberOf 屬性",
     "minLength": "最小長度",
     "oidcDefaultRoles": "OIDC 使用者的預設角色",
     "options": "選項",
@@ -108,6 +118,7 @@
     "realmsHint2": "登入時由上而下依序嘗試，第一個通過驗證的就採用。可拖曳調整順序。",
     "redirect": "重新導向網址（請在 IdP 註冊）",
     "role": "角色",
+    "roleColumn": "角色",
     "roleMapping": "角色對應",
     "rutWarn": "僅在反向代理會剝除此 header，且已設定 server.trusted_proxies 時才可啟用。",
     "saved": "已儲存 — 最多 30 秒內生效",
@@ -118,7 +129,10 @@
     "testLogin": "測試連線／登入",
     "testLoginBtn": "測試登入",
     "timeout": "逾時（秒）",
+    "userBaseDn": "使用者 base DN",
+    "userFilter": "使用者篩選條件",
     "userSubtree": "搜尋子樹",
+    "usernameClaim": "帳號 claim",
     "viewAnonRole": "查看 anonymous 角色 →"
   },
   "backup": {
@@ -274,6 +288,9 @@
   },
   "email": {
     "encryption": "加密方式",
+    "from": "寄件者",
+    "host": "主機",
+    "port": "連接埠",
     "recipients": "通知收件人",
     "recipientsHint": "會收到任務失敗與儲存空間配額警告。",
     "sendTest": "寄送測試信",
@@ -352,6 +369,13 @@
     "changeNow": "立即更改",
     "check": "檢查項目",
     "message": "訊息",
+    "msg": {
+      "db_unreachable": "無法連線到資料庫",
+      "default_admin_password": "admin 仍在使用預設密碼",
+      "quota_exceeded": "已超過配額",
+      "quota_warning": "已使用超過配額的 90%",
+      "storage_unavailable": "儲存空間無法使用"
+    },
     "ok": "正常",
     "problems": "偵測到問題",
     "recheck": "重新檢查",
@@ -387,6 +411,7 @@
     "auto": "自動更新",
     "copyAll": "複製全部",
     "filter": "篩選",
+    "level": "記錄層級",
     "levelSet": "記錄層級已設為 {{v}}（重新啟動後回到設定檔的值）",
     "wrap": "自動換行"
   },
@@ -453,6 +478,7 @@
     "title": "變更密碼"
   },
   "priv": {
+    "actions": "動作",
     "add": "新增一列",
     "allActions": "完整控制",
     "allAreas": "全部",
@@ -470,6 +496,7 @@
     "sumFormat": "對所有 {{format}} repository 有 {{acts}} 權限",
     "sumRepo": "對 repository {{name}} 有 {{acts}} 權限",
     "sumSelector": "對符合選擇器 {{sel}} 的內容有 {{acts}} 權限",
+    "target": "目標",
     "value": "值"
   },
   "repos": {
@@ -515,6 +542,7 @@
     "genKeyTitle": "產生簽章金鑰",
     "invalidate": "清除快取",
     "invalidated": "已清除快取",
+    "keyEmail": "電子郵件",
     "nameExists": "名稱 {{name}} 已存在。",
     "nameInvalid": "只能使用英文字母、數字與 . _ -",
     "online": "上線",
@@ -547,6 +575,7 @@
     "deleteTitle": "刪除角色",
     "edit": "編輯角色",
     "idHint": "留空則由名稱自動產生",
+    "privileges": "權限",
     "summary": "這個角色可以做什麼",
     "summaryEmpty": "目前沒有內容 — 請至少新增一項權限。",
     "usedBy": "{{u}} 位使用者、{{m}} 組 LDAP/OIDC 對應正在使用"
@@ -589,10 +618,13 @@
     "usedBy": "使用中的角色"
   },
   "storages": {
+    "accessKey": "Access key",
+    "bucket": "Bucket",
     "create": "建立儲存空間",
     "dedupHint": "同一份檔案即使存在於多個 repository 也只會儲存一份。刪除的內容由 blob-gc 任務釋放，compact-blobs 才會真正回收磁碟空間。",
     "dedupTitle": "內容定址儲存",
     "edit": "編輯 {{name}}",
+    "endpoint": "Endpoint",
     "endpointHint": "留空表示使用 AWS",
     "fs": "本機檔案系統",
     "location": "位置",
@@ -600,9 +632,12 @@
     "path": "路徑",
     "pathHint": "伺服器上的絕對路徑（以 Docker／K8s 部署時為容器內的路徑）。",
     "pathStyle": "Path-style 定址（MinIO 與多數自架 S3 需要）",
+    "prefix": "路徑前綴",
     "quota": "配額",
     "quotaHint": "0 表示不限制。超過時上傳會回應 507，超過 90% 會顯示警告。",
+    "region": "區域",
     "s3": "S3 相容物件儲存",
+    "secretKey": "Secret key",
     "test": "測試連線",
     "testOk": "正常 · {{ms}} 毫秒",
     "usage": "使用量"
@@ -624,6 +659,15 @@
   "tasks": {
     "cleanupNote": "清理規則只有在這個任務執行時才會生效。",
     "defaultInterval": "預設間隔（{{i}}）",
+    "desc": {
+      "backup": "依排程將備份封存檔寫入設定的目錄",
+      "blob-gc": "軟刪除已無任何檔案引用的 blob（保留 1 小時緩衝）",
+      "cleanup-policies": "對各 repository 套用清理規則",
+      "compact-blobs": "從儲存空間永久移除已軟刪除的 blob（相當於 Nexus 的 Compact blob store）",
+      "prune-expired": "清除過期的 session、負快取記錄與過舊的任務執行紀錄",
+      "re-encrypt-secrets": "以目前的金鑰重新加密已儲存的機密（輪替 secrets.key 後執行）",
+      "rebuild-indexes": "重新產生自有 repository 的索引（Maven metadata、APT/YUM/apk/CRAN/Conda 索引檔）"
+    },
     "duration": "耗時",
     "every": "每隔",
     "failedNotice": "任務 {{name}} 執行失敗",
@@ -681,7 +725,8 @@
     "secretWarn": "關閉後就無法再看到這組 secret，請立即保存，例如存成 CI 的 secret 變數（HLK_TOKEN）。",
     "sub": "給 CI 與命令列用戶端使用的個人存取權杖，權限等同 {{user}}。",
     "useBasic": "Basic（任何用戶端）",
-    "useBasicHint": "帳號 ＋ 以權杖當作密碼。"
+    "useBasicHint": "帳號 ＋ 以權杖當作密碼。",
+    "useHeader": "HTTP header"
   },
   "type": {
     "blocked": "已封鎖",
@@ -739,6 +784,7 @@
     "deleteTitle": "刪除使用者",
     "displayName": "顯示名稱",
     "edit": "編輯 {{name}}",
+    "email": "電子郵件",
     "exists": "這個帳號已存在",
     "externalHint": "由 {{source}} 同步。登入時會套用對應表的角色；在這裡設定的角色會額外附加。",
     "pwReset": "密碼已更新",
@@ -758,6 +804,7 @@
     "payload": "Payload 範例",
     "queued": "測試事件已排入佇列 — 請到 Logs 查看送出結果",
     "repoHint": "留空表示所有 repository",
+    "secret": "簽章密鑰",
     "sendTest": "送測試事件",
     "signature": "簽章：X-Holiaokho-Signature（內容的 HMAC-SHA256）"
   },

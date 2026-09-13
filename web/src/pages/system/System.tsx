@@ -16,16 +16,21 @@ function HealthTab() {
   const qc = useQueryClient()
   const q = useQuery({ queryKey: ['health'], queryFn: () => get<Health>('status/check'), refetchInterval: 30000 })
   const rows = Object.entries(q.data?.checks ?? {}).map(([k, c]) => ({ key: k, ...c }))
+  // Derive the headline from the checks themselves: the server's top-level
+  // flag ignores advisory checks such as the default admin password.
+  const failed = rows.filter((r) => !r.healthy).length
+  const warned = rows.filter((r) => r.healthy && r.message).length
+  const allGood = failed === 0 && warned === 0
   return (
     <div className="hlk-card" style={{ padding: 0 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px' }}>
-        <StatusDot status={q.data?.healthy ? 'success' : 'error'} /><span style={{ fontWeight: 500 }}>{q.data?.healthy ? t('dashboard.allGood', 'All services healthy') : t('health.problems', 'Problems detected')}</span>
+        <StatusDot status={failed ? 'error' : warned ? 'warning' : 'success'} /><span style={{ fontWeight: 500 }}>{allGood ? t('dashboard.allGood', 'All services healthy') : t('dashboard.attention', '{{n}} need attention', { n: failed + warned })}</span>
         <div style={{ flex: 1 }} /><Button size="small" icon={<ReloadOutlined />} onClick={() => qc.invalidateQueries({ queryKey: ['health'] })}>{t('health.recheck', 'Re-check')}</Button>
       </div>
       <Table rowKey="key" dataSource={rows} pagination={false} size="middle" className="hlk-table" loading={q.isLoading} columns={[
         { title: t('health.check', 'Check'), dataIndex: 'key', render: (x: string) => <span className="hlk-mono">{x}</span> },
         { title: t('common.status', 'Status'), width: 120, render: (_: unknown, r: any) => <span style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}><StatusDot status={!r.healthy ? 'error' : r.message ? 'warning' : 'success'} />{r.healthy ? 'OK' : t('health.unhealthy', 'unhealthy')}</span> },
-        { title: t('health.message', 'Message'), dataIndex: 'message', render: (x: string) => x || '—' },
+        { title: t('health.message', 'Message'), render: (_: unknown, r: any) => (r.code ? t(`health.msg.${r.code}`, { defaultValue: r.message }) : r.message) || '—' },
         { title: t('storages.usage', 'Usage'), width: 220, render: (_: unknown, r: any) => (r.usedBytes !== undefined ? `${fmtBytes(r.usedBytes)}${r.quotaBytes ? ` / ${fmtBytes(r.quotaBytes)}` : ''}` : '') },
       ]} />
     </div>
@@ -50,7 +55,7 @@ function InfoTab() {
         {group(t('info.runtime', 'Runtime'), [['hostname', d.hostname], ['pid', d.pid], ['uptime', d.uptime], ['cpus', d.cpus], ['goroutines', d.goroutines], ['heap', fmtBytes(mem.heapAllocBytes)], ['sys', fmtBytes(mem.sysBytes)], ['numGC', mem.numGC]])}
         {group(t('info.database', 'Database'), Object.entries(d.database ?? {}))}
         <div className="hlk-card"><div className="hlk-section-label" style={{ marginBottom: 12 }}>Formats · {d.formats?.length}</div><div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>{(d.formats ?? []).map((f: string) => <Tag key={f} style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}><FormatIcon format={f} size={14} />{f}</Tag>)}</div></div>
-        {Array.isArray(d.storages) && <div className="hlk-card" style={{ gridColumn: '1 / -1' }}><div className="hlk-section-label" style={{ marginBottom: 12 }}>Storages</div><Table size="small" pagination={false} rowKey={(r: any) => r.name ?? JSON.stringify(r)} dataSource={d.storages} columns={Object.keys(d.storages[0] ?? {}).map((k) => ({ title: k, dataIndex: k, render: (v: any) => <span className="hlk-mono" style={{ fontSize: 12 }}>{typeof v === 'number' && k.toLowerCase().includes('bytes') ? fmtBytes(v) : typeof v === 'object' ? JSON.stringify(v) : String(v)}</span> }))} /></div>}
+        {Array.isArray(d.storages) && <div className="hlk-card" style={{ gridColumn: '1 / -1' }}><div className="hlk-section-label" style={{ marginBottom: 12 }}>{t('nav.storages', 'Storages')}</div><Table size="small" pagination={false} rowKey={(r: any) => r.name ?? JSON.stringify(r)} dataSource={d.storages} columns={Object.keys(d.storages[0] ?? {}).map((k) => ({ title: k, dataIndex: k, render: (v: any) => <span className="hlk-mono" style={{ fontSize: 12 }}>{typeof v === 'number' && k.toLowerCase().includes('bytes') ? fmtBytes(v) : typeof v === 'object' ? JSON.stringify(v) : String(v)}</span> }))} /></div>}
       </div>
     </>
   )
@@ -87,7 +92,7 @@ function LogsTab() {
         <span style={{ fontSize: 12, display: 'inline-flex', gap: 6, alignItems: 'center' }}><Switch size="small" checked={auto} onChange={setAuto} />{t('logs.auto', 'Auto refresh')}</span>
         <span style={{ fontSize: 12, display: 'inline-flex', gap: 6, alignItems: 'center' }}><Switch size="small" checked={wrap} onChange={setWrap} />{t('logs.wrap', 'Wrap')}</span>
         <div style={{ flex: 1 }} />
-        <span style={{ fontSize: 12 }}>Log level</span>
+        <span style={{ fontSize: 12 }}>{t('logs.level', 'Log level')}</span>
         <Select size="small" value={lvl.data?.level} onChange={async (v) => { try { await put('system/log-level', { level: v }); lvl.refetch(); message.success(t('logs.levelSet', 'Log level set to {{v}} (resets on restart)', { v })) } catch (e) { message.error(errText(e)) } }} options={['debug', 'info', 'warn', 'error'].map((l) => ({ value: l }))} style={{ width: 100 }} />
         <Button size="small" icon={<CopyOutlined />} onClick={async () => { await copyText((q.data ?? []).join('\n')); message.success(t('common.copied', 'Copied')) }}>{t('logs.copyAll', 'Copy all')}</Button>
       </div>

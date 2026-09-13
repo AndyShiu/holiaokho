@@ -64,7 +64,7 @@ export default function Roles() {
             <Form.Item name="name" label={t('common.name', 'Name')} rules={[{ required: true }]}><Input /></Form.Item>
           </div>
           <Form.Item name="description" label={t('common.description', 'Description')}><Input /></Form.Item>
-          <div className="hlk-section-label" style={{ margin: '8px 0 10px' }}>Privileges</div>
+          <div className="hlk-section-label" style={{ margin: '8px 0 10px' }}>{t('roles.privileges', 'Privileges')}</div>
           <PrivilegeEditor value={privs} onChange={setPrivs} />
           <div className="hlk-summary" style={{ marginTop: 16 }}>
             <div className="hlk-section-label" style={{ marginBottom: 6 }}>{t('roles.summary', 'What this role can do')}</div>

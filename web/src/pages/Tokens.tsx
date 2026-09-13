@@ -93,7 +93,7 @@ export default function Tokens() {
       <div className="hlk-card" style={{ marginBottom: 16 }}><TokenList base="me/tokens" /></div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 12 }}>
         <div className="hlk-card"><div className="hlk-section-label" style={{ marginBottom: 8 }}>{t('tokens.useBasic', 'Basic (any client)')}</div><div style={{ fontSize: 13, lineHeight: 1.8 }}>{t('tokens.useBasicHint', 'Username + the token as the password.')}<br />{ex(`curl -u ${session?.username}:hlk_… https://${host}/repository/…`)}</div></div>
-        <div className="hlk-card"><div className="hlk-section-label" style={{ marginBottom: 8 }}>HTTP header</div><div style={{ fontSize: 13, lineHeight: 1.8 }}>{ex('Authorization: Bearer hlk_…')}</div></div>
+        <div className="hlk-card"><div className="hlk-section-label" style={{ marginBottom: 8 }}>{t('tokens.useHeader', 'HTTP header')}</div><div style={{ fontSize: 13, lineHeight: 1.8 }}>{ex('Authorization: Bearer hlk_…')}</div></div>
         <div className="hlk-card"><div className="hlk-section-label" style={{ marginBottom: 8 }}>npm / NuGet / cargo</div><div style={{ fontSize: 13, lineHeight: 1.8 }}>{ex('//host/repository/npm/:_authToken=hlk_…')}<br />{ex('nuget push -ApiKey hlk_…')}<br />{ex('cargo login "Bearer hlk_…"')}</div></div>
       </div>
     </>

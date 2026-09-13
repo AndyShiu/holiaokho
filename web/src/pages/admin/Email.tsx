@@ -32,12 +32,12 @@ export default function Email() {
         <Form form={form} layout="vertical" onFinish={(v) => save.mutate(v)} disabled={!canWrite}>
           <Form.Item name="enabled" label={t('common.enabled', 'Enabled')} valuePropName="checked"><Switch /></Form.Item>
           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 12 }}>
-            <Form.Item name="host" label="Host"><Input className="hlk-mono" placeholder="smtp.example.com" /></Form.Item>
-            <Form.Item name="port" label="Port"><InputNumber min={1} max={65535} style={{ width: '100%' }} /></Form.Item>
+            <Form.Item name="host" label={t('email.host', 'Host')}><Input className="hlk-mono" placeholder="smtp.example.com" /></Form.Item>
+            <Form.Item name="port" label={t('email.port', 'Port')}><InputNumber min={1} max={65535} style={{ width: '100%' }} /></Form.Item>
             <Form.Item name="username" label={t('login.username', 'Username')}><Input autoComplete="off" /></Form.Item>
             <Form.Item name="password" label={t('login.password', 'Password')} extra={<SecretHint />}><Input.Password autoComplete="new-password" /></Form.Item>
           </div>
-          <Form.Item name="from" label="From"><Input className="hlk-mono" placeholder="holiaokho@example.com" /></Form.Item>
+          <Form.Item name="from" label={t('email.from', 'From')}><Input className="hlk-mono" placeholder="holiaokho@example.com" /></Form.Item>
           <Form.Item name="tls" label={t('email.encryption', 'Encryption')}><Radio.Group options={[{ value: 'none', label: t('common.none', 'None') }, { value: 'starttls', label: 'STARTTLS' }, { value: 'ssl', label: 'SSL/TLS' }]} /></Form.Item>
           <Form.Item name="recipients" label={t('email.recipients', 'Notification recipients')} extra={t('email.recipientsHint', 'Receive task failures and storage quota warnings.')}><Select mode="tags" tokenSeparators={[',', ' ']} className="hlk-mono" /></Form.Item>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>

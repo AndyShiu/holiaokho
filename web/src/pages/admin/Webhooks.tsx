@@ -72,7 +72,7 @@ const ok = crypto.timingSafeEqual(Buffer.from(sig.slice(7)), Buffer.from(mac))`
           <Form.Item name="url" label="URL" rules={[{ required: true, type: 'url' }]} extra={t('webhooks.httpsHint', 'https:// recommended')}><Input className="hlk-mono" placeholder="https://hooks.example.com/holiaokho" /></Form.Item>
           <Form.Item name="events" label={t('webhooks.events', 'Events')} rules={[{ required: true }]}><Select mode="multiple" options={EVENTS.map((e) => ({ value: e }))} className="hlk-mono" /></Form.Item>
           <Form.Item name="repository" label={t('nav.repositories', 'Repository')} extra={t('webhooks.repoHint', 'Empty = all repositories')}><Select allowClear showSearch options={(repos.data ?? []).map((r) => ({ value: r.name }))} /></Form.Item>
-          <Form.Item name="secret" label="Secret" extra={editing && <SecretHint />}><Input.Password autoComplete="new-password" /></Form.Item>
+          <Form.Item name="secret" label={t('webhooks.secret', 'Secret')} extra={editing && <SecretHint />}><Input.Password autoComplete="new-password" /></Form.Item>
           <Form.Item name="enabled" label={t('common.enabled', 'Enabled')} valuePropName="checked"><Switch /></Form.Item>
           <div style={{ display: 'flex', gap: 8 }}><Button type="primary" htmlType="submit" loading={save.isPending}>{t('common.save', 'Save')}</Button><Button onClick={() => setDrawer(null)}>{t('common.cancel', 'Cancel')}</Button></div>
         </Form>

@@ -71,7 +71,7 @@ function KeyGen({ kind, onKey }: { kind: 'pgp' | 'rsa'; onKey: (priv: string) =>
             {kind === 'pgp' && (
               <>
                 <Form.Item name="name" label={t('common.name', 'Name')}><Input /></Form.Item>
-                <Form.Item name="email" label="Email"><Input /></Form.Item>
+                <Form.Item name="email" label={t('repos.keyEmail', 'Email')}><Input /></Form.Item>
               </>
             )}
             <p style={{ fontSize: 12, color: 'var(--hlk-text-secondary)' }}>{t('repos.genKeyHint', 'The private key is stored encrypted with the repository. Clients need the public key, served from the repository URL.')}</p>

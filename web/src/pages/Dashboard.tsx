@@ -12,6 +12,7 @@ import { useErrorText } from '@/components/Common'
 
 function HealthCard({ name, c }: { name: string; c: Health['checks'][string] }) {
   const { t } = useTranslation()
+  const msg = (x: Health['checks'][string]) => (x.code ? t(`health.msg.${x.code}`, { defaultValue: x.message }) : x.message)
   const navigate = useNavigate()
   const pct = c.quotaBytes ? Math.min(100, Math.round(((c.usedBytes ?? 0) / c.quotaBytes) * 100)) : undefined
   const status = !c.healthy ? 'error' : c.message ? 'warning' : 'success'
@@ -23,8 +24,8 @@ function HealthCard({ name, c }: { name: string; c: Health['checks'][string] }) 
       </div>
       {pct !== undefined && <Progress percent={pct} showInfo={false} size={['100%', 6]} strokeColor={pct >= 100 ? 'var(--hlk-error)' : pct >= 90 ? 'var(--hlk-warning)' : 'var(--hlk-ink)'} style={{ margin: '10px 0 4px' }} />}
       <div style={{ fontSize: 12, color: 'var(--hlk-text-secondary)', marginTop: 6 }}>
-        {c.usedBytes !== undefined ? `${fmtBytes(c.usedBytes)}${c.quotaBytes ? ` / ${fmtBytes(c.quotaBytes)}` : ''}` : c.message ?? (c.healthy ? t('health.ok', 'OK') : t('health.unhealthy', 'unhealthy'))}
-        {c.usedBytes !== undefined && c.message && <div style={{ color: status === 'error' ? 'var(--hlk-error)' : 'var(--hlk-warning)' }}>{c.message}</div>}
+        {c.usedBytes !== undefined ? `${fmtBytes(c.usedBytes)}${c.quotaBytes ? ` / ${fmtBytes(c.quotaBytes)}` : ''}` : msg(c) ?? (c.healthy ? t('health.ok', 'OK') : t('health.unhealthy', 'unhealthy'))}
+        {c.usedBytes !== undefined && c.message && <div style={{ color: status === 'error' ? 'var(--hlk-error)' : 'var(--hlk-warning)' }}>{msg(c)}</div>}
       </div>
       {name === 'default_admin_password' && !c.healthy && (
         <Button size="small" danger style={{ marginTop: 8 }} onClick={() => navigate('/change-password?forced=1')}>{t('health.changeNow', 'Change now')}</Button>

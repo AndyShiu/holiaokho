@@ -1,1 +1,828 @@
-{}
+{
+  "asset": {
+    "cacheExpires": "캐시 만료",
+    "cacheForever": "만료 없음(영구 캐시)",
+    "contentType": "콘텐츠 타입",
+    "deleteNeedsLogin": "삭제하려면 권한이 필요합니다",
+    "deleteTitle": "이 파일을 삭제할까요?",
+    "downloadUrl": "다운로드 URL",
+    "lastDownloaded": "마지막 다운로드",
+    "negative": "네거티브 캐시",
+    "negativeHint": "업스트림이 404를 반환했습니다",
+    "package": "패키지",
+    "path": "경로",
+    "sha256": "sha256",
+    "size": "크기",
+    "viewPackage": "패키지 보기"
+  },
+  "audit": {
+    "asset": {
+      "delete": "파일 삭제",
+      "upload": "파일 업로드"
+    },
+    "auth": {
+      "settings": "인증 설정 변경"
+    },
+    "cleanup": {
+      "create": "정리 정책 생성"
+    },
+    "content_selector": {
+      "create": "콘텐츠 선택기 생성"
+    },
+    "email": {
+      "update": "메일 설정 변경"
+    },
+    "last": "최근",
+    "login": "로그인",
+    "package": {
+      "delete": "패키지 삭제"
+    },
+    "repository": {
+      "create": "리포지터리 생성",
+      "delete": "리포지터리 삭제",
+      "invalidate_cache": "캐시 비우기",
+      "update": "리포지터리 수정"
+    },
+    "role": {
+      "create": "역할 생성",
+      "update": "역할 수정"
+    },
+    "routing_rule": {
+      "create": "라우팅 규칙 생성"
+    },
+    "storage": {
+      "create": "스토리지 생성"
+    },
+    "system": {
+      "backup": "백업 다운로드",
+      "log_level": "로그 레벨 변경",
+      "pgp_key": "PGP 키 생성",
+      "restore": "백업에서 복원",
+      "rsa_key": "RSA 키 생성"
+    },
+    "task": {
+      "run": "작업 실행",
+      "schedule": "일정 변경"
+    },
+    "token": {
+      "create": "토큰 생성"
+    },
+    "user": {
+      "create": "사용자 생성",
+      "delete": "사용자 삭제",
+      "password": "비밀번호 변경",
+      "update": "사용자 수정"
+    },
+    "webhook": {
+      "create": "webhook 생성"
+    }
+  },
+  "auth": {
+    "addLdapRealm": "＋ ldap",
+    "addLdapRealm2": "LDAP 인증 소스 추가",
+    "addMapping": "매핑 추가",
+    "anonymous": "익명 접근",
+    "anonymousHint": "켜면 로그인하지 않은 클라이언트도 읽을 수 있습니다. 실제로 무엇을 할 수 있는지는 anonymous 역할이 결정합니다.",
+    "autoCreate": "사용자 자동 생성",
+    "bindPassword": "Bind 비밀번호",
+    "connOk": "연결되었습니다",
+    "defaultRoles": "기본 역할",
+    "defaultRolesHint": "로그인한 모든 사용자에게 본인의 역할에 더해 부여됩니다.",
+    "disallowCommon": "흔한 비밀번호 거부(내장 목록)",
+    "displayNameAttr": "표시 이름 속성",
+    "emailAttr": "Email 속성",
+    "groupBaseDn": "그룹 base DN",
+    "groupClaim": "그룹 CLAIM",
+    "groupFilter": "그룹 필터",
+    "groupNameAttr": "그룹 이름 속성",
+    "groupsClaim": "그룹 claim",
+    "header": "헤더 이름",
+    "ldapDefaultRoles": "LDAP 사용자의 기본 역할",
+    "ldapGroup": "LDAP 그룹",
+    "ldapNotInRealms": "LDAP이 활성화되어 있지만 인증 소스 순서에 없어 로그인에 사용되지 않습니다.",
+    "loginOk": "로그인 성공",
+    "maxLength": "최대 길이",
+    "memberOfAttr": "memberOf 속성",
+    "minLength": "최소 길이",
+    "oidcDefaultRoles": "OIDC 사용자의 기본 역할",
+    "options": "옵션",
+    "password": "비밀번호 정책",
+    "pwExample": "올바른 비밀번호 예시",
+    "pwHint": "사용자 생성, 관리자 재설정, 본인 변경에 적용됩니다. 기존 비밀번호는 다시 검사하지 않습니다.",
+    "realmDesc": {
+      "ldap": "LDAP 디렉터리의 계정",
+      "local": "Holiaokho에 저장된 로컬 계정"
+    },
+    "realms": "인증 소스 및 익명",
+    "realmsHint": "로그인 시 이 순서대로 각 인증 소스를 시도합니다. OIDC와 Rut Auth는 별도 흐름이라 여기에 없습니다.",
+    "realmsHint2": "로그인 시 위에서부터 차례로 시도하며, 먼저 통과한 인증 소스가 사용됩니다. 끌어서 순서를 바꿀 수 있습니다.",
+    "redirect": "리디렉션 URL(IdP에 등록하세요)",
+    "role": "역할",
+    "roleColumn": "역할",
+    "roleMapping": "역할 매핑",
+    "rutWarn": "이 헤더를 클라이언트 요청에서 제거하는 리버스 프록시 뒤에서, 그리고 server.trusted_proxies 를 설정한 경우에만 켜세요.",
+    "saved": "저장했습니다 — 최대 30초 내 반영",
+    "skipIssuer": "issuer 검증 건너뛰기",
+    "skipVerify": "TLS 인증서 검증 건너뛰기",
+    "testConn": "연결 테스트",
+    "testHint": "위의 저장되지 않은 폼 값을 사용합니다.",
+    "testLogin": "연결／로그인 테스트",
+    "testLoginBtn": "로그인 테스트",
+    "timeout": "타임아웃(초)",
+    "userBaseDn": "사용자 base DN",
+    "userFilter": "사용자 필터",
+    "userSubtree": "하위 트리 검색",
+    "usernameClaim": "아이디 claim",
+    "viewAnonRole": "anonymous 역할 보기 →"
+  },
+  "backup": {
+    "c1": "모든 리포지터리·사용자·역할·설정·콘텐츠 색인이 교체됩니다.",
+    "c2": "아카이브의 blob은 기본 스토리지에 기록됩니다.",
+    "c3": "수 분이 걸릴 수 있습니다. 이 페이지를 닫지 마세요.",
+    "cfgHint": "설정 파일(backup.*)에서 지정하며 「backup」 작업으로 실행됩니다.",
+    "confirm1": "복원하면 모든 데이터를 덮어씁니다",
+    "confirm2": "확인하려면 RESTORE 를 입력하세요",
+    "dir": "디렉터리",
+    "download": "지금 백업 다운로드",
+    "downloadHint": "데이터베이스(테이블별 CSV)를 담은 tar.gz이며, blob도 포함할 수 있습니다.",
+    "drop": "백업 .tar.gz 파일을 여기에 놓으세요",
+    "includeBlobs": "blob 포함",
+    "keep": "보관 개수",
+    "notConfigured": "설정되지 않음",
+    "restore": "복원",
+    "restoreBtn": "이 파일로 복원…",
+    "restoreNow": "지금 복원",
+    "restoreWarn": "복원은 데이터베이스와 blob 스토리지 전체를 아카이브 내용으로 교체합니다. 먼저 클라이언트 트래픽을 중단하세요. 완료 후 모두 로그아웃됩니다.",
+    "restored": "복원이 완료되었습니다 — 다시 로그인하세요",
+    "restoring": "복원 중… 잠시 기다려 주세요.",
+    "scheduled": "예약 백업"
+  },
+  "browse": {
+    "allowOnce": "이 리포지터리는 기존 경로에 재배포할 수 없습니다(쓰기 정책: allow_once).",
+    "content": "콘텐츠",
+    "deny": "이 리포지터리는 읽기 전용입니다(쓰기 정책: deny).",
+    "dropHint": "파일을 여기에 놓거나 클릭해서 선택하세요",
+    "empty": "이 리포지터리에는 아직 콘텐츠가 없습니다",
+    "emptyHosted": "업로드하거나 클라이언트에서 push 하세요.",
+    "emptyProxy": "프록시를 통해 처음 다운로드되면 여기에 표시됩니다.",
+    "filterPackages": "이름 또는 네임스페이스로 필터",
+    "filterRepos": "리포지터리 필터",
+    "groupHint": "{{n}}개 멤버를 병합:",
+    "noRepos": "리포지터리가 없습니다",
+    "noReposHint": "첫 리포지터리를 만들어 시작하세요.",
+    "notFound": "리포지터리를 찾을 수 없습니다",
+    "offline": "이 리포지터리는 오프라인입니다: 클라이언트 요청이 거부됩니다.",
+    "overwrite": "경로가 있으면 덮어쓰기",
+    "packages": "패키지",
+    "pick": "왼쪽에서 리포지터리를 선택하세요",
+    "proxyHint": "여기에는 캐시된 콘텐츠만 표시됩니다 — 업스트림 전체 목록이 아닙니다.",
+    "upload": "업로드",
+    "uploadTo": "{{name}} 에 업로드",
+    "uploaded": "{{path}} 를 업로드했습니다"
+  },
+  "cleanup": {
+    "assignTo": "적용할 리포지터리",
+    "assigned": "리포지터리",
+    "create": "정책 만들기",
+    "criteria": "조건",
+    "criteriaHint": "기간 조건 중 하나라도 맞으면 패키지가 삭제됩니다. keepLatest는 항상 최신 버전을 보호합니다",
+    "deleteHint": "{{n}}개 리포지터리에서 적용이 해제됩니다. 이미 삭제된 내용은 복구되지 않습니다.",
+    "deleteTitle": "정책 「{{name}}」 을 삭제할까요?",
+    "edit": "정책 편집",
+    "keep": "이름별 최신 N개 보관",
+    "lastDl": "다운로드되지 않은 기간(일)",
+    "lastUpd": "생성 후 경과(일)",
+    "nameRegex": "이름 정규식",
+    "nextRun": "cleanup-policies 작업이 적용 · 다음 실행",
+    "preAny": "제한 없음",
+    "preExclude": "정식 버전만",
+    "preOnly": "프리릴리스만",
+    "prerelease": "프리릴리스",
+    "preview": "미리보기",
+    "previewSaveFirst": "먼저 정책을 저장한 뒤 삭제 대상을 미리 보세요.",
+    "runPreview": "삭제 대상 미리보기",
+    "sumDl": "{{n}}일간 다운로드 없음",
+    "sumKeep": "이름별 최신 {{n}}개 보관",
+    "sumPre": "프리릴리스만",
+    "sumRel": "정식 버전만",
+    "sumUpd": "생성 후 {{n}}일 경과",
+    "versionRegex": "버전 정규식",
+    "wouldDelete": "{{n}}개 패키지가 삭제됩니다"
+  },
+  "common": {
+    "all": "전체",
+    "back": "이전",
+    "cancel": "취소",
+    "close": "닫기",
+    "continue": "계속",
+    "copied": "복사했습니다",
+    "copy": "복사",
+    "create": "만들기",
+    "created": "생성 일시",
+    "dangerZone": "위험 구역",
+    "delete": "삭제",
+    "deleted": "삭제했습니다",
+    "description": "설명",
+    "details": "상세",
+    "download": "다운로드",
+    "edit": "편집",
+    "enabled": "사용",
+    "format": "포맷",
+    "min": "분",
+    "name": "이름",
+    "never": "없음",
+    "noMatch": "일치하는 항목이 없습니다",
+    "none": "없음",
+    "nothingYet": "아직 데이터가 없습니다",
+    "off": "사용 안 함",
+    "revert": "변경 되돌리기",
+    "save": "저장",
+    "saved": "저장했습니다",
+    "search": "검색",
+    "secretKeep": "비워 두면(또는 *** 유지) 저장된 값을 그대로 씁니다",
+    "status": "상태",
+    "test": "테스트",
+    "time": "시각",
+    "type": "타입",
+    "typeToConfirm": "확인하려면",
+    "typeToConfirmSuffix": "를 입력하세요",
+    "unsaved": "저장하지 않은 변경",
+    "updated": "수정 일시",
+    "viewAll": "전체 보기 →"
+  },
+  "config": {
+    "hint": "읽기 전용입니다. 비밀 값은 가려집니다. 설정 파일이나 HOLIAOKHO_* 환경 변수에서 바꾼 뒤 재시작하세요."
+  },
+  "cron": {
+    "daily": "매일 {{time}}",
+    "everyNMin": "{{n}}분마다",
+    "hint": "분 시 일 월 요일",
+    "hourly": "매시",
+    "invalid": "식 형식이 잘못되었습니다",
+    "monthly": "매월 {{dom}}일 {{time}}",
+    "next5": "다음 5회 실행",
+    "tplDaily": "매일 02:00",
+    "tplHourly": "매시",
+    "tplSunday": "매주 일요일 03:00",
+    "weekly": "매주 요일 {{dow}} {{time}}"
+  },
+  "dashboard": {
+    "activity": "최근 활동",
+    "allGood": "모든 서비스 정상",
+    "assets": "파일",
+    "attention": "{{n}}건 확인 필요",
+    "dedup": "콘텐츠 주소 지정, 중복 제거됨",
+    "devHint": "「탐색」이나 「검색」에서 패키지를 찾고, 「내 토큰」에서 CI용 개인 토큰을 만드세요.",
+    "packages": "패키지",
+    "refresh": "30초마다 갱신",
+    "repos": "리포지터리",
+    "size": "전체 크기",
+    "step1": "admin 비밀번호 변경",
+    "step1a": "지금 변경",
+    "step2": "첫 프록시 만들기",
+    "step2a": "예: Maven Central",
+    "step3": "클라이언트 설정 복사",
+    "step3a": "리포지터리의 「사용법」 탭에서",
+    "welcome": "Holiaokho에 오신 것을 환영합니다",
+    "welcomeHint": "세 단계로 첫 리포지터리를 가동해 보세요."
+  },
+  "email": {
+    "encryption": "암호화 방식",
+    "from": "보내는 사람",
+    "host": "호스트",
+    "port": "포트",
+    "recipients": "알림 수신자",
+    "recipientsHint": "작업 실패와 스토리지 용량 경고를 받습니다.",
+    "sendTest": "테스트 메일 보내기",
+    "sub": "작업 실패와 용량 알림에 사용할 발신 SMTP.",
+    "testHint": "테스트는 저장된 설정을 사용합니다 — 먼저 저장하세요.",
+    "testSent": "테스트 메일을 보냈습니다"
+  },
+  "errors": {
+    "auth": {
+      "forbidden": "이 작업을 수행할 권한이 없습니다",
+      "invalid": "자격 증명이 올바르지 않습니다",
+      "rate_limited": "로그인 실패가 너무 많습니다. 잠시 후 다시 시도하세요",
+      "required": "계속하려면 로그인하세요"
+    },
+    "body": {
+      "invalid": "요청 본문을 읽을 수 없습니다"
+    },
+    "conflict": "이미 존재합니다",
+    "email": {
+      "failed": "메일 전송에 실패했습니다"
+    },
+    "format": {
+      "unsupported": "이 포맷에서는 지원하지 않는 작업입니다"
+    },
+    "internal": "서버 내부 오류",
+    "ldap": {
+      "failed": "LDAP 요청에 실패했습니다"
+    },
+    "nexus": {
+      "unsupported": "Nexus 호환 계층에서 지원하지 않습니다"
+    },
+    "not_found": "찾을 수 없습니다",
+    "oidc": {
+      "failed": "OIDC 로그인에 실패했습니다"
+    },
+    "password": {
+      "common": "너무 흔한 비밀번호입니다",
+      "contains_username": "비밀번호에 아이디를 포함할 수 없습니다",
+      "need_digit": "비밀번호에 숫자를 포함하세요",
+      "need_lower": "비밀번호에 소문자를 포함하세요",
+      "need_symbol": "비밀번호에 기호를 포함하세요",
+      "need_upper": "비밀번호에 대문자를 포함하세요",
+      "too_long": "비밀번호는 {{p0}}자 이하여야 합니다",
+      "too_short": "비밀번호는 {{p0}}자 이상이어야 합니다"
+    },
+    "path": {
+      "invalid": "경로가 올바르지 않습니다"
+    },
+    "repo": {
+      "invalid": "리포지터리 설정이 올바르지 않습니다",
+      "not_found": "리포지터리를 찾을 수 없습니다",
+      "not_proxy": "프록시 리포지터리가 아닙니다",
+      "read_only": "이 리포지터리는 읽기 전용입니다",
+      "redeploy_denied": "이 리포지터리에서는 같은 버전을 다시 배포할 수 없습니다"
+    },
+    "restore": {
+      "failed": "복원에 실패했습니다"
+    },
+    "storage": {
+      "invalid": "스토리지 설정이 올바르지 않습니다",
+      "unknown": "알 수 없는 스토리지입니다"
+    },
+    "task": {
+      "unknown": "알 수 없는 작업입니다"
+    },
+    "upload": {
+      "failed": "업로드에 실패했습니다"
+    },
+    "user": {
+      "exists": "이미 있는 아이디입니다",
+      "invalid": "사용자가 올바르지 않습니다"
+    },
+    "validation": "입력한 내용을 확인하세요"
+  },
+  "health": {
+    "changeNow": "지금 변경",
+    "check": "점검 항목",
+    "message": "메시지",
+    "msg": {
+      "db_unreachable": "데이터베이스에 연결할 수 없습니다",
+      "default_admin_password": "admin이 아직 기본 비밀번호를 사용 중입니다",
+      "quota_exceeded": "용량 제한을 초과했습니다",
+      "quota_warning": "용량 제한의 90%를 넘었습니다",
+      "storage_unavailable": "스토리지를 사용할 수 없습니다"
+    },
+    "ok": "정상",
+    "problems": "문제가 발견되었습니다",
+    "recheck": "다시 점검",
+    "unhealthy": "이상"
+  },
+  "info": {
+    "copy": "텍스트로 복사",
+    "database": "데이터베이스",
+    "runtime": "실행 환경",
+    "version": "버전"
+  },
+  "login": {
+    "badCredentials": "아이디 또는 비밀번호가 올바르지 않습니다",
+    "browseAnon": "로그인 없이 패키지 둘러보기 →",
+    "forgot": "비밀번호를 잊으셨나요? 관리자에게 재설정을 요청하세요.",
+    "or": "또는",
+    "password": "비밀번호",
+    "passwordRequired": "비밀번호를 입력하세요",
+    "rateLimited": "로그인 실패가 너무 많습니다. 30초 후에 다시 시도하세요.",
+    "retryIn": "{{s}}초 후 재시도",
+    "sp1": "26개 포맷을 하나의 주소로",
+    "sp2": "단일 바이너리, 낮은 메모리",
+    "sp3": "CI 수정 없이 Nexus 교체",
+    "sso": "SSO로 로그인",
+    "ssoFailed": "SSO 로그인 실패: {{reason}}",
+    "submit": "로그인",
+    "title": "Holiaokho 로그인",
+    "unreachable": "서버에 연결할 수 없습니다",
+    "username": "아이디",
+    "usernameRequired": "아이디를 입력하세요"
+  },
+  "logs": {
+    "auto": "자동 갱신",
+    "copyAll": "전체 복사",
+    "filter": "필터",
+    "level": "로그 레벨",
+    "levelSet": "로그 레벨을 {{v}} 로 설정했습니다(재시작하면 설정 파일 값으로 돌아갑니다)",
+    "wrap": "줄바꿈"
+  },
+  "nav": {
+    "anonymous": "익명",
+    "auth": "인증 설정",
+    "backup": "백업／복원",
+    "browse": "탐색",
+    "changePassword": "비밀번호 변경",
+    "cleanup": "정리 정책",
+    "clickToLogin": "클릭해서 로그인",
+    "dashboard": "대시보드",
+    "email": "메일",
+    "group": {
+      "maintenance": "유지 관리",
+      "manage": "관리",
+      "more": "기타",
+      "security": "보안"
+    },
+    "login": "로그인",
+    "logout": "로그아웃",
+    "repositories": "리포지터리",
+    "roles": "역할",
+    "routing": "라우팅 규칙",
+    "search": "검색",
+    "selectors": "콘텐츠 선택기",
+    "storages": "스토리지",
+    "system": "시스템",
+    "tasks": "작업",
+    "tokens": "내 토큰",
+    "users": "사용자",
+    "webhooks": "Webhook"
+  },
+  "notify": {
+    "none": "확인이 필요한 항목이 없습니다"
+  },
+  "package": {
+    "assets": "파일",
+    "deleteHint": "이 버전의 파일 {{n}}개가 삭제됩니다. blob은 다음 blob-gc 실행 때 회수됩니다.",
+    "deleteTitle": "{{name}} 을 삭제할까요?",
+    "deleteVersion": "이 버전 삭제",
+    "namespace": "네임스페이스",
+    "version": "버전"
+  },
+  "password": {
+    "changed": "비밀번호를 변경했습니다",
+    "confirm": "새 비밀번호 확인",
+    "current": "현재 비밀번호",
+    "currentRequired": "현재 비밀번호를 입력하세요",
+    "currentWrong": "현재 비밀번호가 올바르지 않습니다",
+    "forcedHint": "admin 계정이 아직 기본 비밀번호를 사용 중입니다. 계속하기 전에 새 비밀번호를 설정하세요.",
+    "forcedTitle": "먼저 기본 비밀번호를 변경하세요",
+    "hint": "{{user}} 의 새 비밀번호를 설정합니다.",
+    "mismatch": "비밀번호가 일치하지 않습니다",
+    "new": "새 비밀번호",
+    "rule": {
+      "digit": "숫자 포함",
+      "lower": "소문자 포함",
+      "symbol": "기호 포함",
+      "upper": "대문자 포함",
+      "username": "아이디를 포함하지 않음"
+    },
+    "submit": "비밀번호 변경",
+    "title": "비밀번호 변경"
+  },
+  "priv": {
+    "actions": "동작",
+    "add": "행 추가",
+    "allActions": "전체 제어",
+    "allAreas": "전체",
+    "allRepos": "모든 리포지터리",
+    "kind": {
+      "all": "시스템 전체",
+      "app": "애플리케이션 영역",
+      "format": "특정 포맷의 모든 리포지터리",
+      "repo": "리포지터리",
+      "selector": "콘텐츠 선택기"
+    },
+    "noSelectors": "먼저 콘텐츠 선택기를 만드세요",
+    "sumAll": "시스템 전체에 대한 {{acts}} 권한",
+    "sumApp": "{{acts}}: {{area}} 관리",
+    "sumFormat": "모든 {{format}} 리포지터리에 대한 {{acts}} 권한",
+    "sumRepo": "리포지터리 {{name}} 에 대한 {{acts}} 권한",
+    "sumSelector": "선택기 {{sel}} 에 맞는 콘텐츠에 대한 {{acts}} 권한",
+    "target": "대상",
+    "value": "값"
+  },
+  "repos": {
+    "browseContent": "콘텐츠 보기",
+    "create": "리포지터리 만들기",
+    "created": "리포지터리 {{name}} 을 만들었습니다",
+    "d": {
+      "forceBasic": "기본 인증 강제(익명 pull 금지)",
+      "indexType": "인덱스 타입",
+      "path": "경로 모드",
+      "port": "HTTP 포트",
+      "subdomain": "서브도메인",
+      "tls": "HTTPS 포트"
+    },
+    "deleteCi": "이 URL을 쓰는 클라이언트는 404를 받습니다.",
+    "deleteConfirm": "리포지터리 삭제",
+    "deleteGroups": "다음 그룹에서 제외됩니다: {{list}}",
+    "deleteSize": "패키지 {{n}}개, 콘텐츠 {{size}}. blob은 다음 blob-gc 실행 때 회수됩니다.",
+    "deleteTitle": "리포지터리 삭제",
+    "deleted": "리포지터리 {{name}} 을 삭제했습니다",
+    "empty": "리포지터리가 없습니다",
+    "emptyHint": "Maven Central이나 npm 프록시를 먼저 만들어 보세요.",
+    "f": {
+      "autoBlock": "업스트림에 연결할 수 없으면 자동 차단",
+      "blocked": "차단됨(캐시만 제공)",
+      "cacheForever": "영구 캐시",
+      "downloadUrlHint": "비워 두면 기본값 사용",
+      "flat": "업스트림이 flat repository(dists/ 없음)",
+      "keyNameHint": "클라이언트의 /etc/apk/keys/ 아래에 설치됩니다",
+      "metadataHint": "색인／버전 목록은 이 시간이 지나면 업스트림에 다시 확인합니다.",
+      "negativeHint": "업스트림 404를 기억하는 시간. 0이면 사용 안 함.",
+      "repodataHint": "repodata/ 를 생성하는 디렉터리 깊이(0은 루트)."
+    },
+    "g": {
+      "available": "선택 가능",
+      "members": "멤버",
+      "moveUp": "클릭하면 위로 이동",
+      "order": "해석 순서:"
+    },
+    "genKey": "키 생성",
+    "genKeyDone": "개인 키를 입력했습니다. 공개 키(저장 후 <리포지터리 URL>/repository-key.gpg 에서도 받을 수 있습니다):",
+    "genKeyHint": "개인 키는 암호화되어 리포지터리와 함께 저장됩니다. 클라이언트에는 리포지터리 URL에서 제공되는 공개 키가 필요합니다.",
+    "genKeyTitle": "서명 키 생성",
+    "invalidate": "캐시 비우기",
+    "invalidated": "캐시를 비웠습니다",
+    "keyEmail": "이메일",
+    "nameExists": "이름 {{name}} 은 이미 사용 중입니다.",
+    "nameInvalid": "영문자, 숫자와 . _ - 만 사용할 수 있습니다",
+    "online": "온라인",
+    "onlineHint": "오프라인 리포지터리는 모든 클라이언트 요청을 거부합니다.",
+    "sec": {
+      "basic": "기본",
+      "docker": "Docker · 접근 방식(복수 선택 가능)",
+      "group": "그룹 · 멤버(순서＝해석 순서)",
+      "hosted": "호스티드 · 쓰기 정책",
+      "optional": "선택",
+      "proxy": "프록시 · 업스트림"
+    },
+    "tab": {
+      "settings": "설정",
+      "stats": "통계"
+    },
+    "usage": "사용법",
+    "usageTitle": "사용법",
+    "wp": {
+      "allow": "기존 경로를 덮어쓸 수 있습니다.",
+      "allowOnce": "같은 경로에는 한 번만 쓸 수 있고, 같은 버전의 재배포는 거부됩니다(Maven SNAPSHOT 제외). 권장.",
+      "deny": "읽기 전용이며 업로드할 수 없습니다."
+    }
+  },
+  "roles": {
+    "adminLocked": "admin 역할은 항상 모든 권한을 가지며 권한을 변경할 수 없습니다.",
+    "builtin": "내장",
+    "create": "역할 만들기",
+    "deleteHint": "사용자 {{u}}명이 사용 중입니다. 즉시 이 권한을 잃게 됩니다.",
+    "deleteTitle": "역할 삭제",
+    "edit": "역할 편집",
+    "idHint": "비워 두면 이름에서 자동 생성됩니다",
+    "privileges": "권한",
+    "summary": "이 역할이 할 수 있는 일",
+    "summaryEmpty": "아직 없습니다 — 권한을 하나 이상 추가하세요.",
+    "usedBy": "사용자 {{u}}명, LDAP/OIDC 매핑 {{m}}건이 사용 중"
+  },
+  "routing": {
+    "addMatcher": "매처 추가",
+    "allowHint": "매처에 맞는 경로만 제공합니다",
+    "allowed": "허용",
+    "blockHint": "매처 중 하나라도 맞는 경로를 거부합니다",
+    "blocked": "차단",
+    "create": "규칙 만들기",
+    "deleteTitle": "규칙 「{{name}}」 을 삭제할까요?",
+    "deleteUsed": "이 규칙을 쓰는 리포지터리({{list}})는 이후 라우팅 규칙이 없게 됩니다.",
+    "edit": "규칙 편집",
+    "hitHint": "일치한 매처는 호박색으로 표시됩니다.",
+    "matchers": "매처",
+    "matchersHint": "요청 경로와 대조합니다",
+    "mode": "모드",
+    "sub": "리포지터리별로 요청 경로를 허용하거나 차단합니다. 예를 들어 프록시가 사내 group ID를 외부에서 가져오지 않게 할 수 있습니다.",
+    "testPath": "경로 테스트",
+    "usedBy": "사용 중인 리포지터리"
+  },
+  "search": {
+    "emptyHint": "예:",
+    "emptyTitle": "모든 리포지터리에서 검색",
+    "noResults": "일치하는 패키지가 없습니다",
+    "placeholder": "패키지 검색… 예: gson, @babel/core, library/alpine"
+  },
+  "selectors": {
+    "create": "선택기 만들기",
+    "deleteTitle": "선택기 삭제",
+    "deleteUsed": "참조하는 역할: {{list}}. 해당 선택기 권한은 더 이상 일치하지 않습니다.",
+    "edit": "선택기 편집",
+    "expression": "식",
+    "match": "일치",
+    "noMatch": "일치하지 않음",
+    "prefix": "다음으로 시작",
+    "runTest": "평가",
+    "sub": "식으로 리포지터리의 일부를 골라 권한 대상으로 쓸 수 있습니다(selector:<이름>@<리포지터리>).",
+    "usedBy": "사용 중인 역할"
+  },
+  "storages": {
+    "accessKey": "Access key",
+    "bucket": "Bucket",
+    "create": "스토리지 만들기",
+    "dedupHint": "여러 리포지터리에 같은 파일이 있어도 한 번만 저장됩니다. 삭제된 내용은 blob-gc 작업이 해제하고, compact-blobs 가 실제 디스크 공간을 회수합니다.",
+    "dedupTitle": "콘텐츠 주소 지정 스토리지",
+    "edit": "{{name}} 편집",
+    "endpoint": "Endpoint",
+    "endpointHint": "비우면 AWS",
+    "fs": "로컬 파일 시스템",
+    "location": "위치",
+    "noQuota": "용량 제한 없음",
+    "path": "경로",
+    "pathHint": "서버의 절대 경로(Docker／K8s 배포 시에는 컨테이너 내부 경로).",
+    "pathStyle": "Path-style 주소 지정(MinIO 및 대부분의 자체 호스팅 S3)",
+    "prefix": "접두 경로",
+    "quota": "용량 제한",
+    "quotaHint": "0이면 무제한. 초과하면 업로드가 507을 반환하고, 90%를 넘으면 경고가 표시됩니다.",
+    "region": "리전",
+    "s3": "S3 호환 오브젝트 스토리지",
+    "secretKey": "Secret key",
+    "test": "연결 테스트",
+    "testOk": "정상 · {{ms}} ms",
+    "usage": "사용량"
+  },
+  "support": {
+    "download": "지원 진단 zip 다운로드",
+    "hint": "문제 진단에 필요한 정보를 담은 zip입니다. 사용자 데이터와 blob은 포함하지 않습니다:",
+    "i1": "시스템 정보와 상태 점검",
+    "i2": "설정 내용(비밀 값은 가림)",
+    "i3": "최근 로그",
+    "i4": "리포지터리·스토리지·작업 정의"
+  },
+  "system": {
+    "audit": "감사 로그",
+    "config": "설정",
+    "health": "상태",
+    "info": "시스템 정보"
+  },
+  "tasks": {
+    "cleanupNote": "정리 정책은 이 작업이 실행될 때만 적용됩니다.",
+    "defaultInterval": "기본 간격({{i}})",
+    "desc": {
+      "backup": "예약에 따라 백업 아카이브를 지정한 디렉터리에 씁니다",
+      "blob-gc": "어떤 파일도 참조하지 않는 blob을 논리 삭제합니다(1시간 유예 후)",
+      "cleanup-policies": "각 리포지터리에 정리 정책을 적용합니다",
+      "compact-blobs": "논리 삭제된 blob을 스토리지에서 완전히 제거합니다(Nexus의 Compact blob store에 해당)",
+      "prune-expired": "만료된 세션, 네거티브 캐시 항목, 오래된 실행 기록을 삭제합니다",
+      "re-encrypt-secrets": "저장된 비밀 값을 현재 키로 다시 암호화합니다(secrets.key 교체 후 실행)",
+      "rebuild-indexes": "호스티드 리포지터리의 색인을 다시 생성합니다(Maven metadata, APT/YUM/apk/CRAN/Conda 색인 파일)"
+    },
+    "duration": "소요 시간",
+    "every": "간격",
+    "failedNotice": "작업 {{name}} 이(가) 실패했습니다",
+    "idle": "대기 중",
+    "lastRun": "마지막 실행",
+    "name": {
+      "backup": "백업",
+      "blob-gc": "Blob GC",
+      "cleanup-policies": "정리 정책 적용",
+      "compact-blobs": "blob 스토어 압축",
+      "prune-expired": "만료 항목 정리",
+      "re-encrypt-secrets": "비밀 값 재암호화",
+      "rebuild-indexes": "인덱스 재구성"
+    },
+    "nextRun": "다음 실행",
+    "noLog": "(출력 없음)",
+    "runNow": "지금 실행",
+    "running": "{{n}}건 실행 중 · 3초마다 갱신",
+    "runningNow": "실행 중…",
+    "runs": "실행 기록",
+    "saveSchedule": "일정 저장",
+    "schedule": "일정",
+    "scheduleBtn": "일정 설정",
+    "scheduleTitle": "일정",
+    "started": "작업 {{name}} 을 시작했습니다",
+    "summary": "요약",
+    "task": "작업"
+  },
+  "theme": {
+    "dark": "다크 테마",
+    "light": "라이트 테마"
+  },
+  "tokens": {
+    "create": "토큰 만들기",
+    "createdTitle": "토큰 「{{name}}」 을 만들었습니다",
+    "custom": "직접 지정",
+    "d30": "30일",
+    "d365": "1년",
+    "d90": "90일",
+    "date": "날짜",
+    "expired": "만료됨",
+    "expires": "만료",
+    "expiresOn": "만료일 {{date}}",
+    "lastUsed": "마지막 사용",
+    "nameHint": "예: 「gitlab-ci」, 「노트북」",
+    "never": "만료 없음",
+    "neverExpires": "만료 없음",
+    "prefix": "접두사",
+    "revoke": "폐기",
+    "revokeHint": "이 토큰을 쓰는 클라이언트는 즉시 실패하기 시작합니다.",
+    "revokeTitle": "토큰 「{{name}}」 을 폐기할까요?",
+    "revoked": "토큰을 폐기했습니다",
+    "saved": "저장했습니다",
+    "secretLabel": "SECRET · 이번 한 번만 표시",
+    "secretWarn": "닫으면 이 secret을 다시 볼 수 없습니다. 지금 저장하세요(예: CI의 secret 변수 HLK_TOKEN).",
+    "sub": "CI와 명령줄 클라이언트를 위한 개인 액세스 토큰입니다. 권한은 {{user}} 와 같습니다.",
+    "useBasic": "Basic(모든 클라이언트)",
+    "useBasicHint": "아이디 ＋ 토큰을 비밀번호로 사용.",
+    "useHeader": "HTTP header"
+  },
+  "type": {
+    "blocked": "차단됨",
+    "group": "그룹",
+    "hosted": "호스티드",
+    "offline": "오프라인",
+    "proxy": "프록시"
+  },
+  "usage": {
+    "apt": {
+      "sources": "소스",
+      "upload": ".deb 업로드"
+    },
+    "createToken": "내 토큰 만들기 →",
+    "cred": "자격 증명: User Token을 사용하세요(아이디 ＋ 토큰을 비밀번호로).",
+    "credNote": "# 자격 증명: 아이디 ＋ User Token을 비밀번호로",
+    "docker": {
+      "mirror": "Docker daemon registry mirror",
+      "path": "경로 모드(메인 포트)",
+      "port": "포트",
+      "subdomain": "서브도메인",
+      "tls": "TLS 포트"
+    },
+    "helm": {
+      "push": "chart 업로드"
+    },
+    "maven": {
+      "deploy": "배포",
+      "mirror": "미러로 사용"
+    },
+    "npm": {
+      "publish": "publish",
+      "registry": "레지스트리",
+      "scope": "특정 scope에만"
+    },
+    "nuget": {
+      "push": "push"
+    },
+    "raw": {
+      "download": "다운로드",
+      "upload": "업로드"
+    },
+    "tf": {
+      "mirror": "Provider network mirror",
+      "module": "Module 소스"
+    },
+    "yum": {
+      "upload": ".rpm 업로드"
+    }
+  },
+  "users": {
+    "active": "사용",
+    "create": "사용자 만들기",
+    "deleteHint": "해당 사용자의 토큰은 즉시 무효가 됩니다.",
+    "deleteTitle": "사용자 삭제",
+    "displayName": "표시 이름",
+    "edit": "{{name}} 편집",
+    "email": "이메일",
+    "exists": "이미 있는 아이디입니다",
+    "externalHint": "{{source}} 에서 동기화됩니다. 매핑의 역할은 로그인 시 적용되고, 여기서 지정한 역할이 추가로 부여됩니다.",
+    "pwReset": "비밀번호를 변경했습니다",
+    "resetPw": "비밀번호 재설정",
+    "resetPwTitle": "{{name}} 의 비밀번호 재설정",
+    "selfAdminHint": "이 페이지에 대한 접근 권한을 즉시 잃게 됩니다.",
+    "selfAdminTitle": "본인의 admin 역할을 제거할까요?",
+    "source": "소스",
+    "tokensOf": "{{name}} 의 토큰"
+  },
+  "webhooks": {
+    "create": "webhook 만들기",
+    "deleteTitle": "webhook 「{{name}}」 을 삭제할까요?",
+    "edit": "webhook 편집",
+    "events": "이벤트",
+    "httpsHint": "https:// 권장",
+    "payload": "페이로드 예시",
+    "queued": "테스트 이벤트를 대기열에 넣었습니다 — 전송 결과는 Logs에서 확인하세요",
+    "repoHint": "비우면 모든 리포지터리",
+    "secret": "서명 시크릿",
+    "sendTest": "테스트 전송",
+    "signature": "서명: X-Holiaokho-Signature(본문의 HMAC-SHA256)"
+  },
+  "wizard": {
+    "configure": "{{format}} {{type}} 설정",
+    "create": "{{name}} 만들기",
+    "filterFormats": "포맷 필터",
+    "groupDesc": "여러 호스티드／프록시 리포지터리를 하나의 URL로 묶습니다.",
+    "groupNeedsMembers": "먼저 호스티드 또는 프록시 {{format}} 리포지터리를 만드세요.",
+    "groupWhen": "클라이언트가 주소 하나만 설정하게 하고 싶을 때.",
+    "hostedDesc": "개발자나 CI가 업로드하는 우리 쪽 산출물.",
+    "hostedWhen": "사내 라이브러리, 릴리스 빌드, 직접 만든 이미지.",
+    "preview": "만든 뒤 클라이언트는 이렇게 사용합니다",
+    "proxyDesc": "원격 레지스트리를 캐시합니다. 한 번 받으면 이후에는 로컬에서 제공합니다.",
+    "proxyWhen": "Maven Central, npmjs, Docker Hub, PyPI…",
+    "step1": "포맷",
+    "step2": "타입",
+    "step3": "설정",
+    "title": "만들기"
+  }
+}

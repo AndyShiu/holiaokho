@@ -82,17 +82,27 @@
     "addLdapRealm2": "添加 LDAP 认证源",
     "addMapping": "新增映射",
     "anonymous": "匿名访问",
-    "anonymousHint": "此处仅供查看，开关在配置文件的 auth.anonymous_enabled。匿名用户能做什么，由 anonymous 角色决定。",
+    "anonymousHint": "开启后，未登录的客户端也能读取。实际能做什么由 anonymous 角色决定。",
     "autoCreate": "自动创建用户",
     "bindPassword": "Bind 密码",
     "connOk": "连接成功",
     "defaultRoles": "默认角色",
     "defaultRolesHint": "除用户自身的角色外，额外授予每位已登录的用户。",
     "disallowCommon": "拒绝常见密码（内置列表）",
+    "displayNameAttr": "显示名称属性",
+    "emailAttr": "Email 属性",
+    "groupBaseDn": "组 base DN",
+    "groupClaim": "组 CLAIM",
+    "groupFilter": "组筛选条件",
+    "groupNameAttr": "组名称属性",
+    "groupsClaim": "组 claim",
+    "header": "Header 名称",
     "ldapDefaultRoles": "LDAP 用户的默认角色",
+    "ldapGroup": "LDAP 组",
     "ldapNotInRealms": "LDAP 已启用，但不在认证源顺序中，因此不会用于登录。",
     "loginOk": "登录成功",
     "maxLength": "最大长度",
+    "memberOfAttr": "memberOf 属性",
     "minLength": "最小长度",
     "oidcDefaultRoles": "OIDC 用户的默认角色",
     "options": "选项",
@@ -108,6 +118,7 @@
     "realmsHint2": "登录时由上而下依次尝试，第一个通过验证的就采用。可拖拽调整顺序。",
     "redirect": "重定向地址（请在 IdP 注册）",
     "role": "角色",
+    "roleColumn": "角色",
     "roleMapping": "角色映射",
     "rutWarn": "仅在反向代理会剥除该 header，且已配置 server.trusted_proxies 时才可启用。",
     "saved": "已保存 — 最多 30 秒内生效",
@@ -118,7 +129,10 @@
     "testLogin": "测试连接／登录",
     "testLoginBtn": "测试登录",
     "timeout": "超时（秒）",
+    "userBaseDn": "用户 base DN",
+    "userFilter": "用户筛选条件",
     "userSubtree": "搜索子树",
+    "usernameClaim": "账号 claim",
     "viewAnonRole": "查看 anonymous 角色 →"
   },
   "backup": {
@@ -274,6 +288,9 @@
   },
   "email": {
     "encryption": "加密方式",
+    "from": "发件人",
+    "host": "主机",
+    "port": "端口",
     "recipients": "通知收件人",
     "recipientsHint": "会收到任务失败与存储配额告警。",
     "sendTest": "发送测试邮件",
@@ -352,6 +369,13 @@
     "changeNow": "立即修改",
     "check": "检查项",
     "message": "消息",
+    "msg": {
+      "db_unreachable": "无法连接到数据库",
+      "default_admin_password": "admin 仍在使用默认密码",
+      "quota_exceeded": "已超出配额",
+      "quota_warning": "已使用超过配额的 90%",
+      "storage_unavailable": "存储不可用"
+    },
     "ok": "正常",
     "problems": "检测到问题",
     "recheck": "重新检查",
@@ -387,6 +411,7 @@
     "auto": "自动刷新",
     "copyAll": "复制全部",
     "filter": "筛选",
+    "level": "日志级别",
     "levelSet": "日志级别已设为 {{v}}（重启后回到配置文件的值）",
     "wrap": "自动换行"
   },
@@ -453,6 +478,7 @@
     "title": "修改密码"
   },
   "priv": {
+    "actions": "操作",
     "add": "新增一行",
     "allActions": "完全控制",
     "allAreas": "全部",
@@ -470,6 +496,7 @@
     "sumFormat": "对所有 {{format}} 仓库拥有 {{acts}} 权限",
     "sumRepo": "对仓库 {{name}} 拥有 {{acts}} 权限",
     "sumSelector": "对匹配选择器 {{sel}} 的内容拥有 {{acts}} 权限",
+    "target": "目标",
     "value": "值"
   },
   "repos": {
@@ -515,6 +542,7 @@
     "genKeyTitle": "生成签名密钥",
     "invalidate": "清除缓存",
     "invalidated": "已清除缓存",
+    "keyEmail": "邮箱",
     "nameExists": "名称 {{name}} 已存在。",
     "nameInvalid": "只能使用英文字母、数字与 . _ -",
     "online": "在线",
@@ -547,6 +575,7 @@
     "deleteTitle": "删除角色",
     "edit": "编辑角色",
     "idHint": "留空则由名称自动生成",
+    "privileges": "权限",
     "summary": "这个角色可以做什么",
     "summaryEmpty": "暂无内容 — 请至少添加一项权限。",
     "usedBy": "{{u}} 位用户、{{m}} 组 LDAP/OIDC 映射正在使用"
@@ -589,10 +618,13 @@
     "usedBy": "使用中的角色"
   },
   "storages": {
+    "accessKey": "Access key",
+    "bucket": "Bucket",
     "create": "创建存储",
     "dedupHint": "同一份文件即使存在于多个仓库也只会保存一份。删除的内容由 blob-gc 任务释放，compact-blobs 才会真正回收磁盘空间。",
     "dedupTitle": "内容寻址存储",
     "edit": "编辑 {{name}}",
+    "endpoint": "Endpoint",
     "endpointHint": "留空表示使用 AWS",
     "fs": "本地文件系统",
     "location": "位置",
@@ -600,9 +632,12 @@
     "path": "路径",
     "pathHint": "服务器上的绝对路径（以 Docker／K8s 部署时为容器内的路径）。",
     "pathStyle": "Path-style 寻址（MinIO 与多数自建 S3 需要）",
+    "prefix": "路径前缀",
     "quota": "配额",
     "quotaHint": "0 表示不限制。超过时上传会返回 507，超过 90% 会显示告警。",
+    "region": "区域",
     "s3": "S3 兼容对象存储",
+    "secretKey": "Secret key",
     "test": "测试连接",
     "testOk": "正常 · {{ms}} 毫秒",
     "usage": "使用量"
@@ -624,6 +659,15 @@
   "tasks": {
     "cleanupNote": "清理策略只有在这个任务执行时才会生效。",
     "defaultInterval": "默认间隔（{{i}}）",
+    "desc": {
+      "backup": "按计划将备份归档写入配置的目录",
+      "blob-gc": "软删除已无任何文件引用的 blob（保留 1 小时缓冲）",
+      "cleanup-policies": "对各仓库应用清理策略",
+      "compact-blobs": "从存储中永久移除已软删除的 blob（相当于 Nexus 的 Compact blob store）",
+      "prune-expired": "清除过期的 session、负缓存记录与过旧的任务执行记录",
+      "re-encrypt-secrets": "用当前密钥重新加密已保存的机密（轮换 secrets.key 后执行）",
+      "rebuild-indexes": "重新生成自有仓库的索引（Maven metadata、APT/YUM/apk/CRAN/Conda 索引文件）"
+    },
     "duration": "耗时",
     "every": "每隔",
     "failedNotice": "任务 {{name}} 执行失败",
@@ -681,7 +725,8 @@
     "secretWarn": "关闭后就无法再看到这组 secret，请立即保存，例如存成 CI 的 secret 变量（HLK_TOKEN）。",
     "sub": "给 CI 与命令行客户端使用的个人访问令牌，权限等同 {{user}}。",
     "useBasic": "Basic（任何客户端）",
-    "useBasicHint": "账号 ＋ 用令牌作为密码。"
+    "useBasicHint": "账号 ＋ 用令牌作为密码。",
+    "useHeader": "HTTP header"
   },
   "type": {
     "blocked": "已阻断",
@@ -739,6 +784,7 @@
     "deleteTitle": "删除用户",
     "displayName": "显示名称",
     "edit": "编辑 {{name}}",
+    "email": "邮箱",
     "exists": "这个账号已存在",
     "externalHint": "由 {{source}} 同步。登录时会应用映射表的角色；在这里设置的角色会额外附加。",
     "pwReset": "密码已更新",
@@ -758,6 +804,7 @@
     "payload": "Payload 示例",
     "queued": "测试事件已加入队列 — 请到 Logs 查看发送结果",
     "repoHint": "留空表示所有仓库",
+    "secret": "签名密钥",
     "sendTest": "发送测试事件",
     "signature": "签名：X-Holiaokho-Signature（内容的 HMAC-SHA256）"
   },

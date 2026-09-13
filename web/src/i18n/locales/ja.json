@@ -82,17 +82,27 @@
     "addLdapRealm2": "LDAP 認証元を追加",
     "addMapping": "マッピングを追加",
     "anonymous": "匿名アクセス",
-    "anonymousHint": "ここでは表示のみです。設定ファイルの auth.anonymous_enabled で切り替えます。匿名ユーザーができることは anonymous ロールで決まります。",
+    "anonymousHint": "有効にすると、ログインしていないクライアントも読み取れます。できることの範囲は anonymous ロールで決まります。",
     "autoCreate": "ユーザーを自動作成",
     "bindPassword": "Bind パスワード",
     "connOk": "接続しました",
     "defaultRoles": "デフォルトロール",
     "defaultRolesHint": "ログイン済みの全ユーザーに、本人のロールに加えて付与されます。",
     "disallowCommon": "よくあるパスワードを拒否（内蔵リスト）",
+    "displayNameAttr": "表示名の属性",
+    "emailAttr": "Email 属性",
+    "groupBaseDn": "グループ base DN",
+    "groupClaim": "グループ CLAIM",
+    "groupFilter": "グループフィルター",
+    "groupNameAttr": "グループ名の属性",
+    "groupsClaim": "グループ claim",
+    "header": "ヘッダー名",
     "ldapDefaultRoles": "LDAP ユーザーのデフォルトロール",
+    "ldapGroup": "LDAP グループ",
     "ldapNotInRealms": "LDAP は有効ですが認証元の順序に含まれていないため、ログインには使われません。",
     "loginOk": "ログインに成功しました",
     "maxLength": "最大長",
+    "memberOfAttr": "memberOf 属性",
     "minLength": "最小長",
     "oidcDefaultRoles": "OIDC ユーザーのデフォルトロール",
     "options": "オプション",
@@ -108,6 +118,7 @@
     "realmsHint2": "ログイン時は上から順に試し、最初に認証できた認証元が使われます。ドラッグで並べ替えできます。",
     "redirect": "リダイレクト URL（IdP に登録してください）",
     "role": "ロール",
+    "roleColumn": "ロール",
     "roleMapping": "ロールのマッピング",
     "rutWarn": "このヘッダーをクライアント要求から取り除くリバースプロキシの背後で、かつ server.trusted_proxies を設定済みの場合にのみ有効にしてください。",
     "saved": "保存しました — 反映まで最大 30 秒",
@@ -118,7 +129,10 @@
     "testLogin": "接続／ログインをテスト",
     "testLoginBtn": "ログインをテスト",
     "timeout": "タイムアウト（秒）",
+    "userBaseDn": "ユーザー base DN",
+    "userFilter": "ユーザーフィルター",
     "userSubtree": "サブツリーを検索",
+    "usernameClaim": "ユーザー名 claim",
     "viewAnonRole": "anonymous ロールを表示 →"
   },
   "backup": {
@@ -274,6 +288,9 @@
   },
   "email": {
     "encryption": "暗号化方式",
+    "from": "送信元",
+    "host": "ホスト",
+    "port": "ポート",
     "recipients": "通知の宛先",
     "recipientsHint": "タスクの失敗とストレージ容量の警告を受け取ります。",
     "sendTest": "テストメールを送信",
@@ -352,6 +369,13 @@
     "changeNow": "今すぐ変更",
     "check": "チェック項目",
     "message": "メッセージ",
+    "msg": {
+      "db_unreachable": "データベースに接続できません",
+      "default_admin_password": "admin が初期パスワードのままです",
+      "quota_exceeded": "容量制限を超えました",
+      "quota_warning": "容量制限の 90% を超えています",
+      "storage_unavailable": "ストレージを利用できません"
+    },
     "ok": "正常",
     "problems": "問題が見つかりました",
     "recheck": "再チェック",
@@ -387,6 +411,7 @@
     "auto": "自動更新",
     "copyAll": "すべてコピー",
     "filter": "絞り込み",
+    "level": "ログレベル",
     "levelSet": "ログレベルを {{v}} に設定しました（再起動で設定ファイルの値に戻ります）",
     "wrap": "折り返し"
   },
@@ -453,6 +478,7 @@
     "title": "パスワードを変更"
   },
   "priv": {
+    "actions": "アクション",
     "add": "行を追加",
     "allActions": "フルコントロール",
     "allAreas": "すべて",
@@ -470,6 +496,7 @@
     "sumFormat": "すべての {{format}} リポジトリに対する {{acts}} 権限",
     "sumRepo": "リポジトリ {{name}} に対する {{acts}} 権限",
     "sumSelector": "セレクター {{sel}} に一致するコンテンツへの {{acts}} 権限",
+    "target": "ターゲット",
     "value": "値"
   },
   "repos": {
@@ -515,6 +542,7 @@
     "genKeyTitle": "署名鍵を生成",
     "invalidate": "キャッシュを破棄",
     "invalidated": "キャッシュを破棄しました",
+    "keyEmail": "メール",
     "nameExists": "名前 {{name}} は既に使われています。",
     "nameInvalid": "英数字と . _ - のみ使用できます",
     "online": "オンライン",
@@ -547,6 +575,7 @@
     "deleteTitle": "ロールを削除",
     "edit": "ロールを編集",
     "idHint": "空欄なら名前から自動生成します",
+    "privileges": "権限",
     "summary": "このロールでできること",
     "summaryEmpty": "まだありません — 権限を 1 つ以上追加してください。",
     "usedBy": "{{u}} 人のユーザー、{{m}} 件の LDAP/OIDC マッピングが使用中"
@@ -589,10 +618,13 @@
     "usedBy": "使用中のロール"
   },
   "storages": {
+    "accessKey": "Access key",
+    "bucket": "Bucket",
     "create": "ストレージを作成",
     "dedupHint": "複数のリポジトリに同じファイルがあっても 1 つだけ保存されます。削除された内容は blob-gc タスクで解放され、compact-blobs で実際にディスク容量が戻ります。",
     "dedupTitle": "コンテンツアドレス指定ストレージ",
     "edit": "{{name}} を編集",
+    "endpoint": "Endpoint",
     "endpointHint": "空欄で AWS",
     "fs": "ローカルファイルシステム",
     "location": "場所",
@@ -600,9 +632,12 @@
     "path": "パス",
     "pathHint": "サーバー上の絶対パス（Docker／K8s ではコンテナ内のパス）。",
     "pathStyle": "Path-style アドレッシング（MinIO や多くの自己ホスト S3 で必要）",
+    "prefix": "プレフィックス",
     "quota": "容量制限",
     "quotaHint": "0 は無制限。超過するとアップロードは 507 を返し、90% を超えると警告が出ます。",
+    "region": "リージョン",
     "s3": "S3 互換オブジェクトストレージ",
+    "secretKey": "Secret key",
     "test": "接続をテスト",
     "testOk": "正常 · {{ms}} ミリ秒",
     "usage": "使用量"
@@ -624,6 +659,15 @@
   "tasks": {
     "cleanupNote": "クリーンアップポリシーは、このタスクが実行されたときにのみ適用されます。",
     "defaultInterval": "デフォルト間隔（{{i}}）",
+    "desc": {
+      "backup": "スケジュールに従ってバックアップを指定ディレクトリに書き出します",
+      "blob-gc": "どのファイルからも参照されなくなった blob を論理削除します（1 時間の猶予後）",
+      "cleanup-policies": "各リポジトリにクリーンアップポリシーを適用します",
+      "compact-blobs": "論理削除された blob をストレージから完全に削除します（Nexus の Compact blob store 相当）",
+      "prune-expired": "期限切れのセッション・ネガティブキャッシュ・古い実行履歴を削除します",
+      "re-encrypt-secrets": "保存済みの機密を現在の鍵で再暗号化します（secrets.key のローテーション後に実行）",
+      "rebuild-indexes": "ホストリポジトリの索引を再生成します（Maven metadata、APT/YUM/apk/CRAN/Conda の索引ファイル）"
+    },
     "duration": "所要時間",
     "every": "間隔",
     "failedNotice": "タスク {{name}} が失敗しました",
@@ -681,7 +725,8 @@
     "secretWarn": "閉じるとこの secret は二度と表示されません。今すぐ保存してください（例：CI の secret 変数 HLK_TOKEN）。",
     "sub": "CI やコマンドラインクライアント用の個人アクセストークンです。権限は {{user}} と同じです。",
     "useBasic": "Basic（任意のクライアント）",
-    "useBasicHint": "ユーザー名 ＋ トークンをパスワードとして使用。"
+    "useBasicHint": "ユーザー名 ＋ トークンをパスワードとして使用。",
+    "useHeader": "HTTP header"
   },
   "type": {
     "blocked": "ブロック中",
@@ -739,6 +784,7 @@
     "deleteTitle": "ユーザーを削除",
     "displayName": "表示名",
     "edit": "{{name}} を編集",
+    "email": "メール",
     "exists": "そのユーザー名は既に存在します",
     "externalHint": "{{source}} から同期されています。マッピングのロールはログイン時に適用され、ここで設定したロールは追加で付与されます。",
     "pwReset": "パスワードを更新しました",
@@ -758,6 +804,7 @@
     "payload": "ペイロード例",
     "queued": "テストイベントをキューに入れました — 送信結果は Logs で確認してください",
     "repoHint": "空欄ですべてのリポジトリ",
+    "secret": "署名シークレット",
     "sendTest": "テスト送信",
     "signature": "署名：X-Holiaokho-Signature（本文の HMAC-SHA256）"
   },

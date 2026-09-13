@@ -46,7 +46,7 @@ export function PrivilegeEditor({ value, onChange }: { value: Privilege[]; onCha
   return (
     <div>
       <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr 230px 60px', gap: 8, padding: '0 0 6px', fontSize: 10, letterSpacing: '.06em', color: 'var(--hlk-text-tertiary)' }} className="hlk-mono">
-        <span>TARGET</span><span>{t('priv.value', 'VALUE')}</span><span>ACTIONS</span><span />
+        <span>{t('priv.target', 'TARGET')}</span><span>{t('priv.value', 'VALUE')}</span><span>{t('priv.actions', 'ACTIONS')}</span><span />
       </div>
       {value.map((p, i) => {
         const { kind, value: v } = split(p.target)

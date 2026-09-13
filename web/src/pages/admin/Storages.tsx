@@ -89,12 +89,12 @@ export default function Storages() {
               ) : (
                 <>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                    <Form.Item name={['config', 'endpoint']} label="Endpoint" extra={t('storages.endpointHint', 'Empty = AWS')}><Input className="hlk-mono" placeholder="https://s3.example.com" /></Form.Item>
-                    <Form.Item name={['config', 'region']} label="Region"><Input className="hlk-mono" /></Form.Item>
-                    <Form.Item name={['config', 'bucket']} label="Bucket" rules={[{ required: true }]}><Input className="hlk-mono" disabled={!!editing} /></Form.Item>
-                    <Form.Item name={['config', 'prefix']} label="Prefix"><Input className="hlk-mono" disabled={!!editing} /></Form.Item>
-                    <Form.Item name={['config', 'accessKey']} label="Access key"><Input className="hlk-mono" autoComplete="off" /></Form.Item>
-                    <Form.Item name={['config', 'secretKey']} label="Secret key" extra={editing && <SecretHint />}><Input.Password autoComplete="new-password" /></Form.Item>
+                    <Form.Item name={['config', 'endpoint']} label={t('storages.endpoint', 'Endpoint')} extra={t('storages.endpointHint', 'Empty = AWS')}><Input className="hlk-mono" placeholder="https://s3.example.com" /></Form.Item>
+                    <Form.Item name={['config', 'region']} label={t('storages.region', 'Region')}><Input className="hlk-mono" /></Form.Item>
+                    <Form.Item name={['config', 'bucket']} label={t('storages.bucket', 'Bucket')} rules={[{ required: true }]}><Input className="hlk-mono" disabled={!!editing} /></Form.Item>
+                    <Form.Item name={['config', 'prefix']} label={t('storages.prefix', 'Prefix')}><Input className="hlk-mono" disabled={!!editing} /></Form.Item>
+                    <Form.Item name={['config', 'accessKey']} label={t('storages.accessKey', 'Access key')}><Input className="hlk-mono" autoComplete="off" /></Form.Item>
+                    <Form.Item name={['config', 'secretKey']} label={t('storages.secretKey', 'Secret key')} extra={editing && <SecretHint />}><Input.Password autoComplete="new-password" /></Form.Item>
                   </div>
                   <Form.Item name={['config', 'pathStyle']} valuePropName="checked"><Checkbox>{t('storages.pathStyle', 'Path-style addressing (MinIO and most self-hosted S3)')}</Checkbox></Form.Item>
                 </>
