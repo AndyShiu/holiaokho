@@ -1,7 +1,9 @@
 package docker
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -64,6 +66,16 @@ func (t *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	}
 	params := parseChallenge(challenge)
 	tok, exp, err := t.fetchToken(req, params)
+	var denied *tokenDenied
+	if errors.As(err, &denied) {
+		// The registry answered, and the answer is no. GHCR refuses a token
+		// for a repository that does not exist, so this is how a mistyped
+		// image name looks from here. Returned as an error it would count as
+		// the upstream being down, and one typo would block every image on
+		// the registry for everyone. As a response it is what it is: a
+		// refusal, which the engine already knows how to treat.
+		return denied.response(req), nil
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -167,6 +179,9 @@ func (t *authTransport) fetchToken(orig *http.Request, params map[string]string)
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		b, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		if resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
+			return "", time.Time{}, &tokenDenied{status: resp.StatusCode, body: b}
+		}
 		return "", time.Time{}, fmt.Errorf("token endpoint %s returned %d: %s", realm, resp.StatusCode, strings.TrimSpace(string(b)))
 	}
 	var body struct {
@@ -189,4 +204,28 @@ func (t *authTransport) fetchToken(orig *http.Request, params map[string]string)
 		exp = 60
 	}
 	return tok, time.Now().Add(time.Duration(exp) * time.Second), nil
+}
+
+// tokenDenied is a token endpoint refusing the requested scope.
+type tokenDenied struct {
+	status int
+	body   []byte
+}
+
+func (d *tokenDenied) Error() string {
+	return fmt.Sprintf("token endpoint returned %d", d.status)
+}
+
+func (d *tokenDenied) response(req *http.Request) *http.Response {
+	return &http.Response{
+		StatusCode:    d.status,
+		Status:        fmt.Sprintf("%d %s", d.status, http.StatusText(d.status)),
+		Proto:         "HTTP/1.1",
+		ProtoMajor:    1,
+		ProtoMinor:    1,
+		Header:        http.Header{"Content-Type": {"application/json"}},
+		Body:          io.NopCloser(bytes.NewReader(d.body)),
+		ContentLength: int64(len(d.body)),
+		Request:       req,
+	}
 }

@@ -281,7 +281,7 @@ func (h *handler) mergedPackument(r *http.Request, name string) (map[string]any,
 		mh := &handler{repo: m, d: h.d}
 		doc, t, err := mh.mergedPackument(r, name)
 		if err != nil {
-			if !errors.Is(err, repo.ErrNotFound) {
+			if !errors.Is(err, repo.ErrNotFound) && !errors.Is(err, repo.ErrBlocked) {
 				if logx.Disconnected(err) {
 					h.d.Log.Debug("npm group member cancelled", "member", m.Name, "name", name)
 				} else {

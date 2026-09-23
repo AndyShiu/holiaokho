@@ -15,6 +15,59 @@ export interface Release {
 
 export const releases: Release[] = [
   {
+    version: '1.1.2',
+    date: '2026-09-23',
+    headline: {
+      en: 'Pulling through a slow upstream now starts right away, and a mistyped image name no longer takes a whole registry offline.',
+      'zh-TW': '透過緩慢的上游拉取時會立刻開始傳輸;打錯 image 名稱也不會再讓整個 registry 停擺。',
+      'zh-CN': '通过缓慢的上游拉取时会立刻开始传输;打错镜像名称也不会再让整个 registry 停摆。',
+      ja: '遅い上流経由のプルがすぐに始まるようになり、イメージ名の打ち間違いでレジストリ全体が止まることもなくなりました。',
+      ko: '느린 업스트림을 통한 풀이 바로 시작되며, 이미지 이름 오타로 레지스트리 전체가 멈추는 일도 없어졌습니다.',
+    },
+    changes: [
+      {
+        kind: 'fixed',
+        text: {
+          en: 'Docker layers are sent to the client as they arrive from upstream, instead of after the whole layer has been downloaded. Over a slow link a large layer used to produce minutes of silence, long enough for the client or a proxy in between to give up. Several clients pulling the same layer share one download.',
+          'zh-TW': 'Docker layer 會邊從上游收到邊轉給 client,不再等整個 layer 下載完才開始送。以前在慢速連線下,大的 layer 會沉默好幾分鐘,久到 client 或中間的 proxy 直接放棄。多個 client 同時拉同一個 layer 時共用同一個下載。',
+          'zh-CN': 'Docker layer 会边从上游收到边转给客户端,不再等整个 layer 下载完才开始发送。以前在慢速连接下,大的 layer 会沉默好几分钟,久到客户端或中间的代理直接放弃。多个客户端同时拉同一个 layer 时共用同一个下载。',
+          ja: 'Docker レイヤーは上流から届いた分からクライアントへ送られるようになりました。以前は遅い回線だと大きなレイヤーで数分間なにも返らず、クライアントや中継プロキシが諦めてしまうことがありました。同じレイヤーを取得する複数のクライアントは一つのダウンロードを共有します。',
+          ko: 'Docker 레이어가 업스트림에서 도착하는 대로 클라이언트에 전달됩니다. 이전에는 느린 회선에서 큰 레이어가 몇 분간 아무 응답이 없어 클라이언트나 중간 프록시가 포기하곤 했습니다. 같은 레이어를 받는 여러 클라이언트는 하나의 다운로드를 공유합니다.',
+        },
+      },
+      {
+        kind: 'fixed',
+        text: {
+          en: 'A slow layer download is no longer cut off at ten minutes. It is abandoned only after a minute with no data at all, so a large layer over a slow link finishes and is cached instead of failing at the same point on every attempt.',
+          'zh-TW': '慢速的 layer 下載不再在十分鐘時被切斷,只有整整一分鐘沒收到任何資料才會放棄。慢速連線下的大 layer 因此能下載完並進快取,而不是每次都在同一個地方失敗。',
+          'zh-CN': '慢速的 layer 下载不再在十分钟时被切断,只有整整一分钟没收到任何数据才会放弃。慢速连接下的大 layer 因此能下载完并进缓存,而不是每次都在同一个地方失败。',
+          ja: '遅いレイヤーのダウンロードが 10 分で打ち切られなくなりました。1 分間まったくデータが来ない場合にのみ中断するため、遅い回線でも大きなレイヤーが最後まで取得されキャッシュされます。',
+          ko: '느린 레이어 다운로드가 10분에서 끊기지 않습니다. 1분 동안 데이터가 전혀 오지 않을 때만 중단하므로, 느린 회선에서도 큰 레이어가 끝까지 받아져 캐시됩니다.',
+        },
+      },
+      {
+        kind: 'fixed',
+        text: {
+          en: 'Asking a registry such as GHCR for an image that does not exist no longer blocks that proxy for 30 seconds. The refusal was being counted as the upstream being down, so one typo made every image on it unavailable to everyone.',
+          'zh-TW': '向 GHCR 等 registry 要一個不存在的 image,不會再讓該 proxy 被封鎖 30 秒。以前這種拒絕會被當成上游故障,一次打錯字就讓所有人都拉不到那個 registry 上的任何 image。',
+          'zh-CN': '向 GHCR 等 registry 要一个不存在的镜像,不会再让该代理被封锁 30 秒。以前这种拒绝会被当成上游故障,一次打错字就让所有人都拉不到那个 registry 上的任何镜像。',
+          ja: 'GHCR などに存在しないイメージを要求しても、そのプロキシが 30 秒間ブロックされなくなりました。拒否が上流障害として数えられていたため、一度の打ち間違いで全員がそのレジストリのイメージを取得できなくなっていました。',
+          ko: 'GHCR 등에 존재하지 않는 이미지를 요청해도 해당 프록시가 30초간 차단되지 않습니다. 거부 응답이 업스트림 장애로 집계되어, 오타 한 번에 모두가 그 레지스트리의 이미지를 받을 수 없었습니다.',
+        },
+      },
+      {
+        kind: 'fixed',
+        text: {
+          en: 'While an upstream is blocked, requests to it report the upstream as unavailable instead of saying the image does not exist.',
+          'zh-TW': '上游被封鎖期間,請求會回報「上游無法使用」,而不是說 image 不存在。',
+          'zh-CN': '上游被封锁期间,请求会报告「上游不可用」,而不是说镜像不存在。',
+          ja: '上流がブロックされている間は、イメージが存在しないではなく上流が利用できないと応答します。',
+          ko: '업스트림이 차단된 동안에는 이미지가 없다고 하지 않고 업스트림을 사용할 수 없다고 응답합니다.',
+        },
+      },
+    ],
+  },
+  {
     version: '1.1.1',
     date: '2026-09-14',
     changes: [

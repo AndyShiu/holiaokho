@@ -124,6 +124,19 @@ D rmi host.docker.internal:15001/e2e/alpine:t >/dev/null
 check D pull host.docker.internal:15002/e2e/alpine:t         # via group
 check curl -sf http://localhost:15001/v2/e2e/alpine/tags/list
 
+echo "== upstream refusals"
+# GHCR refuses a token for a repository that does not exist. That is an answer,
+# not an outage: counted as a failure it blocked the whole proxy for 30 seconds,
+# so the request right after a typo — for an image that does exist — failed too.
+# autoBlock is on because it is what the bug went through; without it this
+# test would pass on the old code too.
+mk '{"name":"ghcr-e2e","format":"docker","type":"proxy","attributes":{"proxy":{"remoteUrl":"https://ghcr.io","autoBlock":true},"docker":{"indexType":"REGISTRY","pathEnabled":true}}}'
+MA='Accept: application/vnd.docker.distribution.manifest.list.v2+json, application/vnd.oci.image.index.v1+json'
+code=$(curl -s -o /dev/null -w '%{http_code}' -u "admin:$ADMIN_PW" -H "$MA" "$H/v2/ghcr-e2e/holiaokho-e2e/does-not-exist/manifests/latest")
+if [ "$code" = 404 ]; then ok "a missing image on ghcr is 404"; else bad "a missing image on ghcr is 404 (got $code)"; fi
+code=$(curl -s -o /dev/null -w '%{http_code}' -u "admin:$ADMIN_PW" -H "$MA" "$H/v2/ghcr-e2e/getsops/sops/manifests/v3.10.2")
+if [ "$code" = 200 ]; then ok "ghcr still answers right after a refusal"; else bad "ghcr still answers right after a refusal (got $code)"; fi
+
 echo "== oci referrers"
 # Signatures, SBOMs and attestations are separate manifests that name the image
 # they describe. Exercised with the API directly rather than cosign so the test

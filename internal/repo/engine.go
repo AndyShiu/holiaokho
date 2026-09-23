@@ -40,6 +40,11 @@ var (
 	ErrInvalidPath    = errors.New("invalid path")
 	ErrUpstreamDenied = errors.New("upstream denied")
 	ErrRouted         = errors.New("path blocked by routing rule")
+	// ErrBlocked is an ErrUpstream: the upstream is blocked, by an
+	// administrator or after failures, so it was not asked. Distinct so
+	// callers merging group members need not log it on every request — the
+	// block itself is logged once, when it starts.
+	ErrBlocked = fmt.Errorf("%w: upstream blocked", ErrUpstream)
 )
 
 // Kind tells the engine which TTL applies to a proxied path.
@@ -78,6 +83,11 @@ type Policy struct {
 	// KeepHeaders lists upstream response headers to store in the asset
 	// attributes ("headers" map) so the format can replay them.
 	KeepHeaders []string
+	// Stream lets a cache miss be served while it downloads, instead of
+	// after. Only for content the caller hands straight to the client: the
+	// Result carries no Asset until the download has finished, so a caller
+	// that parses the body or reads asset attributes must leave it off.
+	Stream bool
 }
 
 // Result is a resolved asset with an open body.
@@ -111,6 +121,9 @@ type Engine struct {
 	client  *http.Client
 	sf      singleflight.Group
 	ua      string
+	// spools are the streamed downloads in progress, by repo and path.
+	spoolMu sync.Mutex
+	spools  map[string]*spool
 	// autoBlock tracks upstream failures per repo (name -> until).
 	blockedMu sync.Mutex
 	blocked   map[string]time.Time
@@ -176,6 +189,7 @@ func NewEngine(c *content.Service, log *slog.Logger, repos RepoResolver, pc conf
 		client:  &http.Client{Transport: tr, Timeout: pc.Timeout},
 		ua:      pc.UserAgent,
 		blocked: map[string]time.Time{},
+		spools:  map[string]*spool{},
 	}, nil
 }
 
@@ -335,33 +349,103 @@ func (e *Engine) fetchProxy(ctx context.Context, repo *model.Repository, path st
 		if cached && !a.Negative && a.BlobDigest != nil {
 			return e.open(ctx, repo, a, false) // stale but better than nothing
 		}
-		return nil, ErrNotFound
+		// Not ErrNotFound: nobody asked the upstream, so nobody knows. A
+		// client told "manifest unknown" goes looking for a typo; one told
+		// the upstream is unavailable waits and retries, which is right.
+		return nil, fmt.Errorf("%w: %s", ErrBlocked, repo.Name)
+	}
+	var stale *model.Asset
+	if cached {
+		stale = a
+	}
+	if pol.Stream {
+		if res, err := e.fetchStreamed(ctx, repo, path, pol, stale); !errors.Is(err, errNoSpool) {
+			return res, err
+		}
 	}
 	// Coalesce concurrent misses for the same asset.
 	key := repo.Name + "\x00" + path
 	v, err, _ := e.sf.Do(key, func() (any, error) {
-		var stale *model.Asset
-		if cached {
-			stale = a
-		}
 		// Detach from the first caller's context: other requests may be
 		// waiting on this fetch and must not fail if the first one leaves.
 		fctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), e.client.Timeout)
 		defer cancel()
-		return e.refresh(fctx, repo, path, pol, stale)
+		return e.refresh(fctx, repo, path, pol, stale, nil)
 	})
 	if err != nil {
-		if cached && !a.Negative && a.BlobDigest != nil && errors.Is(err, ErrUpstream) {
-			e.Log.Warn("upstream failed, serving stale", "repo", repo.Name, "path", path, "err", err)
-			return e.open(ctx, repo, a, false)
-		}
-		return nil, err
+		return e.refreshFailed(ctx, repo, path, stale, err)
 	}
-	na := v.(*model.Asset)
+	return e.refreshed(ctx, repo, v.(*model.Asset))
+}
+
+// refreshFailed serves the stale copy when there is one and the failure was
+// the upstream's, rather than an answer from it.
+func (e *Engine) refreshFailed(ctx context.Context, repo *model.Repository, path string, stale *model.Asset, err error) (*Result, error) {
+	if stale != nil && !stale.Negative && stale.BlobDigest != nil && errors.Is(err, ErrUpstream) {
+		e.Log.Warn("upstream failed, serving stale", "repo", repo.Name, "path", path, "err", err)
+		return e.open(ctx, repo, stale, false)
+	}
+	return nil, err
+}
+
+func (e *Engine) refreshed(ctx context.Context, repo *model.Repository, na *model.Asset) (*Result, error) {
 	if na.Negative || na.BlobDigest == nil {
 		return nil, ErrNotFound
 	}
 	return e.open(ctx, repo, na, true)
+}
+
+var errNoSpool = errors.New("no spool")
+
+// fetchStreamed is fetchProxy's cache miss for Policy.Stream: one download
+// per asset however many clients ask, each of them reading it as it lands.
+func (e *Engine) fetchStreamed(ctx context.Context, repo *model.Repository, path string, pol Policy, stale *model.Asset) (*Result, error) {
+	key := repo.Name + "\x00" + path
+	e.spoolMu.Lock()
+	sp := e.spools[key]
+	if sp == nil {
+		var err error
+		if sp, err = newSpool(); err != nil {
+			e.spoolMu.Unlock()
+			// Nowhere to spool to is not a reason to fail the request; it
+			// is a reason to fall back to fetching the whole thing first.
+			e.Log.Warn("cannot spool upstream download", "err", err)
+			return nil, errNoSpool
+		}
+		e.spools[key] = sp
+		go func() {
+			// Detached, like the singleflight path: the download belongs to
+			// everyone reading it, and finishing it is what fills the cache.
+			na, err := e.refresh(context.WithoutCancel(ctx), repo, path, pol, stale, sp)
+			sp.finish(na, err)
+			e.spoolMu.Lock()
+			delete(e.spools, key)
+			e.spoolMu.Unlock()
+			sp.release()
+		}()
+	}
+	sp.acquire()
+	e.spoolMu.Unlock()
+
+	if err := sp.wait(ctx); err != nil {
+		sp.release()
+		return nil, err
+	}
+	sp.mu.Lock()
+	done, na, err, size, ct := sp.done, sp.asset, sp.err, sp.size, sp.ct
+	sp.mu.Unlock()
+
+	// Finished by the time we looked — either it never streamed (a 404, a
+	// 304, a refusal) or it already completed. Serve what it produced, from
+	// storage, with everything a stored asset brings (ranges, ETag).
+	if done {
+		sp.release()
+		if err != nil {
+			return e.refreshFailed(ctx, repo, path, stale, err)
+		}
+		return e.refreshed(ctx, repo, na)
+	}
+	return &Result{Repo: repo, Body: sp.reader(), Size: size, ContentType: ct, Upstream: true}, nil
 }
 
 func (e *Engine) upstreamURL(repo *model.Repository, path string, pol Policy) string {
@@ -393,19 +477,38 @@ func (e *Engine) newUpstreamRequest(ctx context.Context, repo *model.Repository,
 	return req, nil
 }
 
-func (e *Engine) doUpstream(req *http.Request, pol Policy) (*http.Response, error) {
+func (e *Engine) doUpstream(req *http.Request, pol Policy, streamed bool) (*http.Response, error) {
 	c := e.client
 	if pol.Client != nil {
 		c = pol.Client
+	}
+	if streamed {
+		// http.Client.Timeout covers reading the body too. A copy shares
+		// the transport, so connection reuse and cached registry tokens are
+		// unaffected; connect and response-header timeouts still apply.
+		cc := *c
+		cc.Timeout = 0
+		c = &cc
 	}
 	return c.Do(req)
 }
 
 // refresh fetches path from upstream and stores it. stale, if non-nil, is
 // the expired cached asset used for conditional requests.
-func (e *Engine) refresh(ctx context.Context, repo *model.Repository, path string, pol Policy, stale *model.Asset) (*model.Asset, error) {
+//
+// sp, when non-nil, receives the body as it is stored. The transfer then has
+// no total time limit: it is resumed where it stopped when it stalls, and
+// given up only when it stops making progress altogether.
+func (e *Engine) refresh(ctx context.Context, repo *model.Repository, path string, pol Policy, stale *model.Asset, sp *spool) (*model.Asset, error) {
 	u := e.upstreamURL(repo, path, pol)
-	req, err := e.newUpstreamRequest(ctx, repo, http.MethodGet, u, pol)
+	reqCtx := ctx
+	var rb *resumingBody
+	if sp != nil {
+		rb = newResumingBody(ctx)
+		defer rb.timer.Stop()
+		reqCtx = rb.attempt()
+	}
+	req, err := e.newUpstreamRequest(reqCtx, repo, http.MethodGet, u, pol)
 	if err != nil {
 		return nil, err
 	}
@@ -419,7 +522,7 @@ func (e *Engine) refresh(ctx context.Context, repo *model.Repository, path strin
 			req.Header.Set("If-Modified-Since", lm)
 		}
 	}
-	resp, err := e.doUpstream(req, pol)
+	resp, err := e.doUpstream(req, pol, sp != nil)
 	if err != nil {
 		e.noteFailure(repo)
 		if logx.Disconnected(err) {
@@ -471,13 +574,27 @@ func (e *Engine) refresh(ctx context.Context, repo *model.Repository, path strin
 		return nil, fmt.Errorf("%w: upstream %s returned %d", ErrUpstream, u, resp.StatusCode)
 	}
 
-	info, err := e.Content.PutBlob(ctx, repo.StorageID, resp.Body, pol.ExpectedDigest)
-	if err != nil {
-		return nil, fmt.Errorf("store upstream body: %w", err)
-	}
 	ct := pol.ContentType
 	if ct == "" {
 		ct = resp.Header.Get("Content-Type")
+	}
+	var body io.Reader = resp.Body
+	if sp != nil {
+		rb.body = resp.Body
+		rb.open = func(ctx context.Context, off int64) (io.ReadCloser, error) {
+			return e.resumeUpstream(ctx, repo, u, pol, off)
+		}
+		defer rb.Close()
+		sp.begin(resp.ContentLength, ct)
+		body = io.TeeReader(rb, sp)
+	}
+	info, err := e.Content.PutBlob(ctx, repo.StorageID, body, pol.ExpectedDigest)
+	if err != nil {
+		if rb != nil && rb.err != nil {
+			e.Log.Warn("upstream transfer gave up", "repo", repo.Name, "url", u, "received", rb.off, "err", rb.err)
+			return nil, fmt.Errorf("%w: transfer from %s stopped after %d bytes", ErrUpstream, u, rb.off)
+		}
+		return nil, fmt.Errorf("store upstream body: %w", err)
 	}
 	na := &model.Asset{RepoID: repo.ID, Path: path, Size: info.Size, ContentType: ct, CacheExpiresAt: e.ttl(repo, pol)}
 	d := string(info.Digest)
@@ -516,6 +633,29 @@ func (e *Engine) refresh(ctx context.Context, repo *model.Repository, path strin
 	return na, nil
 }
 
+// resumeUpstream asks for the rest of u from byte off.
+func (e *Engine) resumeUpstream(ctx context.Context, repo *model.Repository, u string, pol Policy, off int64) (io.ReadCloser, error) {
+	e.Log.Info("resuming upstream transfer", "repo", repo.Name, "url", u, "from", off)
+	req, err := e.newUpstreamRequest(ctx, repo, http.MethodGet, u, pol)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Range", fmt.Sprintf("bytes=%d-", off))
+	resp, err := e.doUpstream(req, pol, true)
+	if err != nil {
+		return nil, err
+	}
+	// Anything but the exact continuation would splice the wrong bytes into
+	// the stream. Storage would catch it at the end by digest; better not to
+	// send them to the client in the first place.
+	if resp.StatusCode != http.StatusPartialContent ||
+		!strings.HasPrefix(resp.Header.Get("Content-Range"), fmt.Sprintf("bytes %d-", off)) {
+		resp.Body.Close()
+		return nil, fmt.Errorf("upstream cannot resume at %d: %s", off, resp.Status)
+	}
+	return resp.Body, nil
+}
+
 // passthrough proxies a request upstream without caching.
 func (e *Engine) passthrough(ctx context.Context, repo *model.Repository, path string, pol Policy) (*Result, error) {
 	u := e.upstreamURL(repo, path, pol)
@@ -523,7 +663,7 @@ func (e *Engine) passthrough(ctx context.Context, repo *model.Repository, path s
 	if err != nil {
 		return nil, err
 	}
-	resp, err := e.doUpstream(req, pol)
+	resp, err := e.doUpstream(req, pol, false)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrUpstream, err)
 	}
@@ -552,7 +692,7 @@ func (e *Engine) Upstream(ctx context.Context, repo *model.Repository, method, p
 	if repo.Proxy.Username != "" {
 		req.SetBasicAuth(repo.Proxy.Username, repo.Proxy.Password)
 	}
-	return e.doUpstream(req, pol)
+	return e.doUpstream(req, pol, false)
 }
 
 // ---------------------------------------------------------------- autoBlock

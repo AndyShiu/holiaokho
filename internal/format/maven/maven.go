@@ -340,7 +340,7 @@ func (h *handler) groupMetadata(w http.ResponseWriter, r *http.Request, p string
 					continue
 				}
 			} else {
-				if !errors.Is(err, repo.ErrNotFound) {
+				if !errors.Is(err, repo.ErrNotFound) && !errors.Is(err, repo.ErrBlocked) {
 					if logx.Disconnected(err) {
 						h.d.Log.Debug("group member metadata cancelled", "member", m.Name, "path", base)
 					} else {

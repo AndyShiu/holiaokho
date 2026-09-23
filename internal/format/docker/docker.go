@@ -333,6 +333,9 @@ func (h *handler) fetch(ctx context.Context, name, sub string, kind repo.Kind, i
 	if i := strings.LastIndexByte(sub, '/'); i >= 0 && isDigest(sub[i+1:]) {
 		pol.ExpectedDigest = storage.Digest(sub[i+1:])
 	}
+	// Layers are the large part of a pull and go straight to the client.
+	// Manifests are parsed and indexed from the stored asset, so they wait.
+	pol.Stream = strings.HasPrefix(sub, "blobs/")
 	return h.d.Engine.Fetch(ctx, h.repo, path, pol)
 }
 
