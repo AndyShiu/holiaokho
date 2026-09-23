@@ -748,6 +748,8 @@
       "blob-gc": "Soft-delete blobs no longer referenced by any asset (after a 1h grace period)",
       "cleanup-policies": "Apply cleanup policies to their repositories",
       "compact-blobs": "Permanently remove soft-deleted blobs from storage (Nexus 'Compact blob store')",
+      "delete-incomplete-uploads": "Delete uploads a client started and never finished, such as an interrupted docker push (untouched for 24h)",
+      "delete-temp-files": "Delete temporary files left behind when the server stopped in the middle of a write (untouched for 1h)",
       "prune-expired": "Remove expired sessions, negative cache entries and stale task runs",
       "re-encrypt-secrets": "Re-encrypt stored secrets with the current key (run after rotating secrets.key)",
       "rebuild-indexes": "Regenerate hosted repository indexes (Maven metadata, APT/YUM/apk/CRAN/Conda index files)"
@@ -762,6 +764,8 @@
       "blob-gc": "Blob GC",
       "cleanup-policies": "Apply cleanup policies",
       "compact-blobs": "Compact blob store",
+      "delete-incomplete-uploads": "Delete incomplete uploads",
+      "delete-temp-files": "Delete temporary files",
       "prune-expired": "Prune expired entries",
       "re-encrypt-secrets": "Re-encrypt secrets",
       "rebuild-indexes": "Rebuild indexes"

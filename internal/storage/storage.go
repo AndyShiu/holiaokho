@@ -11,6 +11,7 @@ import (
 	"hash"
 	"io"
 	"strings"
+	"time"
 )
 
 var ErrNotFound = errors.New("blob not found")
@@ -70,6 +71,35 @@ type Storage interface {
 }
 
 var ErrUnsupported = errors.New("operation not supported by this storage")
+
+// Leftover names the kind of staged data a Sweep removes.
+type Leftover int
+
+const (
+	// Abandoned is an upload a client started and never finished — Docker's
+	// chunked blob upload, left behind when a push is interrupted. The client
+	// may come back to it, so these are kept for a while.
+	Abandoned Leftover = iota
+	// Scratch is staging a backend creates for itself while writing a blob.
+	// It is removed when the write ends either way, so it outlives the write
+	// only when the process died in the middle of it.
+	Scratch
+)
+
+// Swept reports what a Sweep removed.
+type Swept struct {
+	Items int
+	Bytes int64
+}
+
+// Sweeper is implemented by backends that stage data outside the blob layout.
+type Sweeper interface {
+	// Sweep removes leftovers of the given kind last written before cutoff.
+	// Age is measured from the last write, not the first, so a transfer
+	// still in progress — however long it has been running — is never
+	// mistaken for one that was abandoned.
+	Sweep(ctx context.Context, kind Leftover, cutoff time.Time) (Swept, error)
+}
 
 // Hasher wraps a writer computing sha256 on the fly.
 type Hasher struct {

@@ -5,10 +5,12 @@ import (
 	"errors"
 	"io"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/holiaokho/holiaokho/internal/model"
+	"github.com/holiaokho/holiaokho/internal/storage"
 )
 
 // stallTimeout is how long a streamed upstream body may go without delivering
@@ -51,8 +53,10 @@ type spool struct {
 	asset *model.Asset
 }
 
+const spoolPrefix = "holiaokho-spool-"
+
 func newSpool() (*spool, error) {
-	f, err := os.CreateTemp("", "holiaokho-spool-*")
+	f, err := os.CreateTemp("", spoolPrefix+"*")
 	if err != nil {
 		return nil, err
 	}
@@ -174,4 +178,15 @@ func (r *spoolReader) Close() error {
 		r.s.release()
 	}
 	return nil
+}
+
+// SweepSpools removes spool files last written before cutoff. The last
+// reader removes a spool when it finishes, so one is left behind only when
+// the process died mid-download. A slow client still reading an older spool
+// is unaffected: it holds the file open, and on Unix removing the name does
+// not take the data away from it.
+func SweepSpools(ctx context.Context, cutoff time.Time) (storage.Swept, error) {
+	return storage.SweepDir(ctx, os.TempDir(), cutoff, func(name string) bool {
+		return strings.HasPrefix(name, spoolPrefix)
+	})
 }

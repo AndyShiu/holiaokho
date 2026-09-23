@@ -20,6 +20,7 @@ import (
 	"github.com/holiaokho/holiaokho/internal/content"
 	"github.com/holiaokho/holiaokho/internal/db"
 	"github.com/holiaokho/holiaokho/internal/model"
+	"github.com/holiaokho/holiaokho/internal/repo"
 	"github.com/holiaokho/holiaokho/internal/storage"
 )
 
@@ -259,6 +260,48 @@ func RegisterBuiltins(s *Scheduler, c *content.Service) {
 		logf("sessions=%d negative=%d task_runs=%d", t1.RowsAffected(), t2.RowsAffected(), t3.RowsAffected())
 		return nil
 	})
+	// A day, as Nexus does: long enough that a client pausing between chunks
+	// or retrying after a network blip finds its upload still there.
+	s.Register("delete-incomplete-uploads", "Delete uploads a client started and never finished, such as an interrupted docker push (untouched for 24h)", 24*time.Hour, func(ctx context.Context, logf func(string, ...any)) error {
+		return SweepStorages(ctx, c, storage.Abandoned, 24*time.Hour, logf)
+	})
+	// An hour is safe because age runs from the last write: a transfer in
+	// progress, however slow, keeps touching its file.
+	s.Register("delete-temp-files", "Delete temporary files left behind when the server stopped in the middle of a write (untouched for 1h)", 24*time.Hour, func(ctx context.Context, logf func(string, ...any)) error {
+		err := SweepStorages(ctx, c, storage.Scratch, time.Hour, logf)
+		sw, serr := repo.SweepSpools(ctx, time.Now().Add(-time.Hour))
+		logf("download spools: removed %d, %d bytes", sw.Items, sw.Bytes)
+		return errors.Join(err, serr)
+	})
+}
+
+// SweepStorages asks every storage that stages data outside its blob layout
+// to remove leftovers of kind older than age. One storage failing does not
+// stop the others.
+func SweepStorages(ctx context.Context, c *content.Service, kind storage.Leftover, age time.Duration, logf func(string, ...any)) error {
+	list, err := c.ListStorages(ctx)
+	if err != nil {
+		return err
+	}
+	cutoff := time.Now().Add(-age)
+	var errs []error
+	for _, m := range list {
+		st, err := c.Store(m.ID)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("%s: %w", m.Name, err))
+			continue
+		}
+		sw, ok := st.(storage.Sweeper)
+		if !ok {
+			continue
+		}
+		r, err := sw.Sweep(ctx, kind, cutoff)
+		logf("%s: removed %d, %d bytes", m.Name, r.Items, r.Bytes)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("%s: %w", m.Name, err))
+		}
+	}
+	return errors.Join(errs...)
 }
 
 // BlobGC soft-deletes unreferenced blobs older than grace. Bytes stay on

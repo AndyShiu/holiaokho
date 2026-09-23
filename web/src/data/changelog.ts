@@ -15,6 +15,32 @@ export interface Release {
 
 export const releases: Release[] = [
   {
+    version: '1.1.3',
+    date: '2026-09-24',
+    changes: [
+      {
+        kind: 'added',
+        text: {
+          en: 'A "Delete incomplete uploads" task removes uploads a client started and never finished — an interrupted docker push, for example — once they have gone untouched for a day. They used to stay on disk for good.',
+          'zh-TW': '新增「刪除未完成的上傳」任務:client 開始上傳卻沒完成的檔案(例如中斷的 docker push),超過一天沒更新就會刪除。以前這些檔案會永遠留在硬碟上。',
+          'zh-CN': '新增「删除未完成的上传」任务:客户端开始上传却没完成的文件(例如中断的 docker push),超过一天没更新就会删除。以前这些文件会永远留在硬盘上。',
+          ja: '「未完了アップロードの削除」タスクを追加しました。中断された docker push など、開始されたまま完了しなかったアップロードを 1 日更新がなければ削除します。以前はディスクに残り続けていました。',
+          ko: '「미완료 업로드 삭제」 작업을 추가했습니다. 중단된 docker push처럼 시작만 하고 끝나지 않은 업로드를 하루 동안 변경이 없으면 삭제합니다. 이전에는 디스크에 계속 남아 있었습니다.',
+        },
+      },
+      {
+        kind: 'added',
+        text: {
+          en: 'A "Delete temporary files" task removes what the server leaves behind when it stops in the middle of a write. On S3 that includes unfinished multipart uploads, which S3 keeps and bills for until they are aborted. Only this server\'s own files are touched, so a shared bucket is safe.',
+          'zh-TW': '新增「刪除暫存檔」任務:清掉伺服器在寫入途中停止時留下的檔案。在 S3 上也包括沒完成的 multipart upload,這種殘留 S3 會一直保留而且持續計費,直到被中止為止。只會動到本伺服器自己的檔案,共用的 bucket 也安全。',
+          'zh-CN': '新增「删除临时文件」任务:清掉服务器在写入途中停止时留下的文件。在 S3 上也包括没完成的 multipart upload,这种残留 S3 会一直保留而且持续计费,直到被中止为止。只会动到本服务器自己的文件,共用的 bucket 也安全。',
+          ja: '「一時ファイルの削除」タスクを追加しました。書き込み途中でサーバーが停止したときに残るファイルを削除します。S3 では、中止されるまで保持・課金され続ける未完了のマルチパートアップロードも対象です。このサーバー自身のファイルだけを扱うため、共有バケットでも安全です。',
+          ko: '「임시 파일 삭제」 작업을 추가했습니다. 쓰기 도중 서버가 멈췄을 때 남는 파일을 삭제합니다. S3에서는 중단하기 전까지 보관되며 요금이 계속 청구되는 미완료 멀티파트 업로드도 포함됩니다. 이 서버의 파일만 다루므로 공유 버킷에서도 안전합니다.',
+        },
+      },
+    ],
+  },
+  {
     version: '1.1.2',
     date: '2026-09-23',
     headline: {

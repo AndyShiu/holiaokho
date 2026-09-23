@@ -748,6 +748,8 @@
       "blob-gc": "어떤 파일도 참조하지 않는 blob을 논리 삭제합니다(1시간 유예 후)",
       "cleanup-policies": "각 리포지터리에 정리 정책을 적용합니다",
       "compact-blobs": "논리 삭제된 blob을 스토리지에서 완전히 제거합니다(Nexus의 Compact blob store에 해당)",
+      "delete-incomplete-uploads": "클라이언트가 시작했지만 완료하지 않은 업로드(중단된 docker push 등)를 삭제합니다(24시간 동안 변경 없음)",
+      "delete-temp-files": "쓰기 도중 서버가 멈춰 남은 임시 파일을 삭제합니다(1시간 동안 변경 없음)",
       "prune-expired": "만료된 세션, 네거티브 캐시 항목, 오래된 실행 기록을 삭제합니다",
       "re-encrypt-secrets": "저장된 비밀 값을 현재 키로 다시 암호화합니다(secrets.key 교체 후 실행)",
       "rebuild-indexes": "호스티드 리포지터리의 색인을 다시 생성합니다(Maven metadata, APT/YUM/apk/CRAN/Conda 색인 파일)"
@@ -762,6 +764,8 @@
       "blob-gc": "Blob GC",
       "cleanup-policies": "정리 정책 적용",
       "compact-blobs": "blob 스토어 압축",
+      "delete-incomplete-uploads": "미완료 업로드 삭제",
+      "delete-temp-files": "임시 파일 삭제",
       "prune-expired": "만료 항목 정리",
       "re-encrypt-secrets": "비밀 값 재암호화",
       "rebuild-indexes": "인덱스 재구성"

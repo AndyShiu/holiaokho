@@ -748,6 +748,8 @@
       "blob-gc": "どのファイルからも参照されなくなった blob を論理削除します（1 時間の猶予後）",
       "cleanup-policies": "各リポジトリにクリーンアップポリシーを適用します",
       "compact-blobs": "論理削除された blob をストレージから完全に削除します（Nexus の Compact blob store 相当）",
+      "delete-incomplete-uploads": "クライアントが開始したまま完了しなかったアップロード（中断された docker push など）を削除します（24 時間更新なし）",
+      "delete-temp-files": "書き込みの途中でサーバーが停止したために残った一時ファイルを削除します（1 時間更新なし）",
       "prune-expired": "期限切れのセッション・ネガティブキャッシュ・古い実行履歴を削除します",
       "re-encrypt-secrets": "保存済みの機密を現在の鍵で再暗号化します（secrets.key のローテーション後に実行）",
       "rebuild-indexes": "ホストリポジトリの索引を再生成します（Maven metadata、APT/YUM/apk/CRAN/Conda の索引ファイル）"
@@ -762,6 +764,8 @@
       "blob-gc": "Blob GC",
       "cleanup-policies": "クリーンアップポリシーの適用",
       "compact-blobs": "blob ストアの最適化",
+      "delete-incomplete-uploads": "未完了アップロードの削除",
+      "delete-temp-files": "一時ファイルの削除",
       "prune-expired": "期限切れエントリの削除",
       "re-encrypt-secrets": "機密の再暗号化",
       "rebuild-indexes": "インデックスの再構築"

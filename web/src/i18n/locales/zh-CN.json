@@ -748,6 +748,8 @@
       "blob-gc": "软删除已无任何文件引用的 blob（保留 1 小时缓冲）",
       "cleanup-policies": "对各仓库应用清理策略",
       "compact-blobs": "从存储中永久移除已软删除的 blob（相当于 Nexus 的 Compact blob store）",
+      "delete-incomplete-uploads": "删除客户端开始上传却没有完成的文件，例如中断的 docker push（24 小时未更新）",
+      "delete-temp-files": "删除服务器在写入途中停止而留下的临时文件（1 小时未更新）",
       "prune-expired": "清除过期的 session、负缓存记录与过旧的任务执行记录",
       "re-encrypt-secrets": "用当前密钥重新加密已保存的机密（轮换 secrets.key 后执行）",
       "rebuild-indexes": "重新生成自有仓库的索引（Maven metadata、APT/YUM/apk/CRAN/Conda 索引文件）"
@@ -762,6 +764,8 @@
       "blob-gc": "Blob 回收",
       "cleanup-policies": "应用清理策略",
       "compact-blobs": "压实 blob 存储",
+      "delete-incomplete-uploads": "删除未完成的上传",
+      "delete-temp-files": "删除临时文件",
       "prune-expired": "清除过期项",
       "re-encrypt-secrets": "重新加密机密",
       "rebuild-indexes": "重建索引"

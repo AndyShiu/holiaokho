@@ -748,6 +748,8 @@
       "blob-gc": "軟刪除已無任何檔案引用的 blob（保留 1 小時緩衝）",
       "cleanup-policies": "對各 repository 套用清理規則",
       "compact-blobs": "從儲存空間永久移除已軟刪除的 blob（相當於 Nexus 的 Compact blob store）",
+      "delete-incomplete-uploads": "刪除 client 開始上傳卻沒有完成的檔案，例如中斷的 docker push（24 小時未更新）",
+      "delete-temp-files": "刪除伺服器在寫入途中停止而留下的暫存檔（1 小時未更新）",
       "prune-expired": "清除過期的 session、負快取記錄與過舊的任務執行紀錄",
       "re-encrypt-secrets": "以目前的金鑰重新加密已儲存的機密（輪替 secrets.key 後執行）",
       "rebuild-indexes": "重新產生自有 repository 的索引（Maven metadata、APT/YUM/apk/CRAN/Conda 索引檔）"
@@ -762,6 +764,8 @@
       "blob-gc": "Blob 回收",
       "cleanup-policies": "套用清理規則",
       "compact-blobs": "壓實 blob 儲存",
+      "delete-incomplete-uploads": "刪除未完成的上傳",
+      "delete-temp-files": "刪除暫存檔",
       "prune-expired": "清除過期項目",
       "re-encrypt-secrets": "重新加密機密",
       "rebuild-indexes": "重建索引"
