@@ -12,3 +12,8 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
+This product includes subsets of the Noto Sans TC, SC, JP and KR fonts
+(internal/vuln/fonts), used to set PDF reports. Copyright 2014-2021 Adobe
+(http://www.adobe.com/), with Reserved Font Name 'Source'. Licensed under
+the SIL Open Font License, Version 1.1; see internal/vuln/fonts/OFL.txt.

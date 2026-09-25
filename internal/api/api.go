@@ -151,6 +151,7 @@ func (a *API) Router() http.Handler {
 	// whoever may search sees the findings in repositories they can read.
 	r.Get("/vulnerabilities", a.need("app:search", auth.Read, a.vulnList))
 	r.Get("/vulnerabilities/summary", a.need("app:search", auth.Read, a.vulnSummary))
+	r.Get("/vulnerabilities/export", a.need("app:search", auth.Read, a.vulnExport))
 	// Upgrading is an administrator's decision, so only they are told.
 	r.Get("/updates", a.need("app:system", auth.Read, func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, 200, a.Updates.Status(r.Context()))

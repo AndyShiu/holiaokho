@@ -100,6 +100,9 @@
       "password": "パスワードを変更",
       "update": "ユーザーを更新"
     },
+    "vulnerabilities": {
+      "export": "脆弱性レポートを出力"
+    },
     "webhook": {
       "create": "webhook を作成"
     }
@@ -940,7 +943,12 @@
     "id": "脆弱性",
     "package": "パッケージ",
     "summary": "概要",
-    "firstSeen": "検出日時"
+    "firstSeen": "検出日時",
+    "export": {
+      "button": "レポートを出力",
+      "forPeople": "閲覧・共有用",
+      "forTools": "スクリプト・AI エージェント用"
+    }
   },
   "webhooks": {
     "create": "webhook を作成",

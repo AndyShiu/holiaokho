@@ -153,6 +153,14 @@ case "$found" in *GHSA-jfh8-c2jp-5v3q:CRITICAL*) ok "Log4Shell found in log4j-co
 # Aliases are one vulnerability: CVE-2021-44228 must not appear as its own row.
 n=$(curl -s -u "admin:$ADMIN_PW" "$H/api/v1/vulnerabilities?q=CVE-2021-44228" | python3 -c "import sys,json; print(json.load(sys.stdin)['total'])")
 check test "$n" -eq 1
+# The report, in every format. The CSV is what an agent matches a project's
+# dependencies against, so it must carry the purl and the version to move to.
+for as in pdf xlsx csv json; do
+  code=$(curl -s -o "$W/report.$as" -w '%{http_code}' -u "admin:$ADMIN_PW" "$H/api/v1/vulnerabilities/export?as=$as&lang=zh-TW")
+  if [ "$code" = 200 ] && [ -s "$W/report.$as" ]; then ok "vulnerability report as $as"; else bad "vulnerability report as $as (got $code)"; fi
+done
+check grep -q "pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1,maven,.*GHSA-jfh8-c2jp-5v3q" "$W/report.csv"
+check grep -q '^%PDF-' "$W/report.pdf"
 
 echo "== oci referrers"
 # Signatures, SBOMs and attestations are separate manifests that name the image

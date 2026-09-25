@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Alert, App, Button, Input, Select, Table } from 'antd'
-import { SearchOutlined } from '@ant-design/icons'
+import { Alert, App, Button, Dropdown, Input, Select, Table } from 'antd'
+import { DownloadOutlined, SearchOutlined } from '@ant-design/icons'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { get, post } from '@/api/client'
+import { API, get, post } from '@/api/client'
 import type { Repository, Severity, VulnFinding, VulnSummary } from '@/api/types'
 import { useAuth } from '@/auth/AuthContext'
 import { EmptyState, PageHeader, useErrorText } from '@/components/Common'
@@ -17,7 +17,7 @@ import { formatInfo } from '@/theme/tokens'
 const PAGE = 50
 
 export default function Vulnerabilities() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { can } = useAuth()
   const { message } = App.useApp()
   const errText = useErrorText()
@@ -62,6 +62,30 @@ export default function Vulnerabilities() {
     .map((r) => ({ value: r.name, label: r.name })), [repos.data, covered, format])
   const total = severities.reduce((n, k) => n + (s?.counts[k] ?? 0), 0)
 
+  // The report covers what the page is showing: the same filters, in the
+  // language the page is in. The browser downloads it with the session it
+  // already has.
+  const exportAs = (as: string) => {
+    const p = new URLSearchParams({ as, lang: i18n.language })
+    Object.entries({ severity, level, repository, format, q }).forEach(([k, v]) => { if (v) p.set(k, v) })
+    const a = document.createElement('a')
+    a.href = `${API}/vulnerabilities/export?${p}`
+    a.rel = 'noopener'
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+  }
+  const exportItems = [
+    { key: 'pdf', label: 'PDF', hint: t('vulns.export.forPeople', 'to read and share') },
+    { key: 'xlsx', label: 'Excel', hint: t('vulns.export.forPeople', 'to read and share') },
+    { key: 'csv', label: 'CSV', hint: t('vulns.export.forTools', 'for scripts and AI agents') },
+    { key: 'json', label: 'JSON', hint: t('vulns.export.forTools', 'for scripts and AI agents') },
+  ].map((x) => ({
+    key: x.key,
+    label: <span style={{ display: 'inline-flex', gap: 12, justifyContent: 'space-between', minWidth: 190 }}><b>{x.label}</b><span style={{ color: 'var(--hlk-text-tertiary)', fontSize: 12 }}>{x.hint}</span></span>,
+    onClick: () => exportAs(x.key),
+  }))
+
   const scanNow = async () => {
     try {
       await post('tasks/scan-vulnerabilities/run')
@@ -77,7 +101,14 @@ export default function Vulnerabilities() {
       <PageHeader
         title={t('vulns.title', 'Vulnerabilities')}
         sub={s?.lastOkAt && <span style={{ color: 'var(--hlk-text-tertiary)', fontSize: 12 }}>{t('vulns.lastScan', 'Last checked')} <RelTime value={s.lastOkAt} /> · {t('vulns.source', 'data from OSV.dev')}</span>}
-        extra={can('app:tasks', 'write') && s?.enabled && <Button onClick={scanNow}>{t('vulns.scanNow', 'Scan now')}</Button>}
+        extra={
+          <span style={{ display: 'inline-flex', gap: 8 }}>
+            <Dropdown menu={{ items: exportItems }} trigger={['click']} placement="bottomRight" disabled={!list.data?.total}>
+              <Button icon={<DownloadOutlined />}>{t('vulns.export.button', 'Export report')}</Button>
+            </Dropdown>
+            {can('app:tasks', 'write') && s?.enabled && <Button onClick={scanNow}>{t('vulns.scanNow', 'Scan now')}</Button>}
+          </span>
+        }
       />
 
       {s && !s.enabled && (

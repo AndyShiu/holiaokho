@@ -42,6 +42,8 @@ type Finding struct {
 	FixedIn    []string   `json:"fixedIn"`
 	Published  *time.Time `json:"published"`
 	FirstSeen  time.Time  `json:"firstSeen"`
+
+	attrs json.RawMessage // for the purl: a NuGet id's casing lives here
 }
 
 // Scanner checks stored packages against OSV.

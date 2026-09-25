@@ -155,7 +155,9 @@ RubyGems, Cargo, Composer, pub and CRAN. One row per actual vulnerability
 (GHSA, CVE and ecosystem ids merged), worst first, with the versions that fix
 it. Newly found critical and high findings are sent once by email and webhook
 and flagged on the dashboard. Formats OSV does not cover are reported as not
-covered — never as clean. On by default; any repository can opt out.
+covered — never as clean. On by default; any repository can opt out. Findings
+export as a report: PDF or Excel to read, CSV or JSON — with purls — for
+scripts and AI agents checking a project's own dependencies.
 
 **Storage** — local filesystem or any S3-compatible service, content-addressed
 and reference-counted, so an identical file referenced by ten repositories

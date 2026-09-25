@@ -100,6 +100,9 @@
       "password": "비밀번호 변경",
       "update": "사용자 수정"
     },
+    "vulnerabilities": {
+      "export": "취약점 보고서를 내보냄"
+    },
     "webhook": {
       "create": "webhook 생성"
     }
@@ -940,7 +943,12 @@
     "id": "취약점",
     "package": "패키지",
     "summary": "요약",
-    "firstSeen": "발견 시각"
+    "firstSeen": "발견 시각",
+    "export": {
+      "button": "보고서 내보내기",
+      "forPeople": "읽기·공유용",
+      "forTools": "스크립트·AI 에이전트용"
+    }
   },
   "webhooks": {
     "create": "webhook 만들기",

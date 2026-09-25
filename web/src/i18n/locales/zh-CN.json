@@ -100,6 +100,9 @@
       "password": "修改密码",
       "update": "更新用户"
     },
+    "vulnerabilities": {
+      "export": "导出漏洞报告"
+    },
     "webhook": {
       "create": "创建 webhook"
     }
@@ -940,7 +943,12 @@
     "id": "漏洞",
     "package": "包",
     "summary": "摘要",
-    "firstSeen": "发现时间"
+    "firstSeen": "发现时间",
+    "export": {
+      "button": "导出报告",
+      "forPeople": "阅读与分享",
+      "forTools": "给程序与 AI agent"
+    }
   },
   "webhooks": {
     "create": "创建 webhook",

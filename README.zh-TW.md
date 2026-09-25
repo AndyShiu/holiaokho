@@ -144,7 +144,8 @@ proxy repository 會向上游詢問並快取結果;網頁介面會列出每個 i
 Maven、npm、PyPI、Go、NuGet、RubyGems、Cargo、Composer、pub、CRAN。同一個漏洞的
 GHSA、CVE 與各生態系編號合併為一筆,依嚴重度排序,並列出修復版本。新發現的 Critical
 與 High 會以 email 和 webhook 通知一次,並在首頁提示。OSV 不支援的格式標為「未涵蓋」,
-絕不標為「安全」。預設開啟,每個 repository 可以個別關閉。
+絕不標為「安全」。預設開啟,每個 repository 可以個別關閉。掃描結果可以匯出成報告:
+PDF、Excel 給人看,CSV、JSON(附 purl)給程式與 AI agent 比對專案自己的依賴。
 
 **儲存** —— 本機檔案系統或任何 S3 相容服務。內容定址並計算引用數,
 所以同一個檔案就算被十個 repository 引用,磁碟上也只有一份。

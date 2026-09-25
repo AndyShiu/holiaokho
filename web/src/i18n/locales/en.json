@@ -100,6 +100,9 @@
       "password": "changed the password of",
       "update": "updated user"
     },
+    "vulnerabilities": {
+      "export": "exported a vulnerability report"
+    },
     "webhook": {
       "create": "created a webhook"
     }
@@ -940,7 +943,12 @@
     "id": "Vulnerability",
     "package": "Package",
     "summary": "Summary",
-    "firstSeen": "Found"
+    "firstSeen": "Found",
+    "export": {
+      "button": "Export report",
+      "forPeople": "to read and share",
+      "forTools": "for scripts and AI agents"
+    }
   },
   "webhooks": {
     "create": "Create webhook",

@@ -212,6 +212,8 @@ Nexus 內建的 scheduled tasks：
 | 慢速下載不設總時限：1 分鐘沒資料才判定卡住，並以 `Range` 從斷點續傳 | ✅ | 1.1.2 |
 | 上游拒絕（例如 ghcr 對不存在的 image 回 403）不再觸發 autoBlock；被封鎖時回「上游無法使用」而非「找不到」 | ✅ | 1.1.2 |
 | 漏洞掃描：以 OSV.dev 比對已存放的套件（Maven、npm、PyPI、Go、NuGet、RubyGems、Cargo、Composer、pub、CRAN），別名合併為一筆、依嚴重度排序、列出修復版本；預設全掃，可逐一 repository 關閉；新發現的 Critical/High 以 email 與 webhook 通知一次；首頁提示；OSV 不支援的格式標為「未涵蓋」而非「安全」 | ✅ | 1.2.0 |
+| 漏洞報告匯出：PDF、Excel（跟隨介面語言，內嵌裁切過的 Noto 字型）、CSV、JSON（附 purl，供程式與 AI agent 比對依賴）；每個套件列出可修掉所有已知漏洞的升級版本 | ✅ | 1.3.1 |
+| 新版本發佈提示（每日查詢 GitHub，可關閉） | ✅ | 1.3.0 |
 
 ---
 

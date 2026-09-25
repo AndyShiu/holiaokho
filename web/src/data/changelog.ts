@@ -17,7 +17,24 @@ export const releases: Release[] = [
   {
     version: '1.3.1',
     date: '2026-09-26',
+    headline: {
+      en: 'Vulnerability findings can be exported as a report — PDF or Excel to read, CSV or JSON for scripts and AI agents.',
+      'zh-TW': '漏洞掃描結果可以匯出成報告:PDF、Excel 給人看,CSV、JSON 給程式與 AI agent 使用。',
+      'zh-CN': '漏洞扫描结果可以导出成报告:PDF、Excel 给人看,CSV、JSON 给程序与 AI agent 使用。',
+      ja: '脆弱性の検出結果をレポートとして出力できるようになりました。PDF・Excel は閲覧用、CSV・JSON はスクリプトや AI エージェント用です。',
+      ko: '취약점 결과를 보고서로 내보낼 수 있습니다. PDF·Excel은 사람이 읽기 위한 것, CSV·JSON은 스크립트와 AI 에이전트를 위한 것입니다.',
+    },
     changes: [
+      {
+        kind: 'added',
+        text: {
+          en: 'Export the Vulnerabilities page as PDF, Excel, CSV or JSON, with the filters it is showing. Each package gets the version to upgrade to that fixes everything listed against it; CSV and JSON carry the purl, the identifier to match a project\'s own dependencies against. PDF and Excel follow the interface language.',
+          'zh-TW': '「漏洞」頁面可以依目前的篩選條件匯出成 PDF、Excel、CSV 或 JSON。每個套件都會列出「升級到哪一版可以修掉所有已知漏洞」;CSV 與 JSON 附有 purl,可以直接拿來比對專案自己的依賴。PDF 與 Excel 會跟著介面語言。',
+          'zh-CN': '「漏洞」页面可以按当前的筛选条件导出成 PDF、Excel、CSV 或 JSON。每个包都会列出「升级到哪个版本可以修掉所有已知漏洞」;CSV 与 JSON 附有 purl,可以直接用来比对项目自己的依赖。PDF 与 Excel 会跟随界面语言。',
+          ja: '「脆弱性」ページを、表示中の絞り込み条件で PDF・Excel・CSV・JSON として出力できます。各パッケージについて、記載された脆弱性をすべて修正するアップグレード先を示します。CSV と JSON には purl が含まれ、プロジェクトの依存関係と照合できます。PDF と Excel は表示言語に従います。',
+          ko: '「취약점」 페이지를 현재 필터 그대로 PDF·Excel·CSV·JSON으로 내보낼 수 있습니다. 패키지마다 나열된 취약점을 모두 해결하는 업그레이드 버전을 알려 줍니다. CSV와 JSON에는 프로젝트 의존성과 대조할 수 있는 purl이 들어 있습니다. PDF와 Excel은 화면 언어를 따릅니다.',
+        },
+      },
       {
         kind: 'fixed',
         text: {
