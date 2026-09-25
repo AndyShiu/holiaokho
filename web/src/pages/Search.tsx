@@ -51,7 +51,7 @@ export default function Search() {
         <Input size="large" autoFocus prefix={<SearchOutlined />} placeholder={t('search.placeholder', 'Search packages… e.g. gson, @babel/core, library/alpine')} value={input} onChange={(e) => setInput(e.target.value)} onPressEnter={() => update({ q: input })} allowClear />
         <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
           <Select allowClear placeholder={t('common.format', 'Format')} value={format || undefined} onChange={(v) => update({ format: v ?? '', repository: '' })} style={{ width: 180 }} options={formats.map((f) => ({ value: f, label: <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}><FormatIcon format={f} size={14} />{formatInfo(f).label}</span> }))} />
-          <Select allowClear showSearch placeholder={t('nav.repositories', 'Repository')} value={repository || undefined} onChange={(v) => update({ repository: v ?? '' })} style={{ width: 220 }} options={repoOptions} />
+          <Select allowClear showSearch placeholder={t('common.repository', 'Repository')} value={repository || undefined} onChange={(v) => update({ repository: v ?? '' })} style={{ width: 220 }} options={repoOptions} />
           <Input placeholder={t('package.namespace', 'Namespace')} value={namespace} onChange={(e) => update({ namespace: e.target.value })} style={{ width: 180 }} allowClear />
           <Input placeholder={t('package.version', 'Version')} value={version} onChange={(e) => update({ version: e.target.value })} style={{ width: 140 }} allowClear />
         </div>
@@ -69,7 +69,7 @@ export default function Search() {
             pagination={{ current: page + 1, pageSize: 50, total: (results.data?.length ?? 0) < 50 ? page * 50 + (results.data?.length ?? 0) : (page + 2) * 50, onChange: (p) => setPage(p - 1), showSizeChanger: false }}
             columns={[
               { title: '', width: 40, render: (_: unknown, r) => <FormatIcon format={r.format} size={18} /> },
-              { title: t('nav.repositories', 'Repository'), dataIndex: 'repository', render: (x: string) => <Link to={`/browse/${x}`} onClick={(e) => e.stopPropagation()} className="hlk-mono" style={{ fontSize: 12 }}>{x}</Link> },
+              { title: t('common.repository', 'Repository'), dataIndex: 'repository', render: (x: string) => <Link to={`/browse/${x}`} onClick={(e) => e.stopPropagation()} className="hlk-mono" style={{ fontSize: 12 }}>{x}</Link> },
               { title: t('package.namespace', 'Namespace'), dataIndex: 'namespace', render: (x: string) => <span className="hlk-mono" style={{ fontSize: 12 }}>{x || '—'}</span> },
               { title: t('common.name', 'Name'), dataIndex: 'name', render: (x: string) => <span className="hlk-mono" style={{ fontSize: 12.5, fontWeight: 500 }}>{x}</span> },
               { title: t('package.version', 'Version'), dataIndex: 'version', render: (x: string) => <span className="hlk-mono" style={{ fontSize: 12 }}>{x}</span> },

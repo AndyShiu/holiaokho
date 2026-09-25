@@ -54,7 +54,7 @@ const ok = crypto.timingSafeEqual(Buffer.from(sig.slice(7)), Buffer.from(mac))`
             { title: t('common.name', 'Name'), dataIndex: 'name', width: 180, render: (x: string) => <span style={{ fontWeight: 500 }}>{x}</span> },
             { title: 'URL', dataIndex: 'url', render: (x: string) => <span className="hlk-mono" style={{ fontSize: 12 }}>{x}</span> },
             { title: t('webhooks.events', 'Events'), dataIndex: 'events', render: (ev: string[]) => ev.map((e) => <Tag key={e} className="hlk-mono" style={{ fontSize: 11 }}>{e}</Tag>) },
-            { title: t('nav.repositories', 'Repository'), dataIndex: 'repository', width: 140, render: (x: string) => <span className="hlk-mono" style={{ fontSize: 12 }}>{x || t('common.all', 'All')}</span> },
+            { title: t('common.repository', 'Repository'), dataIndex: 'repository', width: 140, render: (x: string) => <span className="hlk-mono" style={{ fontSize: 12 }}>{x || t('common.all', 'All')}</span> },
             { title: t('common.enabled', 'Enabled'), dataIndex: 'enabled', width: 80, render: (e: boolean, h) => <span onClick={(ev) => ev.stopPropagation()}><Switch size="small" checked={e} disabled={!canWrite} onChange={() => toggle.mutate(h)} /></span> },
             { title: t('common.created', 'Created'), dataIndex: 'createdAt', width: 120, render: (x: string) => <RelTime value={x} /> },
             { title: '', width: 160, render: (_: unknown, h) => canWrite && <span style={{ fontSize: 12, display: 'flex', gap: 10 }} onClick={(e) => e.stopPropagation()}><a onClick={() => test(h)}>{t('webhooks.sendTest', 'Send test')}</a>{can('app:system', 'delete') && <a style={{ color: 'var(--hlk-error)' }} onClick={() => setToDelete(h)}>{t('common.delete', 'Delete')}</a>}</span> },
@@ -71,7 +71,7 @@ const ok = crypto.timingSafeEqual(Buffer.from(sig.slice(7)), Buffer.from(mac))`
           <Form.Item name="name" label={t('common.name', 'Name')} rules={[{ required: true }]}><Input /></Form.Item>
           <Form.Item name="url" label="URL" rules={[{ required: true, type: 'url' }]} extra={t('webhooks.httpsHint', 'https:// recommended')}><Input className="hlk-mono" placeholder="https://hooks.example.com/holiaokho" /></Form.Item>
           <Form.Item name="events" label={t('webhooks.events', 'Events')} rules={[{ required: true }]}><Select mode="multiple" options={EVENTS.map((e) => ({ value: e }))} className="hlk-mono" /></Form.Item>
-          <Form.Item name="repository" label={t('nav.repositories', 'Repository')} extra={t('webhooks.repoHint', 'Empty = all repositories')}><Select allowClear showSearch options={(repos.data ?? []).map((r) => ({ value: r.name }))} /></Form.Item>
+          <Form.Item name="repository" label={t('common.repository', 'Repository')} extra={t('webhooks.repoHint', 'Empty = all repositories')}><Select allowClear showSearch options={(repos.data ?? []).map((r) => ({ value: r.name }))} /></Form.Item>
           <Form.Item name="secret" label={t('webhooks.secret', 'Secret')} extra={editing && <SecretHint />}><Input.Password autoComplete="new-password" /></Form.Item>
           <Form.Item name="enabled" label={t('common.enabled', 'Enabled')} valuePropName="checked"><Switch /></Form.Item>
           <div style={{ display: 'flex', gap: 8 }}><Button type="primary" htmlType="submit" loading={save.isPending}>{t('common.save', 'Save')}</Button><Button onClick={() => setDrawer(null)}>{t('common.cancel', 'Cancel')}</Button></div>

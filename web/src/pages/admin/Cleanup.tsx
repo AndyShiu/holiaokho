@@ -127,7 +127,7 @@ export default function Cleanup() {
           <TestPanel title={t('cleanup.preview', 'Preview')}>
             {!editing ? <div style={{ fontSize: 12, color: 'var(--hlk-text-secondary)' }}>{t('cleanup.previewSaveFirst', 'Save the policy first, then preview what it would delete.')}</div> : (
               <>
-                <Select size="small" style={{ width: '100%', marginBottom: 8 }} placeholder={t('nav.repositories', 'Repository')} value={previewRepo} onChange={setPreviewRepo} options={repoOptions} />
+                <Select size="small" style={{ width: '100%', marginBottom: 8 }} placeholder={t('common.repository', 'Repository')} value={previewRepo} onChange={setPreviewRepo} options={repoOptions} />
                 <Button size="small" onClick={runPreview} loading={previewBusy} disabled={!previewRepo}>{t('cleanup.runPreview', 'Preview deletions')}</Button>
                 {preview && (
                   <div style={{ marginTop: 12 }}>

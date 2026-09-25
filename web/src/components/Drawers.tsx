@@ -119,7 +119,7 @@ export function PackageDrawer({ packageId, onClose, onDeleted, onAsset }: { pack
       {v && p && (
         <>
           <KV items={[
-            [t('nav.repositories', 'Repository'), <Link to={`/browse/${v.repository}`}>{v.repository}</Link>],
+            [t('common.repository', 'Repository'), <Link to={`/browse/${v.repository}`}>{v.repository}</Link>],
             [t('common.format', 'Format'), v.format],
             [t('common.created', 'Created'), <AbsTime value={p.createdAt} />],
             [t('asset.lastDownloaded', 'Last downloaded'), <RelTime value={p.lastDownloadedAt} empty={t('common.never', 'never')} />],

@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Holiaokho 好料庫 — the good-stuff store</title>
-<meta name="description" content="A self-hosted artifact repository for 25 package formats — one address, one binary, no paid tier. Apache 2.0.">
+<meta name="description" content="A self-hosted artifact repository for 25 package formats, with vulnerability scanning built in — one address, one binary, no paid tier. Apache 2.0.">
 <meta name="color-scheme" content="light dark">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231E2A3B%22%2F%3E%3Cpath%20d%3D%22M6.5%2014.2%20L16%207%20L25.5%2014.2%22%20fill%3D%22none%22%20stroke%3D%22%23E8963A%22%20stroke-width%3D%223.2%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3Crect%20x%3D%2213%22%20y%3D%2215.4%22%20width%3D%226%22%20height%3D%225.1%22%20rx%3D%221%22%20fill%3D%22%23F3EFE7%22%2F%3E%3Crect%20x%3D%228.6%22%20y%3D%2221.8%22%20width%3D%226%22%20height%3D%225.1%22%20rx%3D%221%22%20fill%3D%22%23F3EFE7%22%2F%3E%3Crect%20x%3D%2217.4%22%20y%3D%2221.8%22%20width%3D%226%22%20height%3D%225.1%22%20rx%3D%221%22%20fill%3D%22%23F3EFE7%22%2F%3E%3C%2Fsvg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@700&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@700&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <script>
 // Decide language and theme before the first paint. Both are stored choices
@@ -37,8 +37,8 @@
 <header class="hero">
   <div class="wrap">
     <div class="top">
-      <span>v1.1.0</span>
-      <nav>
+      <a id="ver" class="ver" href="https://github.com/AndyShiu/holiaokho/releases">v1.3.0</a>
+      <nav aria-label="Site">
         <button class="lang" type="button" data-set-lang="zh" lang="zh-Hant">繁體中文</button>
         <button class="lang" type="button" data-set-lang="en" lang="en">English</button>
         <a href="https://github.com/AndyShiu/holiaokho">GitHub ↗</a>
@@ -61,6 +61,14 @@
       <a class="btn btn-primary" href="https://github.com/AndyShiu/holiaokho"><span class="en">View on GitHub</span><span class="zh" lang="zh-Hant">在 GitHub 上查看</span> <span class="ext">↗</span></a>
       <a class="btn btn-ghost" href="#quick-start"><span class="en">Quick start</span><span class="zh" lang="zh-Hant">快速開始</span></a>
     </div>
+    <figure class="shot hero-shot">
+      <div class="shot-frame">
+        <img class="shot-img en light" src="shots/browse-en-light.jpg" width="1440" height="900" loading="eager" decoding="async" alt="Browsing the packages cached in a Maven proxy">
+        <img class="shot-img en dark" src="shots/browse-en-dark.jpg" width="1440" height="900" loading="eager" decoding="async" alt="Browsing the packages cached in a Maven proxy">
+        <img class="shot-img zh light" src="shots/browse-zh-light.jpg" width="1440" height="900" loading="eager" decoding="async" alt="瀏覽 Maven 代理中已快取的套件">
+        <img class="shot-img zh dark" src="shots/browse-zh-dark.jpg" width="1440" height="900" loading="eager" decoding="async" alt="瀏覽 Maven 代理中已快取的套件">
+      </div>
+    </figure>
   </div>
 </header>
 
@@ -82,9 +90,9 @@
         <p class="zh" lang="zh-Hant">單一 Go 執行檔，不需要 JVM、外掛或應用伺服器。幾秒內開始服務，在真實 CI 負載下記憶體用量維持在數百 MB。</p>
       </article>
       <article class="card"><div class="bar"></div>
-        <h3 class="en">Still shipping when upstream is down</h3><h3 class="zh" lang="zh-Hant">上游壞掉時照樣出貨</h3>
-        <p class="en">Cached artefacts keep being served while a public registry is unreachable, so a bad afternoon at Maven Central does not stop your builds.</p>
-        <p class="zh" lang="zh-Hant">已快取的內容在公開來源連不上時仍然供應，Maven Central 出狀況的那個下午不會讓你們的建置全部停擺。</p>
+        <h3 class="en">Security comes with it</h3><h3 class="zh" lang="zh-Hant">資安是內建的</h3>
+        <p class="en">Vulnerability scanning, signatures and SBOMs are part of the product — not an add-on server with a licence of its own.</p>
+        <p class="zh" lang="zh-Hant">漏洞掃描、簽章與 SBOM 都是產品本身的一部分，不是另外要授權的附加伺服器。</p>
       </article>
       <article class="card"><div class="bar"></div>
         <h3 class="en">Nothing held back for a paid tier</h3><h3 class="zh" lang="zh-Hant">沒有功能被留在付費版</h3>
@@ -95,18 +103,101 @@
   </div>
 </section>
 
+<section id="security" class="reveal">
+  <div class="wrap">
+    <div class="bar"></div>
+    <h2 class="en">It knows what it is keeping</h2>
+    <h2 class="zh" lang="zh-Hant">它知道自己存了什麼</h2>
+    <p class="lead en">Every dependency your builds use passes through here, which makes it the one place that can tell you which of them are a problem — and prove where an image came from.</p>
+    <p class="lead zh" lang="zh-Hant">建置用到的每一個依賴都會經過這裡，所以只有它能一次告訴你哪些有問題，也能證明一個 image 從哪裡來。</p>
+    <figure class="shot">
+      <div class="shot-frame">
+        <img class="shot-img en light" src="shots/vulns-en-light.jpg" width="1440" height="900" loading="lazy" decoding="async" alt="Known vulnerabilities in stored packages, worst first">
+        <img class="shot-img en dark" src="shots/vulns-en-dark.jpg" width="1440" height="900" loading="lazy" decoding="async" alt="Known vulnerabilities in stored packages, worst first">
+        <img class="shot-img zh light" src="shots/vulns-zh-light.jpg" width="1440" height="900" loading="lazy" decoding="async" alt="已存放套件中的已知漏洞，依嚴重度排序">
+        <img class="shot-img zh dark" src="shots/vulns-zh-dark.jpg" width="1440" height="900" loading="lazy" decoding="async" alt="已存放套件中的已知漏洞，依嚴重度排序">
+      </div>
+    </figure>
+    <div class="cards cards-3">
+      <article class="card"><div class="bar"></div>
+        <h3 class="en">Vulnerability scanning</h3><h3 class="zh" lang="zh-Hant">漏洞掃描</h3>
+        <p class="en">Stored packages are checked against <a href="https://osv.dev">OSV</a> — Maven, npm, PyPI, Go, NuGet, RubyGems, Cargo, Composer, pub and CRAN. One row per real vulnerability, with the version that fixes it. New critical findings are flagged on the dashboard and sent once by email and webhook. Formats OSV does not cover are shown as not covered, never as clean.</p>
+        <p class="zh" lang="zh-Hant">以 <a href="https://osv.dev">OSV</a> 檢查已存放的套件：Maven、npm、PyPI、Go、NuGet、RubyGems、Cargo、Composer、pub、CRAN。同一個漏洞只算一筆，並列出修復版本。新發現的嚴重漏洞會在首頁提示，並以 email 和 webhook 通知一次。OSV 不支援的格式標為「未涵蓋」，絕不顯示為「安全」。</p>
+      </article>
+      <article class="card"><div class="bar"></div>
+        <h3 class="en">Signatures and SBOMs</h3><h3 class="zh" lang="zh-Hant">簽章與 SBOM</h3>
+        <p class="en">Docker and OCI repositories keep what <code>cosign</code> and <code>syft</code> attach to an image — signatures, SBOMs, build attestations — through the OCI referrers API, and list them in the package details.</p>
+        <p class="zh" lang="zh-Hant">Docker 與 OCI repository 會透過 OCI referrers API 保存 <code>cosign</code>、<code>syft</code> 掛在 image 上的簽章、SBOM 與建置證明，並在套件詳情中列出。</p>
+      </article>
+      <article class="card"><div class="bar"></div>
+        <h3 class="en">Checked on every push</h3><h3 class="zh" lang="zh-Hant">每次推送都經過檢查</h3>
+        <p class="en">Gitleaks over the whole history, Trivy over dependencies, configuration and the image, <code>govulncheck</code> and <code>staticcheck</code> over the code — on every push and weekly, <a href="https://github.com/AndyShiu/holiaokho/actions/workflows/security.yml">in public</a>. The container runs as non-root on a read-only filesystem with every capability dropped.</p>
+        <p class="zh" lang="zh-Hant">Gitleaks 掃完整歷史，Trivy 掃依賴、設定與 image，<code>govulncheck</code> 與 <code>staticcheck</code> 掃程式碼——每次推送和每週都會執行，<a href="https://github.com/AndyShiu/holiaokho/actions/workflows/security.yml">結果公開</a>。容器以非 root 身分、在唯讀檔案系統上執行，並移除所有 capability。</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section id="upstream" class="reveal">
+  <div class="wrap">
+    <div class="bar"></div>
+    <h2 class="en">When the upstream misbehaves</h2>
+    <h2 class="zh" lang="zh-Hant">上游出狀況的時候</h2>
+    <p class="lead en">Public registries go down, slow to a crawl, and answer badly. A proxy earns its place on the days they do.</p>
+    <p class="lead zh" lang="zh-Hant">公開的套件來源會掛、會慢到爬不動、也會回奇怪的答案。代理的價值，就在這些日子裡。</p>
+    <div class="cards cards-3">
+      <article class="card"><div class="bar"></div>
+        <h3 class="en">Down</h3><h3 class="zh" lang="zh-Hant">掛了</h3>
+        <p class="en">Whatever has been fetched once keeps being served from cache, so a bad afternoon at Maven Central does not stop the builds.</p>
+        <p class="zh" lang="zh-Hant">抓過一次的內容會繼續從快取提供，Maven Central 出狀況的那個下午，建置不會停。</p>
+      </article>
+      <article class="card"><div class="bar"></div>
+        <h3 class="en">Slow</h3><h3 class="zh" lang="zh-Hant">很慢</h3>
+        <p class="en">A large layer goes to the client as it arrives, not minutes later. A stalled transfer resumes where it stopped, and everyone pulling the same layer shares one download.</p>
+        <p class="zh" lang="zh-Hant">大型 layer 邊收邊轉給 client，不必等好幾分鐘。卡住的傳輸會從斷點續傳，同時拉同一個 layer 的人共用同一個下載。</p>
+      </article>
+      <article class="card"><div class="bar"></div>
+        <h3 class="en">Wrong</h3><h3 class="zh" lang="zh-Hant">答錯</h3>
+        <p class="en">A registry refusing a mistyped image name is an answer, not an outage — it does not take the whole registry offline for everyone else.</p>
+        <p class="zh" lang="zh-Hant">registry 拒絕一個打錯的 image 名稱，是一個答案而不是故障——不會因此讓整個 registry 對所有人停擺。</p>
+      </article>
+    </div>
+  </div>
+</section>
+
 <section id="quick-start" class="reveal">
   <div class="wrap">
     <div class="bar"></div>
     <h2 class="en">Running in one command</h2>
     <h2 class="zh" lang="zh-Hant">一行指令跑起來</h2>
-    <div class="cmd">
-      <span class="prompt" aria-hidden="true">$</span>
-      <code id="cmd-up">docker compose -f deploy/docker-compose.yml up -d</code>
-      <button class="copy" type="button" data-copy="cmd-up"><span class="en">Copy</span><span class="zh" lang="zh-Hant">複製</span></button>
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" data-tab="compose" aria-selected="true">Docker Compose</button>
+      <button type="button" role="tab" data-tab="k8s" aria-selected="false">Kubernetes</button>
     </div>
-    <p class="then en">Then open <code>http://localhost:8081/ui/</code>. Point your clients at it exactly as you would at Nexus:</p>
-    <p class="then zh" lang="zh-Hant">然後開啟 <code>http://localhost:8081/ui/</code>。客戶端的設定方式和 Nexus 完全一樣：</p>
+    <div class="tab-panel" data-panel="compose">
+      <div class="cmd">
+        <span class="prompt" aria-hidden="true">$</span>
+        <code id="cmd-up">curl -fsSLO https://raw.githubusercontent.com/AndyShiu/holiaokho/main/deploy/docker-compose.yml &amp;&amp; docker compose up -d</code>
+        <button class="copy" type="button" data-copy="cmd-up"><span class="en">Copy</span><span class="zh" lang="zh-Hant">複製</span></button>
+      </div>
+      <p class="then en">It pulls the published image and a PostgreSQL to go with it; nothing is built. Then open <code>http://localhost:8081/ui/</code> and point your clients at it exactly as you would at Nexus:</p>
+      <p class="then zh" lang="zh-Hant">它會拉官方 image 和搭配的 PostgreSQL，不需要編譯。然後開啟 <code>http://localhost:8081/ui/</code>，客戶端的設定方式和 Nexus 完全一樣：</p>
+    </div>
+    <div class="tab-panel" data-panel="k8s">
+      <div class="cmd cmd-block">
+        <pre><code id="cmd-k8s">kubectl create namespace holiaokho
+kubectl -n holiaokho create secret generic holiaokho-db \
+  --from-literal=POSTGRES_DB=holiaokho --from-literal=POSTGRES_USER=holiaokho \
+  --from-literal=POSTGRES_PASSWORD="$(openssl rand -base64 24 | tr -d '/+=')"
+kubectl -n holiaokho create secret generic holiaokho-app \
+  --from-literal=secret-key="$(openssl rand -base64 32)" \
+  --from-literal=admin-password='choose-one'
+kubectl apply -f https://raw.githubusercontent.com/AndyShiu/holiaokho/main/deploy/k8s/holiaokho.yaml</code></pre>
+        <button class="copy" type="button" data-copy="cmd-k8s"><span class="en">Copy</span><span class="zh" lang="zh-Hant">複製</span></button>
+      </div>
+      <p class="then en">Secrets are created on the command line, so they never sit in a file or in version control. <a href="https://github.com/AndyShiu/holiaokho/blob/main/deploy/k8s/holiaokho.yaml">The manifest</a> runs both containers as non-root with a read-only root filesystem and no capabilities, and serves on NodePorts 32081 and 32082.</p>
+      <p class="then zh" lang="zh-Hant">密碼在指令列建立，不會出現在任何檔案或版本控制裡。<a href="https://github.com/AndyShiu/holiaokho/blob/main/deploy/k8s/holiaokho.yaml">這份 manifest</a> 讓兩個容器都以非 root、唯讀根目錄、不帶任何 capability 的方式執行，並在 NodePort 32081、32082 提供服務。</p>
+    </div>
     <div class="clients">
       <div class="client">
         <header><span class="tile-s" style="background:#B8541F" aria-hidden="true">mvn</span>Maven<span class="file">settings.xml</span></header>
@@ -199,8 +290,8 @@ log:
       </div>
       <div>
         <h3 class="en">Operations</h3><h3 class="zh" lang="zh-Hant">維運</h3>
-        <ul class="en"><li>Routing rules</li><li>Cleanup policies, with preview</li><li>Soft delete and compaction</li><li>Storage quotas</li><li>Cron-scheduled tasks</li><li>Webhooks with HMAC signatures</li><li>Email notifications</li><li>Audit log</li><li>Backup and restore, blobs included</li><li>Prometheus metrics</li></ul>
-        <ul class="zh" lang="zh-Hant"><li>路由規則</li><li>清理規則（含預覽）</li><li>軟刪除與壓實回收</li><li>儲存配額</li><li>cron 排程任務</li><li>含 HMAC 簽章的 webhook</li><li>電子郵件通知</li><li>稽核紀錄</li><li>含 blob 的備份還原</li><li>Prometheus 指標</li></ul>
+        <ul class="en"><li>Routing rules</li><li>Cleanup policies, with preview</li><li>Soft delete and compaction</li><li>Storage quotas</li><li>Cron-scheduled tasks</li><li>Webhooks with HMAC signatures</li><li>Email notifications</li><li>Audit log</li><li>Backup and restore, blobs included</li><li>Prometheus metrics</li><li>A notice when a new release is out</li></ul>
+        <ul class="zh" lang="zh-Hant"><li>路由規則</li><li>清理規則（含預覽）</li><li>軟刪除與壓實回收</li><li>儲存配額</li><li>cron 排程任務</li><li>含 HMAC 簽章的 webhook</li><li>電子郵件通知</li><li>稽核紀錄</li><li>含 blob 的備份還原</li><li>Prometheus 指標</li><li>新版本發佈提示</li></ul>
       </div>
       <div>
         <h3 class="en">Storage</h3><h3 class="zh" lang="zh-Hant">儲存</h3>
@@ -248,8 +339,11 @@ log:
 <footer>
   <div class="wrap foot">
     <div class="brand"><svg width="22" height="22" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M4 13 L16 4 L28 13" stroke="#E8963A" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"></path><rect x="12.5" y="14.5" width="7" height="6" rx="1" fill="currentColor"></rect><rect x="7.5" y="22" width="7" height="6" rx="1" fill="currentColor"></rect><rect x="17.5" y="22" width="7" height="6" rx="1" fill="currentColor"></rect></svg><span class="word">Holiaokho</span><span class="cjk" lang="zh-Hant">好料庫</span></div>
-    <nav>
+    <nav aria-label="Project">
       <a href="https://github.com/AndyShiu/holiaokho">GitHub</a>
+      <a href="https://github.com/AndyShiu/holiaokho/releases"><span class="en">Release notes</span><span class="zh" lang="zh-Hant">更新紀錄</span></a>
+      <a href="https://github.com/AndyShiu/holiaokho/blob/main/docs/nexus-feature-parity.md"><span class="en">Compared with Nexus</span><span class="zh" lang="zh-Hant">與 Nexus 功能對照</span></a>
+      <a href="https://github.com/AndyShiu/holiaokho/blob/main/SECURITY.md"><span class="en">Security policy</span><span class="zh" lang="zh-Hant">資安政策</span></a>
       <a href="https://github.com/AndyShiu/holiaokho/blob/main/LICENSE"><span class="en">Apache 2.0 license</span><span class="zh" lang="zh-Hant">Apache 2.0 授權</span></a>
     </nav>
     <div class="copy-line">© 2026 Pei-En Hsu</div>

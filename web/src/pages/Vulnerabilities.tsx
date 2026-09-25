@@ -123,7 +123,7 @@ export default function Vulnerabilities() {
             options={(['CRITICAL', 'HIGH', 'MODERATE', 'LOW'] as Severity[]).map((k) => ({ value: k, label: t(`vulns.sev.${k}`, k) }))} />
           <Select allowClear placeholder={t('common.format', 'Format')} value={format || undefined} onChange={(v) => update({ format: v ?? '', repository: '' })} style={{ width: 170 }}
             options={[...covered].sort().map((f) => ({ value: f, label: <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}><FormatIcon format={f} size={14} />{formatInfo(f).label}</span> }))} />
-          <Select allowClear showSearch placeholder={t('nav.repositories', 'Repository')} value={repository || undefined} onChange={(v) => update({ repository: v ?? '' })} style={{ width: 220 }} options={repoOptions} />
+          <Select allowClear showSearch placeholder={t('common.repository', 'Repository')} value={repository || undefined} onChange={(v) => update({ repository: v ?? '' })} style={{ width: 220 }} options={repoOptions} />
         </div>
       </div>
 
@@ -152,7 +152,7 @@ export default function Vulnerabilities() {
                 </span>
               ),
             },
-            { title: t('nav.repositories', 'Repository'), dataIndex: 'repository', width: 160, render: (x: string) => <Link to={`/browse/${x}`} onClick={(e) => e.stopPropagation()} className="hlk-mono" style={{ fontSize: 12 }}>{x}</Link> },
+            { title: t('common.repository', 'Repository'), dataIndex: 'repository', width: 160, render: (x: string) => <Link to={`/browse/${x}`} onClick={(e) => e.stopPropagation()} className="hlk-mono" style={{ fontSize: 12 }}>{x}</Link> },
             { title: t('vulns.summary', 'Summary'), dataIndex: 'summary', render: (x: string) => <span style={{ fontSize: 12.5 }}>{x || '—'}</span> },
             { title: t('vulns.fixedIn', 'Fixed in'), dataIndex: 'fixedIn', width: 150, render: (x: string[]) => x.length ? <span className="hlk-mono" style={{ fontSize: 12 }}>{x.join(', ')}</span> : <span style={{ color: 'var(--hlk-text-tertiary)', fontSize: 12 }}>{t('vulns.noFixShort', 'none yet')}</span> },
             { title: t('vulns.firstSeen', 'Found'), dataIndex: 'firstSeen', width: 110, render: (x: string) => <RelTime value={x} /> },

@@ -65,7 +65,7 @@ import (
 // Version is the build's version string. Releases override it at link time
 // with -ldflags "-X .../internal/server.Version=..." so the running binary can
 // say which build it is; the fallback below only applies to local builds.
-var Version = "1.3.0"
+var Version = "1.3.1"
 
 type Server struct {
 	Updates *update.Checker

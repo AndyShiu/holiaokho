@@ -75,8 +75,10 @@ export function PackageVulnsSection({ packageId }: { packageId: string }) {
       {v.items.length > 0 && (
         <div style={{ display: 'grid', gap: 10 }}>
           {v.items.map((f) => (
-            <div key={f.id} style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '4px 12px', paddingBottom: 10, borderBottom: '1px solid var(--hlk-row)' }}>
-              <SeverityTag severity={f.severity} score={f.score} />
+            // A fixed first column: each row is its own grid, and with
+            // "auto" the ids would sit at a different indent on every row.
+            <div key={f.id} style={{ display: 'grid', gridTemplateColumns: '104px 1fr', gap: '4px 12px', paddingBottom: 10, borderBottom: '1px solid var(--hlk-row)' }}>
+              <span><SeverityTag severity={f.severity} score={f.score} /></span>
               <VulnId f={f} />
               <span />
               <span style={{ fontSize: 13 }}>{f.summary || '—'}</span>

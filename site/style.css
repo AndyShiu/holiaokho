@@ -3,7 +3,9 @@
   --amber:#E8963A;--code-bg:#131923;--code-fg:#E9E6DF;--code-line:#2C3747;--code-muted:#8A94A3;
   --name-bg:#1E2A3B;--name-fg:#E9E6DF;--name-t2:#B7C0CD;--name-line:#34435A;
   --btn-bg:#1E2A3B;--btn-fg:#F6F4EF;--btn-hover:#2A3A50;--tip-bg:#1E2A3B;--tip-fg:#F6F4EF;
-  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif;
+  /* System CJK faces before the web font: only Noto Sans TC's 700 used to be
+     loaded, so Chinese body text came out bold wherever it was picked. */
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang TC","Microsoft JhengHei","Noto Sans TC",sans-serif;
   --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
   --wordmark:"DM Sans",var(--sans);--cjk:"Noto Sans TC",var(--sans);
   color-scheme:light;
@@ -128,7 +130,7 @@ footer{border-top:1px solid var(--line);padding:36px 0 48px;font-size:14px;color
 .foot nav{display:flex;flex-wrap:wrap;gap:8px 24px}
 .foot nav a{color:var(--t2);text-decoration:none}
 .foot nav a:hover{color:var(--amber)}
-.foot .copy-line{width:100%;font:12px var(--mono);color:var(--t3)}
+.foot .copy-line{width:100%;font:12px var(--mono);color:var(--t2)}
 
 /* reveal (only when JS is present) */
 html.js .reveal{opacity:0;transform:translateY(10px);transition:opacity .6s ease,transform .6s ease}
@@ -178,3 +180,44 @@ html.js .reveal.in{opacity:1;transform:none}
 .lang:hover{color:var(--amber)}
 :root[data-lang="en"] .lang[data-set-lang="en"],
 :root[data-lang="zh"] .lang[data-set-lang="zh"]{display:none}
+
+/* version link in the top corner */
+.top .ver{color:var(--t2);text-decoration:none}
+.top .ver:hover{color:var(--amber)}
+
+/* product screenshots — one per language and theme, only the matching one
+   is displayed, and lazy images that are not displayed are not fetched */
+.shot{margin:44px 0 0}
+.hero-shot{margin-top:64px}
+.shot-frame{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--card);box-shadow:0 1px 2px rgba(19,25,35,.04),0 24px 60px -24px rgba(19,25,35,.25)}
+.shot-img{display:none;width:100%;height:auto}
+:root:not([data-lang]) .shot-img.en.light,
+:root[data-lang="en"] .shot-img.en.light,
+:root[data-lang="zh"] .shot-img.zh.light{display:block}
+:root[data-theme="dark"][data-lang="en"] .shot-img.en.light,
+:root[data-theme="dark"][data-lang="zh"] .shot-img.zh.light{display:none}
+:root[data-theme="dark"][data-lang="en"] .shot-img.en.dark,
+:root[data-theme="dark"][data-lang="zh"] .shot-img.zh.dark{display:block}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"])[data-lang="en"] .shot-img.en.light,
+  :root:not([data-theme="light"])[data-lang="zh"] .shot-img.zh.light{display:none}
+  :root:not([data-theme="light"])[data-lang="en"] .shot-img.en.dark,
+  :root:not([data-theme="light"])[data-lang="zh"] .shot-img.zh.dark{display:block}
+}
+
+/* three-up cards */
+.cards-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.card p code{font-size:.9em}
+.card a{color:var(--link)}
+
+/* tabs (quick start). Without JS both panels show, one after the other. */
+.tabs{display:flex;gap:6px;margin-top:36px;border-bottom:1px solid var(--line)}
+.tabs button{padding:10px 16px;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;background:none;color:var(--t2);font:600 14px var(--sans);cursor:pointer}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--amber)}
+.tabs button:hover{color:var(--ink)}
+.tab-panel .cmd{margin-top:20px}
+html.js .tab-panel[hidden]{display:none}
+html:not(.js) .tabs{display:none}
+
+@media (max-width:1000px){.cards-3{grid-template-columns:1fr}}
+@media (max-width:640px){.hero-shot{margin-top:44px}.shot-frame{border-radius:8px}}

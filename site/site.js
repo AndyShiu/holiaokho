@@ -56,6 +56,27 @@
     document.body.removeChild(ta);
   }
 
+  // Quick-start tabs. The markup shows both panels; with JS, one at a time.
+  var tabs = document.querySelectorAll('.tabs [data-tab]');
+  var show = function (name) {
+    tabs.forEach(function (t) { t.setAttribute('aria-selected', t.getAttribute('data-tab') === name ? 'true' : 'false'); });
+    document.querySelectorAll('.tab-panel').forEach(function (p) { p.hidden = p.getAttribute('data-panel') !== name; });
+  };
+  tabs.forEach(function (t) { t.addEventListener('click', function () { show(t.getAttribute('data-tab')); }); });
+  if (tabs.length) show('compose');
+
+  // The version in the corner comes from the latest release, so the page is
+  // never behind the product. The number in the markup is the fallback.
+  var ver = document.getElementById('ver');
+  if (ver && window.fetch) {
+    fetch('https://api.github.com/repos/AndyShiu/holiaokho/releases/latest', { headers: { Accept: 'application/vnd.github+json' } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (rel) {
+        if (rel && rel.tag_name) { ver.textContent = rel.tag_name; if (rel.html_url) ver.href = rel.html_url; }
+      })
+      .catch(function () {});
+  }
+
   // section fade-in, skipped under reduced motion
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var els = document.querySelectorAll('.reveal');

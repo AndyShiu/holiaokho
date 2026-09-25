@@ -15,6 +15,52 @@ export interface Release {
 
 export const releases: Release[] = [
   {
+    version: '1.3.1',
+    date: '2026-09-26',
+    changes: [
+      {
+        kind: 'fixed',
+        text: {
+          en: 'The Kubernetes manifest in deploy/k8s pointed at a locally built image and would not start anywhere else. It now pulls the published release.',
+          'zh-TW': 'deploy/k8s 裡的 Kubernetes manifest 指向本機建置的 image,在其他環境無法啟動。現在改為拉取正式發佈的版本。',
+          'zh-CN': 'deploy/k8s 里的 Kubernetes manifest 指向本机构建的镜像,在其他环境无法启动。现在改为拉取正式发布的版本。',
+          ja: 'deploy/k8s の Kubernetes マニフェストがローカルでビルドしたイメージを指しており、他の環境では起動しませんでした。公開リリースを取得するようになりました。',
+          ko: 'deploy/k8s의 Kubernetes 매니페스트가 로컬에서 빌드한 이미지를 가리켜 다른 환경에서는 시작되지 않았습니다. 이제 공개 릴리스를 가져옵니다.',
+        },
+      },
+      {
+        kind: 'changed',
+        text: {
+          en: 'docker compose now pulls the published image instead of building from source, so trying Holiaokho takes one downloaded file and one command. Add --build to run a checkout.',
+          'zh-TW': 'docker compose 改為拉取官方 image,不再從原始碼建置,試用好料庫只需要下載一個檔案、執行一行指令。要跑自己的原始碼時加上 --build。',
+          'zh-CN': 'docker compose 改为拉取官方镜像,不再从源码构建,试用好料库只需要下载一个文件、执行一行命令。要运行自己的源码时加上 --build。',
+          ja: 'docker compose はソースからビルドせず公開イメージを取得するようになり、ファイル 1 つとコマンド 1 行で試せます。手元のソースを使うには --build を付けます。',
+          ko: 'docker compose가 소스에서 빌드하지 않고 공개 이미지를 가져오므로, 파일 하나와 명령 한 줄로 Holiaokho를 써 볼 수 있습니다. 직접 받은 소스를 쓰려면 --build를 붙입니다.',
+        },
+      },
+      {
+        kind: 'fixed',
+        text: {
+          en: 'Column and field labels for a single repository read "Repositories" in English.',
+          'zh-TW': '英文介面中,指單一 repository 的欄位名稱顯示成複數的「Repositories」。',
+          'zh-CN': '英文界面中,指单个仓库的字段名称显示成复数的「Repositories」。',
+          ja: '英語表示で、単一のリポジトリを指す列や項目の名前が複数形の「Repositories」になっていました。',
+          ko: '영어 화면에서 하나의 리포지터리를 가리키는 열과 항목 이름이 복수형 「Repositories」로 표시되었습니다.',
+        },
+      },
+      {
+        kind: 'fixed',
+        text: {
+          en: 'Vulnerabilities in package details now line up, whatever the width of each severity label.',
+          'zh-TW': '套件詳情中的漏洞清單現在會對齊,不再因為嚴重度標籤寬度不同而錯位。',
+          'zh-CN': '包详情中的漏洞列表现在会对齐,不再因为严重度标签宽度不同而错位。',
+          ja: 'パッケージ詳細の脆弱性一覧が、深刻度ラベルの幅に関係なく揃うようになりました。',
+          ko: '패키지 상세의 취약점 목록이 심각도 라벨 너비와 관계없이 정렬됩니다.',
+        },
+      },
+    ],
+  },
+  {
     version: '1.3.0',
     date: '2026-09-26',
     changes: [
