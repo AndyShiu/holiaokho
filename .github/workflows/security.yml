@@ -76,6 +76,16 @@ jobs:
           go install honnef.co/go/tools/cmd/staticcheck@latest
           staticcheck ./...
 
+      # The vulnerability scanner asks OSV about each package by purl. A purl
+      # OSV does not recognise is not an error — it just finds nothing — so
+      # if OSV's rules drift, a whole format would silently look clean. This
+      # asks about one known-vulnerable package per format and fails if any
+      # comes back empty. On the weekly run too, since OSV changes on its own.
+      - name: OSV lookups still find known vulnerabilities
+        env:
+          HOLIAOKHO_TEST_OSV: "1"
+        run: go test ./internal/vuln/ -run Live -count=1 -v
+
   image:
     name: Container image
     runs-on: ubuntu-latest

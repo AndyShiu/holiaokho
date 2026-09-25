@@ -3,7 +3,8 @@ import { App, Button, Checkbox, Form, Input, InputNumber, Modal, Radio, Select, 
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { get, post } from '@/api/client'
-import type { CleanupPolicy, RepoAttributes, RepoType, Repository, RoutingRule, Storage } from '@/api/types'
+import type { CleanupPolicy, RepoAttributes, RepoType, Repository, RoutingRule, Storage, VulnSummary } from '@/api/types'
+import { useAuth } from '@/auth/AuthContext'
 import { Section, SecretHint, useErrorText } from './Common'
 import { CodeBlock } from './Copyable'
 
@@ -95,6 +96,11 @@ export function RepoForm({ format, type, value, onChange, editing, existing }: {
   const rules = useQuery({ queryKey: ['routing-rules'], queryFn: () => get<RoutingRule[]>('routing-rules') })
   const policies = useQuery({ queryKey: ['cleanup-policies'], queryFn: () => get<CleanupPolicy[]>('cleanup-policies') })
   const repos = useQuery({ queryKey: ['repositories'], queryFn: () => get<Repository[]>('repositories'), enabled: type === 'group' })
+  const { can } = useAuth()
+  // The server says which formats OSV can check; the switch is offered only
+  // where it would do something.
+  const vulns = useQuery({ queryKey: ['vuln-summary'], queryFn: () => get<VulnSummary>('vulnerabilities/summary'), enabled: type !== 'group' && can('app:search', 'read') })
+  const scannable = !!vulns.data?.enabled && vulns.data.coveredFormats.includes(format)
   const a = value.attributes
   const set = (patch: Partial<RepoFormValues>) => onChange({ ...value, ...patch })
   const setAttr = <K extends keyof RepoAttributes>(k: K, patch: Partial<NonNullable<RepoAttributes[K]>>) => onChange({ ...value, attributes: { ...a, [k]: { ...(a[k] ?? {}), ...patch } } })
@@ -126,6 +132,11 @@ export function RepoForm({ format, type, value, onChange, editing, existing }: {
         <Form.Item label={label('repos.online', 'Online')} style={{ marginBottom: 0 }}>
           <Switch checked={value.online} onChange={(v) => set({ online: v })} /> <span style={{ fontSize: 12, color: 'var(--hlk-text-secondary)', marginLeft: 8 }}>{t('repos.onlineHint', 'Offline repositories reject all client requests.')}</span>
         </Form.Item>
+        {scannable && (
+          <Form.Item label={label('repos.f.vulnScan', 'Vulnerability scanning')} style={{ marginTop: 12, marginBottom: 0 }}>
+            <Switch checked={a.vulnerabilities?.scan !== false} onChange={(v) => setAttr('vulnerabilities', { scan: v })} /> <span style={{ fontSize: 12, color: 'var(--hlk-text-secondary)', marginLeft: 8 }}>{t('repos.f.vulnScanHint', 'Check the packages in this repository against OSV for known vulnerabilities.')}</span>
+          </Form.Item>
+        )}
       </Section>
 
       {type === 'proxy' && (

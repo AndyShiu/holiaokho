@@ -10,6 +10,7 @@ import ChangePassword from './pages/ChangePassword'
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const Browse = lazy(() => import('./pages/Browse'))
 const Search = lazy(() => import('./pages/Search'))
+const Vulnerabilities = lazy(() => import('./pages/Vulnerabilities'))
 const Repositories = lazy(() => import('./pages/admin/Repositories'))
 const RepoWizard = lazy(() => import('./pages/admin/RepoWizard'))
 const RepoDetail = lazy(() => import('./pages/admin/RepoDetail'))
@@ -79,6 +80,7 @@ export default function App() {
             <Route path="/changelog" element={<Changelog />} />
             <Route path="/browse/:repo/*" element={<Browse />} />
             <Route path="/search" element={<Guard target="app:search"><Search /></Guard>} />
+            <Route path="/vulnerabilities" element={<Guard target="app:search"><Vulnerabilities /></Guard>} />
             <Route path="/admin/repositories" element={<Guard target="app:repositories"><Repositories /></Guard>} />
             <Route path="/admin/repositories/new" element={<Guard target="app:repositories" action="write"><RepoWizard /></Guard>} />
             <Route path="/admin/repositories/:name" element={<Guard target="app:repositories"><RepoDetail /></Guard>} />

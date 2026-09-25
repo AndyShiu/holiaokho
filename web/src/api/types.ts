@@ -17,6 +17,7 @@ export interface RepoAttributes {
   yum?: { repodataDepth?: number; signingKey?: string; passphrase?: string }
   alpine?: { signingKey?: string; keyName?: string }
   cargo?: { downloadUrl?: string }
+  vulnerabilities?: { scan?: boolean }
   [k: string]: any
 }
 export interface Repository {
@@ -49,3 +50,23 @@ export interface OIDCConfig { enabled: boolean; issuer: string; clientId: string
 export interface RutConfig { enabled: boolean; header: string; trustedProxies: string[]; autoCreate: boolean; defaultRoles: string[] }
 export interface SearchHit extends Package { repository: string; format: string }
 export interface AuthSettings { realms: string[]; defaultRoles: string[]; password: PasswordPolicy; anonymous?: boolean | null; ldap: LDAPConfig; oidc: OIDCConfig; rut: RutConfig }
+
+export type Severity = 'CRITICAL' | 'HIGH' | 'MODERATE' | 'LOW' | 'UNKNOWN'
+export interface VulnFinding {
+  packageId: number; repository: string; format: string; namespace: string; name: string; version: string
+  id: string; aliases: string[]; summary: string; severity: Severity; score: number | null
+  fixedIn: string[]; published: string | null; firstSeen: string
+}
+export interface VulnSummary {
+  enabled: boolean
+  counts: Partial<Record<Severity, number>>
+  vulnerabilities: number; affectedPackages: number
+  scanned: number; pending: number; notCovered: number; excluded: number
+  lastRunAt: string | null; lastOkAt: string | null; lastError?: string
+  coveredFormats: string[]
+}
+export interface PackageVulns {
+  status: 'scanned' | 'pending' | 'notCovered' | 'excluded' | 'disabled'
+  scannedAt: string | null
+  items: VulnFinding[]
+}

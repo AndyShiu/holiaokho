@@ -149,6 +149,14 @@ they are, and found again through the same endpoint the tools already ask.
 Proxy repositories answer from upstream and cache the result; the web
 interface lists what is attached to each image.
 
+**Vulnerability scanning** — stored packages are checked against
+[OSV](https://osv.dev) for known vulnerabilities: Maven, npm, PyPI, Go, NuGet,
+RubyGems, Cargo, Composer, pub and CRAN. One row per actual vulnerability
+(GHSA, CVE and ecosystem ids merged), worst first, with the versions that fix
+it. Newly found critical and high findings are sent once by email and webhook
+and flagged on the dashboard. Formats OSV does not cover are reported as not
+covered — never as clean. On by default; any repository can opt out.
+
 **Storage** — local filesystem or any S3-compatible service, content-addressed
 and reference-counted, so an identical file referenced by ten repositories
 occupies the disk once.

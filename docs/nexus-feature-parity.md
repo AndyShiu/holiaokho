@@ -178,7 +178,7 @@ Nexus 內建的 scheduled tasks：
 | Backup / restore | ✅（H2 export） | ✅ 含 blobs 的 tar.gz，CLI 與 API |
 | Nexus 升級／migration 工具 | ✅ | ⏸ 已實作（`import-nexus`）但預設關閉，需 `HOLIAOKHO_ENABLE_NEXUS_IMPORT=1`；暫不對外 |
 | Branding、Outreach、Analytics 上傳 | ✅ | 不做 |
-| Malware remediation / Repository Firewall / RHC | IQ / Pro | 不接 Sonatype IQ；改為自己做**弱點掃描**：以 OSV.dev 比對套件弱點，可掃全部或指定的 repository（已規劃，未實作） |
+| Malware remediation / Repository Firewall / RHC | IQ / Pro | 不接 Sonatype IQ；改為自己做**漏洞掃描**（1.2.0，見 §8）。惡意套件攔截（Firewall）未做 |
 
 ## 7. Nexus 付費版才有的功能
 
@@ -211,6 +211,7 @@ Nexus 內建的 scheduled tasks：
 | 代理下載邊收邊轉送（Docker layer）：多個 client 共用同一個上游下載 | ✅ | 1.1.2 |
 | 慢速下載不設總時限：1 分鐘沒資料才判定卡住，並以 `Range` 從斷點續傳 | ✅ | 1.1.2 |
 | 上游拒絕（例如 ghcr 對不存在的 image 回 403）不再觸發 autoBlock；被封鎖時回「上游無法使用」而非「找不到」 | ✅ | 1.1.2 |
+| 漏洞掃描：以 OSV.dev 比對已存放的套件（Maven、npm、PyPI、Go、NuGet、RubyGems、Cargo、Composer、pub、CRAN），別名合併為一筆、依嚴重度排序、列出修復版本；預設全掃，可逐一 repository 關閉；新發現的 Critical/High 以 email 與 webhook 通知一次；首頁提示；OSV 不支援的格式標為「未涵蓋」而非「安全」 | ✅ | 1.2.0 |
 
 ---
 

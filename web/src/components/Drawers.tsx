@@ -10,6 +10,7 @@ import { ConfirmDelete, KV, useErrorText } from './Common'
 import { Copyable } from './Copyable'
 import { fmtBytes, AbsTime, RelTime } from './Format'
 import { repoBase } from './UsageSnippets'
+import { PackageVulnsSection } from './Vulns'
 
 // GET /assets/{id} answers with the asset plus its repository and a ready-made
 // download URL, not a bare asset.
@@ -158,6 +159,7 @@ export function PackageDrawer({ packageId, onClose, onDeleted, onAsset }: { pack
               />
             </>
           )}
+          {packageId && <PackageVulnsSection packageId={packageId} />}
           {canDelete && (
             <div style={{ marginTop: 20, display: 'flex', justifyContent: 'flex-end' }}>
               <Button danger onClick={() => setConfirm(true)}>{t('package.deleteVersion', 'Delete this version')}</Button>

@@ -37,3 +37,13 @@ secrets:
 log:
   level: info    # debug|info|warn|error
   format: text   # text|json
+vulnerabilities:
+  # Scan stored packages against OSV (osv.dev) for known vulnerabilities.
+  # Maven, npm, PyPI, Go, NuGet, RubyGems, Cargo, Composer, pub and CRAN are
+  # covered; other formats are reported as not covered, never as clean.
+  # A repository can opt out in its own settings.
+  enabled: true
+  osv_url: https://api.osv.dev
+  # Newly found vulnerabilities at or above this level are sent by email and
+  # as a "vulnerability.found" webhook: CRITICAL | HIGH | MODERATE | LOW
+  notify_min_severity: HIGH

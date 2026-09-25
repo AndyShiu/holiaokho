@@ -21,6 +21,7 @@ type Config struct {
 	Backup   Backup   `yaml:"backup"`
 	Secrets  Secrets  `yaml:"secrets"`
 	Log      Log      `yaml:"log"`
+	Vulns    Vulns    `yaml:"vulnerabilities"`
 }
 
 type Server struct {
@@ -114,6 +115,19 @@ type Backup struct {
 	Keep      int    `yaml:"keep"`
 }
 
+// Vulns configures scanning stored packages for known vulnerabilities.
+type Vulns struct {
+	// Enabled turns the scan task on. Individual repositories can still be
+	// excluded from their own settings.
+	Enabled bool `yaml:"enabled"`
+	// OSVURL is the OSV API to query; point it at a mirror when the server
+	// cannot reach api.osv.dev directly.
+	OSVURL string `yaml:"osv_url"`
+	// NotifyMinSeverity is the lowest severity worth an email or webhook
+	// when newly found: CRITICAL, HIGH, MODERATE or LOW.
+	NotifyMinSeverity string `yaml:"notify_min_severity"`
+}
+
 type Log struct {
 	Level  string `yaml:"level"`  // debug|info|warn|error
 	Format string `yaml:"format"` // json|text
@@ -148,6 +162,7 @@ func Default() Config {
 		Backup:  Backup{Keep: 7},
 		Secrets: Secrets{KeyFile: "./data/secret.key"},
 		Log:     Log{Level: "info", Format: "text"},
+		Vulns:   Vulns{Enabled: true, OSVURL: "https://api.osv.dev", NotifyMinSeverity: "HIGH"},
 	}
 }
 
@@ -230,4 +245,7 @@ func applyEnv(c *Config) {
 	boolean("BACKUP_WITH_BLOBS", &c.Backup.WithBlobs)
 	str("LOG_LEVEL", &c.Log.Level)
 	str("LOG_FORMAT", &c.Log.Format)
+	boolean("VULNERABILITIES_ENABLED", &c.Vulns.Enabled)
+	str("VULNERABILITIES_OSV_URL", &c.Vulns.OSVURL)
+	str("VULNERABILITIES_NOTIFY_MIN_SEVERITY", &c.Vulns.NotifyMinSeverity)
 }

@@ -145,11 +145,16 @@ func (a *API) Router() http.Handler {
 		r.Delete("/{id}", a.need("app:roles", auth.Delete, a.deleteRole))
 	})
 	r.Get("/search", a.need("app:search", auth.Read, a.search))
+	// Findings are a view over packages, so they follow the same rule:
+	// whoever may search sees the findings in repositories they can read.
+	r.Get("/vulnerabilities", a.need("app:search", auth.Read, a.vulnList))
+	r.Get("/vulnerabilities/summary", a.need("app:search", auth.Read, a.vulnSummary))
 	r.Route("/packages", func(r chi.Router) {
 		r.Get("/{id}", a.getPackage)
 		r.Delete("/{id}", a.deletePackage)
 		r.Get("/{id}/assets", a.packageAssets)
 		r.Get("/{id}/referrers", a.packageReferrers)
+		r.Get("/{id}/vulnerabilities", a.packageVulns)
 	})
 	r.Route("/assets", func(r chi.Router) {
 		r.Get("/{id}", a.getAsset)

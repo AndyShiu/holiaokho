@@ -1,14 +1,15 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { App, Button, Progress, Skeleton, Steps, Tag } from 'antd'
+import { Alert, App, Button, Progress, Skeleton, Steps, Tag } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { get, post } from '@/api/client'
-import type { AuditEntry, Health, Repository, Task } from '@/api/types'
+import type { AuditEntry, Health, Repository, Severity, Task, VulnSummary } from '@/api/types'
 import { useAuth } from '@/auth/AuthContext'
 import { PageHeader } from '@/components/Common'
 import { fmtBytes, Num, RelTime, StatusDot } from '@/components/Format'
 import { useErrorText } from '@/components/Common'
+import { SeverityTag } from '@/components/Vulns'
 
 function HealthCard({ name, c }: { name: string; c: Health['checks'][string] }) {
   const { t } = useTranslation()
@@ -31,6 +32,47 @@ function HealthCard({ name, c }: { name: string; c: Health['checks'][string] }) 
         <Button size="small" danger style={{ marginTop: 8 }} onClick={() => navigate('/change-password?forced=1')}>{t('health.changeNow', 'Change now')}</Button>
       )}
     </div>
+  )
+}
+
+// The first thing on the dashboard when stored packages have known
+// vulnerabilities: coloured by the worst of them, counted by severity, one
+// click from the list. Nothing is shown when there is nothing to act on.
+function VulnBanner({ s }: { s: VulnSummary }) {
+  const { t } = useTranslation()
+  const navigate = useNavigate()
+  const levels: Severity[] = ['CRITICAL', 'HIGH', 'MODERATE', 'LOW', 'UNKNOWN']
+  const found = levels.filter((k) => (s.counts[k] ?? 0) > 0)
+  const stale = !!s.lastError && (!s.lastOkAt || Date.now() - new Date(s.lastOkAt).getTime() > 2 * 86400_000)
+  if (!s.enabled || (found.length === 0 && !stale)) return null
+  if (found.length === 0) {
+    return (
+      <Alert type="info" showIcon style={{ marginBottom: 16 }}
+        message={t('dashboard.vulnsStale', 'Vulnerability data could not be refreshed: OSV has been unreachable for more than two days.')}
+        action={<Button size="small" onClick={() => navigate('/vulnerabilities')}>{t('common.details', 'Details')}</Button>} />
+    )
+  }
+  const serious = (s.counts.CRITICAL ?? 0) + (s.counts.HIGH ?? 0)
+  return (
+    <Alert
+      type={s.counts.CRITICAL ? 'error' : s.counts.HIGH ? 'warning' : 'info'} showIcon style={{ marginBottom: 16, alignItems: 'center' }}
+      message={
+        <span style={{ fontWeight: 500 }}>
+          {t('dashboard.vulnsFound', '{{n}} stored packages have known vulnerabilities', { n: s.affectedPackages })}
+        </span>
+      }
+      description={
+        <span style={{ display: 'inline-flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
+          {found.map((k) => <span key={k} style={{ display: 'inline-flex', gap: 5, alignItems: 'center', fontSize: 13 }}><SeverityTag severity={k} /><b style={{ fontVariantNumeric: 'tabular-nums' }}>{s.counts[k]}</b></span>)}
+          {stale && <span style={{ fontSize: 12, color: 'var(--hlk-text-tertiary)' }}>{t('dashboard.vulnsStaleShort', '(not refreshed: OSV unreachable)')}</span>}
+        </span>
+      }
+      action={
+        <Button size="small" type={serious ? 'primary' : 'default'} danger={!!s.counts.CRITICAL} onClick={() => navigate(serious ? '/vulnerabilities?severity=HIGH' : '/vulnerabilities')}>
+          {t('dashboard.vulnsView', 'View')}
+        </Button>
+      }
+    />
   )
 }
 
@@ -57,6 +99,7 @@ export default function Dashboard() {
   const repos = useQuery({ queryKey: ['repositories'], queryFn: () => get<Repository[]>('repositories'), enabled: canRepos })
   const audit = useQuery({ queryKey: ['audit', 10], queryFn: () => get<AuditEntry[]>('audit', { limit: 10 }), enabled: can('app:system', 'read') })
   const tasks = useQuery({ queryKey: ['tasks'], queryFn: () => get<Task[]>('tasks'), enabled: can('app:tasks', 'read') })
+  const vulns = useQuery({ queryKey: ['vuln-summary'], queryFn: () => get<VulnSummary>('vulnerabilities/summary'), enabled: can('app:search', 'read'), refetchInterval: 60000 })
 
   const checks = Object.entries(health.data?.checks ?? {}).sort(([a], [b]) => a.localeCompare(b))
   const bad = checks.filter(([, c]) => !c.healthy || c.message).length
@@ -80,6 +123,7 @@ export default function Dashboard() {
     return (
       <>
         <PageHeader title={t('nav.dashboard', 'Dashboard')} />
+        {vulns.data && <VulnBanner s={vulns.data} />}
         <div className="hlk-card">
           <p>{t('dashboard.devHint', 'Find packages in Browse or Search, and create a personal token for CI under My Tokens.')}</p>
           <Button type="primary" onClick={() => navigate('/browse')}>{t('nav.browse', 'Browse')}</Button>
@@ -102,6 +146,7 @@ export default function Dashboard() {
         }
         extra={can('app:repositories', 'write') && <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/admin/repositories/new')}>{t('repos.create', 'Create Repository')}</Button>}
       />
+      {vulns.data && <VulnBanner s={vulns.data} />}
       {canStatus && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 16 }}>
           {health.isLoading ? [0, 1, 2, 3].map((i) => <div key={i} className="hlk-card"><Skeleton active paragraph={{ rows: 1 }} /></div>) : checks.map(([k, c]) => <HealthCard key={k} name={k} c={c} />)}

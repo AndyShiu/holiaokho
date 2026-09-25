@@ -322,7 +322,11 @@
     "step3": "클라이언트 설정 복사",
     "step3a": "리포지터리의 「사용법」 탭에서",
     "welcome": "Holiaokho에 오신 것을 환영합니다",
-    "welcomeHint": "세 단계로 첫 리포지터리를 가동해 보세요."
+    "welcomeHint": "세 단계로 첫 리포지터리를 가동해 보세요.",
+    "vulnsFound": "저장된 패키지 {{n}}개에 알려진 취약점이 있습니다",
+    "vulnsView": "보기",
+    "vulnsStale": "취약점 데이터를 갱신할 수 없습니다: 이틀 넘게 OSV에 연결하지 못했습니다.",
+    "vulnsStaleShort": "(갱신 안 됨: OSV 연결 불가)"
   },
   "email": {
     "encryption": "암호화 방식",
@@ -605,7 +609,9 @@
       "signingKey": "서명 키(개인 키, PEM／armored)",
       "upstreamPass": "업스트림 비밀번호",
       "upstreamUser": "업스트림 아이디",
-      "versionPolicy": "버전 정책"
+      "versionPolicy": "버전 정책",
+      "vulnScan": "취약점 스캔",
+      "vulnScanHint": "이 리포지터리의 패키지를 OSV로 확인해 알려진 취약점을 찾습니다."
     },
     "g": {
       "available": "선택 가능",
@@ -752,7 +758,8 @@
       "delete-temp-files": "쓰기 도중 서버가 멈춰 남은 임시 파일을 삭제합니다(1시간 동안 변경 없음)",
       "prune-expired": "만료된 세션, 네거티브 캐시 항목, 오래된 실행 기록을 삭제합니다",
       "re-encrypt-secrets": "저장된 비밀 값을 현재 키로 다시 암호화합니다(secrets.key 교체 후 실행)",
-      "rebuild-indexes": "호스티드 리포지터리의 색인을 다시 생성합니다(Maven metadata, APT/YUM/apk/CRAN/Conda 색인 파일)"
+      "rebuild-indexes": "호스티드 리포지터리의 색인을 다시 생성합니다(Maven metadata, APT/YUM/apk/CRAN/Conda 색인 파일)",
+      "scan-vulnerabilities": "저장된 패키지를 OSV로 확인해 알려진 취약점을 찾습니다(새 패키지 우선, 매일 재확인)"
     },
     "duration": "소요 시간",
     "every": "간격",
@@ -768,7 +775,8 @@
       "delete-temp-files": "임시 파일 삭제",
       "prune-expired": "만료 항목 정리",
       "re-encrypt-secrets": "비밀 값 재암호화",
-      "rebuild-indexes": "인덱스 재구성"
+      "rebuild-indexes": "인덱스 재구성",
+      "scan-vulnerabilities": "취약점 스캔"
     },
     "nextRun": "다음 실행",
     "noLog": "(출력 없음)",
@@ -884,6 +892,49 @@
     "selfAdminTitle": "본인의 admin 역할을 제거할까요?",
     "source": "소스",
     "tokensOf": "{{name}} 의 토큰"
+  },
+  "vulns": {
+    "title": "취약점",
+    "sev": {
+      "CRITICAL": "심각",
+      "HIGH": "높음",
+      "MODERATE": "보통",
+      "LOW": "낮음",
+      "UNKNOWN": "등급 없음"
+    },
+    "pkg": {
+      "notCovered": "확인 안 됨: OSV에 이 패키지의 데이터가 없습니다. 안전하다는 뜻은 아닙니다.",
+      "excluded": "확인 안 됨: 이 리포지터리는 취약점 스캔이 꺼져 있습니다.",
+      "pending": "아직 확인되지 않았습니다. 새 패키지는 한 시간 안에 확인됩니다.",
+      "clean": "알려진 취약점이 없습니다.",
+      "checked": "확인 시각"
+    },
+    "fixedIn": "수정 버전",
+    "noFix": "수정 버전 미공개",
+    "noFixShort": "없음",
+    "scanStarted": "스캔을 시작했습니다. 끝나면 결과가 여기에 표시됩니다.",
+    "lastScan": "마지막 확인",
+    "source": "데이터 출처 OSV.dev",
+    "scanNow": "지금 스캔",
+    "disabled": "서버 설정에서 취약점 스캔이 꺼져 있습니다(vulnerabilities.enabled).",
+    "unreachable": "지난 스캔에서 OSV에 연결하지 못해 결과가 최신이 아닐 수 있습니다.",
+    "cov": {
+      "scanned": "패키지 {{n}}개 확인됨",
+      "pending": "{{n}}개 확인 대기 중",
+      "notCovered": "{{n}}개는 OSV 대상 아님(안전하다는 뜻은 아님)",
+      "excluded": "{{n}}개는 스캔이 꺼진 리포지터리에 있음"
+    },
+    "searchPlaceholder": "패키지, GHSA 또는 CVE ID",
+    "minSeverity": "심각도(이상)",
+    "noneTitle": "알려진 취약점 없음",
+    "noMatch": "조건에 맞는 결과가 없습니다",
+    "noneHint": "확인된 패키지 {{n}}개 중에서. OSV 대상이 아닌 형식은 포함되지 않습니다.",
+    "total": "{{n}}건",
+    "severity": "심각도",
+    "id": "취약점",
+    "package": "패키지",
+    "summary": "요약",
+    "firstSeen": "발견 시각"
   },
   "webhooks": {
     "create": "webhook 만들기",

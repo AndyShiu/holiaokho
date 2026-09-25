@@ -137,6 +137,23 @@ if [ "$code" = 404 ]; then ok "a missing image on ghcr is 404"; else bad "a miss
 code=$(curl -s -o /dev/null -w '%{http_code}' -u "admin:$ADMIN_PW" -H "$MA" "$H/v2/ghcr-e2e/getsops/sops/manifests/v3.10.2")
 if [ "$code" = 200 ]; then ok "ghcr still answers right after a refusal"; else bad "ghcr still answers right after a refusal (got $code)"; fi
 
+echo "== vulnerability scanning"
+# Log4Shell, end to end: the package arrives through the proxy, the scan task
+# asks OSV, and the finding is listed with its severity. Needs api.osv.dev,
+# like the rest of this script needs the public registries.
+check curl -sf -o /dev/null -u "admin:$ADMIN_PW" "$H/repository/maven-central/org/apache/logging/log4j/log4j-core/2.14.1/log4j-core-2.14.1.jar"
+check curl -sf -o /dev/null -u "admin:$ADMIN_PW" -X POST "$H/api/v1/tasks/scan-vulnerabilities/run"
+found=""
+for i in $(seq 1 30); do
+  found=$(curl -s -u "admin:$ADMIN_PW" "$H/api/v1/vulnerabilities?q=log4j-core" | python3 -c "import sys,json; print(' '.join(f['id']+':'+f['severity'] for f in json.load(sys.stdin)['items']))" 2>/dev/null || true)
+  case "$found" in *GHSA-jfh8-c2jp-5v3q:CRITICAL*) break ;; esac
+  sleep 2
+done
+case "$found" in *GHSA-jfh8-c2jp-5v3q:CRITICAL*) ok "Log4Shell found in log4j-core 2.14.1, rated critical" ;; *) bad "Log4Shell found in log4j-core 2.14.1 (got: $found)" ;; esac
+# Aliases are one vulnerability: CVE-2021-44228 must not appear as its own row.
+n=$(curl -s -u "admin:$ADMIN_PW" "$H/api/v1/vulnerabilities?q=CVE-2021-44228" | python3 -c "import sys,json; print(json.load(sys.stdin)['total'])")
+check test "$n" -eq 1
+
 echo "== oci referrers"
 # Signatures, SBOMs and attestations are separate manifests that name the image
 # they describe. Exercised with the API directly rather than cosign so the test

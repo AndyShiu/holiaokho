@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Avatar, Badge, Button, Drawer, Dropdown, Input, Layout, Menu, Tooltip, type MenuProps } from 'antd'
 import {
-  AppstoreOutlined, BellOutlined, ClockCircleOutlined, DatabaseOutlined, DeleteOutlined, FileSearchOutlined, FolderOpenOutlined, GlobalOutlined, HddOutlined,
+  AppstoreOutlined, BellOutlined, BugOutlined, ClockCircleOutlined, DatabaseOutlined, DeleteOutlined, FileSearchOutlined, FolderOpenOutlined, GlobalOutlined, HddOutlined,
   InfoCircleOutlined, KeyOutlined, LogoutOutlined, MailOutlined, MoonOutlined, SafetyCertificateOutlined, SearchOutlined, SettingOutlined, SunOutlined, TeamOutlined, ToolOutlined,
   UserOutlined, ApiOutlined, BranchesOutlined, FilterOutlined, SaveOutlined, DashboardOutlined, LockOutlined, MenuOutlined,
 } from '@ant-design/icons'
@@ -102,7 +102,10 @@ export default function AppShell() {
     const it: MenuProps['items'] = []
     if (!isAnonymous) it.push({ key: '/', icon: <DashboardOutlined />, label: <Link to="/">{t('nav.dashboard', 'Dashboard')}</Link> })
     it.push({ key: '/browse', icon: <FolderOpenOutlined />, label: <Link to="/browse">{t('nav.browse', 'Browse')}</Link> })
-    if (can('app:search', 'read')) it.push({ key: '/search', icon: <SearchOutlined />, label: <Link to="/search">{t('nav.search', 'Search')}</Link> })
+    if (can('app:search', 'read')) {
+      it.push({ key: '/search', icon: <SearchOutlined />, label: <Link to="/search">{t('nav.search', 'Search')}</Link> })
+      it.push({ key: '/vulnerabilities', icon: <BugOutlined />, label: <Link to="/vulnerabilities">{t('vulns.title', 'Vulnerabilities')}</Link> })
+    }
     const manage: MenuProps['items'] = []
     if (can('app:repositories', 'read')) manage.push({ key: '/admin/repositories', icon: <AppstoreOutlined />, label: <Link to="/admin/repositories">{t('nav.repositories', 'Repositories')}</Link> })
     if (can('app:storages', 'read')) manage.push({ key: '/admin/storages', icon: <HddOutlined />, label: <Link to="/admin/storages">{t('nav.storages', 'Storages')}</Link> })

@@ -322,7 +322,11 @@
     "step3": "Copy the client setup",
     "step3a": "from the repository \"Usage\" tab",
     "welcome": "Welcome to Holiaokho",
-    "welcomeHint": "Three steps to get your first repository serving."
+    "welcomeHint": "Three steps to get your first repository serving.",
+    "vulnsFound": "{{n}} stored packages have known vulnerabilities",
+    "vulnsView": "View",
+    "vulnsStale": "Vulnerability data could not be refreshed: OSV has been unreachable for more than two days.",
+    "vulnsStaleShort": "(not refreshed: OSV unreachable)"
   },
   "email": {
     "encryption": "Encryption",
@@ -605,7 +609,9 @@
       "signingKey": "Signing key (private, PEM/armored)",
       "upstreamPass": "Upstream password",
       "upstreamUser": "Upstream username",
-      "versionPolicy": "Version policy"
+      "versionPolicy": "Version policy",
+      "vulnScan": "Vulnerability scanning",
+      "vulnScanHint": "Check the packages in this repository against OSV for known vulnerabilities."
     },
     "g": {
       "available": "Available",
@@ -752,7 +758,8 @@
       "delete-temp-files": "Delete temporary files left behind when the server stopped in the middle of a write (untouched for 1h)",
       "prune-expired": "Remove expired sessions, negative cache entries and stale task runs",
       "re-encrypt-secrets": "Re-encrypt stored secrets with the current key (run after rotating secrets.key)",
-      "rebuild-indexes": "Regenerate hosted repository indexes (Maven metadata, APT/YUM/apk/CRAN/Conda index files)"
+      "rebuild-indexes": "Regenerate hosted repository indexes (Maven metadata, APT/YUM/apk/CRAN/Conda index files)",
+      "scan-vulnerabilities": "Check stored packages against OSV for known vulnerabilities (new packages first; each rechecked daily)"
     },
     "duration": "Duration",
     "every": "every",
@@ -768,7 +775,8 @@
       "delete-temp-files": "Delete temporary files",
       "prune-expired": "Prune expired entries",
       "re-encrypt-secrets": "Re-encrypt secrets",
-      "rebuild-indexes": "Rebuild indexes"
+      "rebuild-indexes": "Rebuild indexes",
+      "scan-vulnerabilities": "Scan for vulnerabilities"
     },
     "nextRun": "Next run",
     "noLog": "(no output)",
@@ -884,6 +892,49 @@
     "selfAdminTitle": "Remove your own admin role?",
     "source": "Source",
     "tokensOf": "Tokens of {{name}}"
+  },
+  "vulns": {
+    "title": "Vulnerabilities",
+    "sev": {
+      "CRITICAL": "Critical",
+      "HIGH": "High",
+      "MODERATE": "Moderate",
+      "LOW": "Low",
+      "UNKNOWN": "Unrated"
+    },
+    "pkg": {
+      "notCovered": "Not checked: OSV has no data for this package. This does not mean it is safe.",
+      "excluded": "Not checked: vulnerability scanning is turned off for this repository.",
+      "pending": "Not checked yet. New packages are checked within the hour.",
+      "clean": "No known vulnerabilities.",
+      "checked": "Checked"
+    },
+    "fixedIn": "Fixed in",
+    "noFix": "No fixed version published",
+    "noFixShort": "none yet",
+    "scanStarted": "Scan started. Results appear here as it finishes.",
+    "lastScan": "Last checked",
+    "source": "data from OSV.dev",
+    "scanNow": "Scan now",
+    "disabled": "Vulnerability scanning is turned off in the server configuration (vulnerabilities.enabled).",
+    "unreachable": "The last scan could not reach OSV, so these results may be out of date.",
+    "cov": {
+      "scanned": "{{n}} packages checked",
+      "pending": "{{n}} waiting to be checked",
+      "notCovered": "{{n}} not covered by OSV (not the same as safe)",
+      "excluded": "{{n}} in repositories with scanning off"
+    },
+    "searchPlaceholder": "Package, GHSA or CVE id",
+    "minSeverity": "Severity (at least)",
+    "noneTitle": "No known vulnerabilities",
+    "noMatch": "Nothing matches these filters",
+    "noneHint": "Among the {{n}} packages checked. Formats OSV does not cover are not included.",
+    "total": "{{n}} findings",
+    "severity": "Severity",
+    "id": "Vulnerability",
+    "package": "Package",
+    "summary": "Summary",
+    "firstSeen": "Found"
   },
   "webhooks": {
     "create": "Create webhook",

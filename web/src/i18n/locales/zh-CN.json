@@ -322,7 +322,11 @@
     "step3": "复制客户端配置",
     "step3a": "在仓库的「使用方式」标签页",
     "welcome": "欢迎使用好料库",
-    "welcomeHint": "三个步骤让第一个仓库开始服务。"
+    "welcomeHint": "三个步骤让第一个仓库开始服务。",
+    "vulnsFound": "有 {{n}} 个已存储的包含有已知漏洞",
+    "vulnsView": "查看",
+    "vulnsStale": "漏洞数据无法更新：已经超过两天无法连接到 OSV。",
+    "vulnsStaleShort": "（未更新：无法连接 OSV）"
   },
   "email": {
     "encryption": "加密方式",
@@ -605,7 +609,9 @@
       "signingKey": "签名密钥（私钥，PEM／armored）",
       "upstreamPass": "上游密码",
       "upstreamUser": "上游账号",
-      "versionPolicy": "版本类型"
+      "versionPolicy": "版本类型",
+      "vulnScan": "漏洞扫描",
+      "vulnScanHint": "使用 OSV 检查这个 repository 中的包是否有已知漏洞。"
     },
     "g": {
       "available": "可选择",
@@ -752,7 +758,8 @@
       "delete-temp-files": "删除服务器在写入途中停止而留下的临时文件（1 小时未更新）",
       "prune-expired": "清除过期的 session、负缓存记录与过旧的任务执行记录",
       "re-encrypt-secrets": "用当前密钥重新加密已保存的机密（轮换 secrets.key 后执行）",
-      "rebuild-indexes": "重新生成自有仓库的索引（Maven metadata、APT/YUM/apk/CRAN/Conda 索引文件）"
+      "rebuild-indexes": "重新生成自有仓库的索引（Maven metadata、APT/YUM/apk/CRAN/Conda 索引文件）",
+      "scan-vulnerabilities": "使用 OSV 检查已存储的包是否有已知漏洞（新包优先，每个包每天重新检查）"
     },
     "duration": "耗时",
     "every": "每隔",
@@ -768,7 +775,8 @@
       "delete-temp-files": "删除临时文件",
       "prune-expired": "清除过期项",
       "re-encrypt-secrets": "重新加密机密",
-      "rebuild-indexes": "重建索引"
+      "rebuild-indexes": "重建索引",
+      "scan-vulnerabilities": "漏洞扫描"
     },
     "nextRun": "下次执行",
     "noLog": "（无输出）",
@@ -884,6 +892,49 @@
     "selfAdminTitle": "要移除自己的 admin 角色吗？",
     "source": "来源",
     "tokensOf": "{{name}} 的令牌"
+  },
+  "vulns": {
+    "title": "漏洞",
+    "sev": {
+      "CRITICAL": "严重",
+      "HIGH": "高",
+      "MODERATE": "中",
+      "LOW": "低",
+      "UNKNOWN": "未评级"
+    },
+    "pkg": {
+      "notCovered": "未检查：OSV 没有这个包的数据。这不代表它是安全的。",
+      "excluded": "未检查：这个 repository 已关闭漏洞扫描。",
+      "pending": "尚未检查。新进的包会在一小时内检查。",
+      "clean": "没有已知漏洞。",
+      "checked": "检查于"
+    },
+    "fixedIn": "修复版本",
+    "noFix": "尚未发布修复版本",
+    "noFixShort": "暂无",
+    "scanStarted": "已开始扫描，完成后结果会显示在这里。",
+    "lastScan": "上次检查",
+    "source": "数据来源 OSV.dev",
+    "scanNow": "立即扫描",
+    "disabled": "漏洞扫描已在服务器配置中关闭（vulnerabilities.enabled）。",
+    "unreachable": "上次扫描无法连接到 OSV，当前结果可能不是最新的。",
+    "cov": {
+      "scanned": "已检查 {{n}} 个包",
+      "pending": "{{n}} 个等待检查",
+      "notCovered": "{{n}} 个 OSV 不支持（不等于安全）",
+      "excluded": "{{n}} 个位于已关闭扫描的 repository"
+    },
+    "searchPlaceholder": "包名称、GHSA 或 CVE 编号",
+    "minSeverity": "严重度（至少）",
+    "noneTitle": "没有已知漏洞",
+    "noMatch": "没有符合条件的结果",
+    "noneHint": "在已检查的 {{n}} 个包中。OSV 不支持的格式不包含在内。",
+    "total": "共 {{n}} 条",
+    "severity": "严重度",
+    "id": "漏洞",
+    "package": "包",
+    "summary": "摘要",
+    "firstSeen": "发现时间"
   },
   "webhooks": {
     "create": "创建 webhook",

@@ -57,13 +57,14 @@ import (
 	"github.com/holiaokho/holiaokho/internal/repo"
 	"github.com/holiaokho/holiaokho/internal/secrets"
 	"github.com/holiaokho/holiaokho/internal/task"
+	"github.com/holiaokho/holiaokho/internal/vuln"
 	"github.com/holiaokho/holiaokho/web"
 )
 
 // Version is the build's version string. Releases override it at link time
 // with -ldflags "-X .../internal/server.Version=..." so the running binary can
 // say which build it is; the fallback below only applies to local builds.
-var Version = "1.1.3"
+var Version = "1.2.0"
 
 type Server struct {
 	Cfg     config.Config
@@ -192,6 +193,22 @@ func New(ctx context.Context, cfg config.Config, log *slog.Logger, sys *System) 
 	})
 	s.Tasks.Register("re-encrypt-secrets", "Re-encrypt stored secrets with the current key (run after rotating secrets.key)", 24*time.Hour, func(ctx context.Context, logf func(string, ...any)) error {
 		return s.reencryptSecrets(ctx, logf)
+	})
+	// Hourly, so a package that arrives is checked within the hour; each
+	// run only takes packages never checked or last checked a day ago.
+	scanner := &vuln.Scanner{
+		Content:   c,
+		OSV:       &vuln.OSV{BaseURL: cfg.Vulns.OSVURL, HTTP: eng.HTTPClient(), UA: eng.UserAgent()},
+		Log:       log,
+		MinNotify: cfg.Vulns.NotifyMinSeverity,
+		Announce:  s.announceVulnerabilities,
+	}
+	s.Tasks.Register("scan-vulnerabilities", "Check stored packages against OSV for known vulnerabilities (new packages first; each rechecked daily)", time.Hour, func(ctx context.Context, logf func(string, ...any)) error {
+		if !cfg.Vulns.Enabled {
+			logf("vulnerability scanning is disabled in the configuration")
+			return nil
+		}
+		return scanner.Run(ctx, logf)
 	})
 	s.Tasks.Register("rebuild-indexes", "Regenerate hosted repository indexes (Maven metadata, APT/YUM/apk/CRAN/Conda index files)", 7*24*time.Hour, func(ctx context.Context, logf func(string, ...any)) error {
 		return s.rebuildIndexes(ctx, logf)

@@ -15,6 +15,59 @@ export interface Release {
 
 export const releases: Release[] = [
   {
+    version: '1.2.0',
+    date: '2026-09-26',
+    headline: {
+      en: 'Stored packages are now checked for known vulnerabilities, and the dashboard says so when any are found.',
+      'zh-TW': '現在會檢查已存放的套件是否有已知漏洞,發現時會在首頁提示。',
+      'zh-CN': '现在会检查已存储的包是否有已知漏洞,发现时会在首页提示。',
+      ja: '保存されているパッケージの既知の脆弱性をチェックし、見つかった場合はダッシュボードに表示するようになりました。',
+      ko: '저장된 패키지의 알려진 취약점을 확인하며, 발견되면 대시보드에 표시합니다.',
+    },
+    changes: [
+      {
+        kind: 'added',
+        text: {
+          en: 'Vulnerability scanning against OSV for Maven, npm, PyPI, Go, NuGet, RubyGems, Cargo, Composer, pub and CRAN. The same issue published as a GHSA, a CVE and an ecosystem advisory is counted once. Formats OSV does not cover are shown as not covered, never as clean.',
+          'zh-TW': '以 OSV 掃描漏洞,支援 Maven、npm、PyPI、Go、NuGet、RubyGems、Cargo、Composer、pub、CRAN。同一個問題若同時以 GHSA、CVE 與各生態系公告發布,只算一次。OSV 不支援的格式會標示為「未涵蓋」,絕不顯示為「安全」。',
+          'zh-CN': '使用 OSV 扫描漏洞,支持 Maven、npm、PyPI、Go、NuGet、RubyGems、Cargo、Composer、pub、CRAN。同一个问题若同时以 GHSA、CVE 与各生态系公告发布,只算一次。OSV 不支持的格式会标示为「未覆盖」,绝不显示为「安全」。',
+          ja: 'OSV による脆弱性スキャン(Maven、npm、PyPI、Go、NuGet、RubyGems、Cargo、Composer、pub、CRAN)。GHSA・CVE・各エコシステムで公開された同じ問題は 1 件として数えます。OSV の対象外の形式は「対象外」と表示し、安全とは表示しません。',
+          ko: 'OSV를 이용한 취약점 스캔(Maven, npm, PyPI, Go, NuGet, RubyGems, Cargo, Composer, pub, CRAN). GHSA·CVE·생태계 공지로 함께 발표된 같은 문제는 한 건으로 셉니다. OSV 대상이 아닌 형식은 「대상 아님」으로 표시하며 안전하다고 표시하지 않습니다.',
+        },
+      },
+      {
+        kind: 'added',
+        text: {
+          en: 'A Vulnerabilities page, a vulnerabilities section in package details, and a notice on the dashboard coloured by the worst finding.',
+          'zh-TW': '新增「漏洞」頁面、套件詳情中的漏洞區塊,以及首頁上依最嚴重等級上色的提示。',
+          'zh-CN': '新增「漏洞」页面、包详情中的漏洞区块,以及首页上按最严重等级着色的提示。',
+          ja: '「脆弱性」ページ、パッケージ詳細の脆弱性セクション、最も深刻な検出に応じて色が変わるダッシュボードの通知を追加しました。',
+          ko: '「취약점」 페이지, 패키지 상세의 취약점 섹션, 가장 심각한 항목에 따라 색이 바뀌는 대시보드 알림을 추가했습니다.',
+        },
+      },
+      {
+        kind: 'added',
+        text: {
+          en: 'Newly found critical and high vulnerabilities are sent once by email and as a vulnerability.found webhook. The threshold is vulnerabilities.notify_min_severity.',
+          'zh-TW': '新發現的 Critical 與 High 漏洞會以 email 及 vulnerability.found webhook 通知一次。門檻由 vulnerabilities.notify_min_severity 設定。',
+          'zh-CN': '新发现的 Critical 与 High 漏洞会以 email 及 vulnerability.found webhook 通知一次。阈值由 vulnerabilities.notify_min_severity 设置。',
+          ja: '新たに見つかった緊急・高の脆弱性は、メールと vulnerability.found Webhook で一度だけ通知されます。しきい値は vulnerabilities.notify_min_severity で設定します。',
+          ko: '새로 발견된 심각·높음 취약점은 이메일과 vulnerability.found 웹훅으로 한 번 알립니다. 기준은 vulnerabilities.notify_min_severity로 설정합니다.',
+        },
+      },
+      {
+        kind: 'added',
+        text: {
+          en: 'Scanning is on by default and each repository can opt out in its settings. A server that cannot reach OSV keeps working and says so on the Vulnerabilities page; osv_url can point at a mirror.',
+          'zh-TW': '掃描預設開啟,每個 repository 都可以在設定中關閉。無法連線到 OSV 的伺服器會照常運作,並在「漏洞」頁面顯示;osv_url 可以指向鏡像站。',
+          'zh-CN': '扫描默认开启,每个 repository 都可以在设置中关闭。无法连接到 OSV 的服务器会照常运行,并在「漏洞」页面显示;osv_url 可以指向镜像站。',
+          ja: 'スキャンは既定で有効で、リポジトリごとに設定で無効にできます。OSV に接続できないサーバーも通常どおり動作し、「脆弱性」ページにその旨を表示します。osv_url でミラーを指定できます。',
+          ko: '스캔은 기본으로 켜져 있으며 리포지터리마다 설정에서 끌 수 있습니다. OSV에 연결할 수 없는 서버도 정상 동작하며 「취약점」 페이지에 표시합니다. osv_url로 미러를 지정할 수 있습니다.',
+        },
+      },
+    ],
+  },
+  {
     version: '1.1.3',
     date: '2026-09-24',
     changes: [

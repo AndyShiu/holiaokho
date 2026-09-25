@@ -322,7 +322,11 @@
     "step3": "複製用戶端設定",
     "step3a": "在 repository 的「使用方式」分頁",
     "welcome": "歡迎使用好料庫",
-    "welcomeHint": "三個步驟讓第一個 repository 開始服務。"
+    "welcomeHint": "三個步驟讓第一個 repository 開始服務。",
+    "vulnsFound": "有 {{n}} 個已存放的套件含有已知漏洞",
+    "vulnsView": "查看",
+    "vulnsStale": "漏洞資料無法更新：已經超過兩天無法連線到 OSV。",
+    "vulnsStaleShort": "（未更新：無法連線 OSV）"
   },
   "email": {
     "encryption": "加密方式",
@@ -605,7 +609,9 @@
       "signingKey": "簽章金鑰（私鑰，PEM／armored）",
       "upstreamPass": "上游密碼",
       "upstreamUser": "上游帳號",
-      "versionPolicy": "版本類型"
+      "versionPolicy": "版本類型",
+      "vulnScan": "漏洞掃描",
+      "vulnScanHint": "以 OSV 檢查這個 repository 中的套件是否有已知漏洞。"
     },
     "g": {
       "available": "可選擇",
@@ -752,7 +758,8 @@
       "delete-temp-files": "刪除伺服器在寫入途中停止而留下的暫存檔（1 小時未更新）",
       "prune-expired": "清除過期的 session、負快取記錄與過舊的任務執行紀錄",
       "re-encrypt-secrets": "以目前的金鑰重新加密已儲存的機密（輪替 secrets.key 後執行）",
-      "rebuild-indexes": "重新產生自有 repository 的索引（Maven metadata、APT/YUM/apk/CRAN/Conda 索引檔）"
+      "rebuild-indexes": "重新產生自有 repository 的索引（Maven metadata、APT/YUM/apk/CRAN/Conda 索引檔）",
+      "scan-vulnerabilities": "以 OSV 檢查已存放的套件是否有已知漏洞（新套件優先，每個套件每天重新檢查）"
     },
     "duration": "耗時",
     "every": "每隔",
@@ -768,7 +775,8 @@
       "delete-temp-files": "刪除暫存檔",
       "prune-expired": "清除過期項目",
       "re-encrypt-secrets": "重新加密機密",
-      "rebuild-indexes": "重建索引"
+      "rebuild-indexes": "重建索引",
+      "scan-vulnerabilities": "漏洞掃描"
     },
     "nextRun": "下次執行",
     "noLog": "（無輸出）",
@@ -884,6 +892,49 @@
     "selfAdminTitle": "要移除自己的 admin 角色嗎？",
     "source": "來源",
     "tokensOf": "{{name}} 的權杖"
+  },
+  "vulns": {
+    "title": "漏洞",
+    "sev": {
+      "CRITICAL": "嚴重",
+      "HIGH": "高",
+      "MODERATE": "中",
+      "LOW": "低",
+      "UNKNOWN": "未評級"
+    },
+    "pkg": {
+      "notCovered": "未檢查：OSV 沒有這個套件的資料。這不代表它是安全的。",
+      "excluded": "未檢查：這個 repository 已關閉漏洞掃描。",
+      "pending": "尚未檢查。新進的套件會在一小時內檢查。",
+      "clean": "沒有已知漏洞。",
+      "checked": "檢查於"
+    },
+    "fixedIn": "修復版本",
+    "noFix": "尚未發布修復版本",
+    "noFixShort": "尚無",
+    "scanStarted": "已開始掃描，完成後結果會顯示在這裡。",
+    "lastScan": "上次檢查",
+    "source": "資料來源 OSV.dev",
+    "scanNow": "立即掃描",
+    "disabled": "漏洞掃描已在伺服器設定中關閉（vulnerabilities.enabled）。",
+    "unreachable": "上次掃描無法連線到 OSV，目前的結果可能不是最新的。",
+    "cov": {
+      "scanned": "已檢查 {{n}} 個套件",
+      "pending": "{{n}} 個等待檢查",
+      "notCovered": "{{n}} 個 OSV 不支援（不等於安全）",
+      "excluded": "{{n}} 個位於已關閉掃描的 repository"
+    },
+    "searchPlaceholder": "套件名稱、GHSA 或 CVE 編號",
+    "minSeverity": "嚴重度（至少）",
+    "noneTitle": "沒有已知漏洞",
+    "noMatch": "沒有符合條件的結果",
+    "noneHint": "在已檢查的 {{n}} 個套件中。OSV 不支援的格式不包含在內。",
+    "total": "共 {{n}} 筆",
+    "severity": "嚴重度",
+    "id": "漏洞",
+    "package": "套件",
+    "summary": "摘要",
+    "firstSeen": "發現時間"
   },
   "webhooks": {
     "create": "建立 webhook",

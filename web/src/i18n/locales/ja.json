@@ -322,7 +322,11 @@
     "step3": "クライアント設定をコピー",
     "step3a": "リポジトリの「使い方」タブから",
     "welcome": "Holiaokho へようこそ",
-    "welcomeHint": "3 ステップで最初のリポジトリを稼働させましょう。"
+    "welcomeHint": "3 ステップで最初のリポジトリを稼働させましょう。",
+    "vulnsFound": "保存されている {{n}} 件のパッケージに既知の脆弱性があります",
+    "vulnsView": "表示",
+    "vulnsStale": "脆弱性データを更新できません：2 日以上 OSV に接続できていません。",
+    "vulnsStaleShort": "（未更新：OSV に接続できません）"
   },
   "email": {
     "encryption": "暗号化方式",
@@ -605,7 +609,9 @@
       "signingKey": "署名鍵（秘密鍵、PEM／armored）",
       "upstreamPass": "アップストリームのパスワード",
       "upstreamUser": "アップストリームのユーザー名",
-      "versionPolicy": "バージョンポリシー"
+      "versionPolicy": "バージョンポリシー",
+      "vulnScan": "脆弱性スキャン",
+      "vulnScanHint": "このリポジトリのパッケージに既知の脆弱性がないか OSV でチェックします。"
     },
     "g": {
       "available": "選択可能",
@@ -752,7 +758,8 @@
       "delete-temp-files": "書き込みの途中でサーバーが停止したために残った一時ファイルを削除します（1 時間更新なし）",
       "prune-expired": "期限切れのセッション・ネガティブキャッシュ・古い実行履歴を削除します",
       "re-encrypt-secrets": "保存済みの機密を現在の鍵で再暗号化します（secrets.key のローテーション後に実行）",
-      "rebuild-indexes": "ホストリポジトリの索引を再生成します（Maven metadata、APT/YUM/apk/CRAN/Conda の索引ファイル）"
+      "rebuild-indexes": "ホストリポジトリの索引を再生成します（Maven metadata、APT/YUM/apk/CRAN/Conda の索引ファイル）",
+      "scan-vulnerabilities": "保存されているパッケージに既知の脆弱性がないか OSV でチェックします（新しいパッケージを優先し、毎日再チェック）"
     },
     "duration": "所要時間",
     "every": "間隔",
@@ -768,7 +775,8 @@
       "delete-temp-files": "一時ファイルの削除",
       "prune-expired": "期限切れエントリの削除",
       "re-encrypt-secrets": "機密の再暗号化",
-      "rebuild-indexes": "インデックスの再構築"
+      "rebuild-indexes": "インデックスの再構築",
+      "scan-vulnerabilities": "脆弱性スキャン"
     },
     "nextRun": "次回の実行",
     "noLog": "（出力なし）",
@@ -884,6 +892,49 @@
     "selfAdminTitle": "自分の admin ロールを外しますか？",
     "source": "ソース",
     "tokensOf": "{{name}} のトークン"
+  },
+  "vulns": {
+    "title": "脆弱性",
+    "sev": {
+      "CRITICAL": "緊急",
+      "HIGH": "高",
+      "MODERATE": "中",
+      "LOW": "低",
+      "UNKNOWN": "未評価"
+    },
+    "pkg": {
+      "notCovered": "未チェック：OSV にこのパッケージのデータがありません。安全という意味ではありません。",
+      "excluded": "未チェック：このリポジトリでは脆弱性スキャンが無効です。",
+      "pending": "まだチェックされていません。新しいパッケージは 1 時間以内にチェックされます。",
+      "clean": "既知の脆弱性はありません。",
+      "checked": "チェック日時"
+    },
+    "fixedIn": "修正バージョン",
+    "noFix": "修正バージョンは未公開",
+    "noFixShort": "なし",
+    "scanStarted": "スキャンを開始しました。完了すると結果がここに表示されます。",
+    "lastScan": "最終チェック",
+    "source": "データ提供 OSV.dev",
+    "scanNow": "今すぐスキャン",
+    "disabled": "脆弱性スキャンはサーバー設定で無効になっています（vulnerabilities.enabled）。",
+    "unreachable": "前回のスキャンで OSV に接続できなかったため、結果が古い可能性があります。",
+    "cov": {
+      "scanned": "{{n}} 件のパッケージをチェック済み",
+      "pending": "{{n}} 件がチェック待ち",
+      "notCovered": "{{n}} 件は OSV の対象外（安全という意味ではありません）",
+      "excluded": "{{n}} 件はスキャン無効のリポジトリ内"
+    },
+    "searchPlaceholder": "パッケージ名、GHSA / CVE ID",
+    "minSeverity": "深刻度（以上）",
+    "noneTitle": "既知の脆弱性はありません",
+    "noMatch": "条件に一致する結果はありません",
+    "noneHint": "チェック済みの {{n}} 件のパッケージの中で。OSV の対象外の形式は含まれません。",
+    "total": "{{n}} 件",
+    "severity": "深刻度",
+    "id": "脆弱性",
+    "package": "パッケージ",
+    "summary": "概要",
+    "firstSeen": "検出日時"
   },
   "webhooks": {
     "create": "webhook を作成",
