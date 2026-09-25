@@ -47,3 +47,10 @@ vulnerabilities:
   # Newly found vulnerabilities at or above this level are sent by email and
   # as a "vulnerability.found" webhook: CRITICAL | HIGH | MODERATE | LOW
   notify_min_severity: HIGH
+updates:
+  # Once a day, ask GitHub whether a newer release exists and tell
+  # administrators in the UI. The request carries nothing but a User-Agent
+  # with this version — but it does tell GitHub that an instance runs at this
+  # address. Set to false where that is not wanted or there is no route out.
+  check: true
+  # url: https://api.github.com/repos/AndyShiu/holiaokho/releases/latest

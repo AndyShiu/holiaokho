@@ -29,6 +29,7 @@ import (
 	"github.com/holiaokho/holiaokho/internal/repo"
 	"github.com/holiaokho/holiaokho/internal/secrets"
 	"github.com/holiaokho/holiaokho/internal/task"
+	"github.com/holiaokho/holiaokho/internal/update"
 )
 
 //go:embed openapi.yaml
@@ -50,6 +51,7 @@ type API struct {
 	Logs         LogSource
 	LogLevel     *slog.LevelVar
 	Config       config.Config
+	Updates      *update.Checker
 }
 
 // passwordChangeOnly blocks an account whose password somebody else chose.
@@ -149,6 +151,10 @@ func (a *API) Router() http.Handler {
 	// whoever may search sees the findings in repositories they can read.
 	r.Get("/vulnerabilities", a.need("app:search", auth.Read, a.vulnList))
 	r.Get("/vulnerabilities/summary", a.need("app:search", auth.Read, a.vulnSummary))
+	// Upgrading is an administrator's decision, so only they are told.
+	r.Get("/updates", a.need("app:system", auth.Read, func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, 200, a.Updates.Status(r.Context()))
+	}))
 	r.Route("/packages", func(r chi.Router) {
 		r.Get("/{id}", a.getPackage)
 		r.Delete("/{id}", a.deletePackage)

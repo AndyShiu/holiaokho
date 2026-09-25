@@ -22,6 +22,7 @@ type Config struct {
 	Secrets  Secrets  `yaml:"secrets"`
 	Log      Log      `yaml:"log"`
 	Vulns    Vulns    `yaml:"vulnerabilities"`
+	Updates  Updates  `yaml:"updates"`
 }
 
 type Server struct {
@@ -128,6 +129,17 @@ type Vulns struct {
 	NotifyMinSeverity string `yaml:"notify_min_severity"`
 }
 
+// Updates configures checking for a newer release.
+type Updates struct {
+	// Check asks GitHub once a day whether a newer release exists, and tells
+	// administrators in the UI. The request carries only a User-Agent with
+	// the version, but it does tell GitHub this instance exists; turn it off
+	// where that is not wanted, or where there is no route out anyway.
+	Check bool `yaml:"check"`
+	// URL is the releases API to ask; for forks and mirrors.
+	URL string `yaml:"url"`
+}
+
 type Log struct {
 	Level  string `yaml:"level"`  // debug|info|warn|error
 	Format string `yaml:"format"` // json|text
@@ -163,6 +175,7 @@ func Default() Config {
 		Secrets: Secrets{KeyFile: "./data/secret.key"},
 		Log:     Log{Level: "info", Format: "text"},
 		Vulns:   Vulns{Enabled: true, OSVURL: "https://api.osv.dev", NotifyMinSeverity: "HIGH"},
+		Updates: Updates{Check: true, URL: "https://api.github.com/repos/AndyShiu/holiaokho/releases/latest"},
 	}
 }
 
@@ -248,4 +261,6 @@ func applyEnv(c *Config) {
 	boolean("VULNERABILITIES_ENABLED", &c.Vulns.Enabled)
 	str("VULNERABILITIES_OSV_URL", &c.Vulns.OSVURL)
 	str("VULNERABILITIES_NOTIFY_MIN_SEVERITY", &c.Vulns.NotifyMinSeverity)
+	boolean("UPDATES_CHECK", &c.Updates.Check)
+	str("UPDATES_URL", &c.Updates.URL)
 }

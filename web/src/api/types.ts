@@ -70,3 +70,7 @@ export interface PackageVulns {
   scannedAt: string | null
   items: VulnFinding[]
 }
+export interface UpdateStatus {
+  enabled: boolean; current: string; latest?: string; available: boolean
+  url?: string; publishedAt?: string; checkedAt?: string; error?: string
+}

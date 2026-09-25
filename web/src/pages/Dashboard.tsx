@@ -4,7 +4,7 @@ import { PlusOutlined } from '@ant-design/icons'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { get, post } from '@/api/client'
-import type { AuditEntry, Health, Repository, Severity, Task, VulnSummary } from '@/api/types'
+import type { AuditEntry, Health, Repository, Severity, Task, UpdateStatus, VulnSummary } from '@/api/types'
 import { useAuth } from '@/auth/AuthContext'
 import { PageHeader } from '@/components/Common'
 import { fmtBytes, Num, RelTime, StatusDot } from '@/components/Format'
@@ -100,6 +100,8 @@ export default function Dashboard() {
   const audit = useQuery({ queryKey: ['audit', 10], queryFn: () => get<AuditEntry[]>('audit', { limit: 10 }), enabled: can('app:system', 'read') })
   const tasks = useQuery({ queryKey: ['tasks'], queryFn: () => get<Task[]>('tasks'), enabled: can('app:tasks', 'read') })
   const vulns = useQuery({ queryKey: ['vuln-summary'], queryFn: () => get<VulnSummary>('vulnerabilities/summary'), enabled: can('app:search', 'read'), refetchInterval: 60000 })
+  const updates = useQuery({ queryKey: ['updates'], queryFn: () => get<UpdateStatus>('updates'), enabled: can('app:system', 'read') })
+  const upd = updates.data
 
   const checks = Object.entries(health.data?.checks ?? {}).sort(([a], [b]) => a.localeCompare(b))
   const bad = checks.filter(([, c]) => !c.healthy || c.message).length
@@ -146,6 +148,13 @@ export default function Dashboard() {
         }
         extra={can('app:repositories', 'write') && <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/admin/repositories/new')}>{t('repos.create', 'Create Repository')}</Button>}
       />
+      {upd?.available && (
+        <Alert
+          type="info" showIcon style={{ marginBottom: 16 }}
+          message={t('dashboard.updateAvailable', 'Holiaokho {{latest}} is available — this server runs {{current}}.', { latest: upd.latest, current: upd.current })}
+          action={<Button size="small" href={upd.url} target="_blank" rel="noreferrer">{t('dashboard.updateNotes', "What's new")}</Button>}
+        />
+      )}
       {vulns.data && <VulnBanner s={vulns.data} />}
       {canStatus && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 16 }}>

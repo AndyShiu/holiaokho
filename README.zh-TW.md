@@ -158,6 +158,14 @@ GHSA、CVE 與各生態系編號合併為一筆,依嚴重度排序,並列出修�
 `HOLIAOKHO_*` 環境變數。Kubernetes manifest 在
 [`deploy/k8s/`](deploy/k8s/)。
 
+**對外連線。** 除了你設定的上游之外,伺服器會自己發出兩種請求。兩者都可以關閉,
+也都和其他連線一樣走對外 proxy 與 CA 設定:
+
+| 用途 | 連到 | 送出內容 | 關閉方式 |
+|---|---|---|---|
+| 漏洞掃描 | `api.osv.dev` | 套件名稱與版本 | `HOLIAOKHO_VULNERABILITIES_ENABLED=false` |
+| 每日檢查新版本 | `api.github.com` | 只有帶版本號的 User-Agent | `HOLIAOKHO_UPDATES_CHECK=false` |
+
 ## 文件
 
 - [`docs/nexus-feature-parity.md`](docs/nexus-feature-parity.md) ——

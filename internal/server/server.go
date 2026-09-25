@@ -57,6 +57,7 @@ import (
 	"github.com/holiaokho/holiaokho/internal/repo"
 	"github.com/holiaokho/holiaokho/internal/secrets"
 	"github.com/holiaokho/holiaokho/internal/task"
+	"github.com/holiaokho/holiaokho/internal/update"
 	"github.com/holiaokho/holiaokho/internal/vuln"
 	"github.com/holiaokho/holiaokho/web"
 )
@@ -64,9 +65,10 @@ import (
 // Version is the build's version string. Releases override it at link time
 // with -ldflags "-X .../internal/server.Version=..." so the running binary can
 // say which build it is; the fallback below only applies to local builds.
-var Version = "1.2.0"
+var Version = "1.3.0"
 
 type Server struct {
+	Updates *update.Checker
 	Cfg     config.Config
 	Log     *slog.Logger
 	DB      *db.DB
@@ -210,6 +212,26 @@ func New(ctx context.Context, cfg config.Config, log *slog.Logger, sys *System) 
 		}
 		return scanner.Run(ctx, logf)
 	})
+	s.Updates = &update.Checker{DB: d.Pool, HTTP: eng.HTTPClient(), URL: cfg.Updates.URL, Current: Version, Enabled: cfg.Updates.Check}
+	s.Tasks.Register("check-for-updates", "Ask GitHub whether a newer Holiaokho release has been published (can be turned off: updates.check)", 24*time.Hour, func(ctx context.Context, logf func(string, ...any)) error {
+		if !cfg.Updates.Check {
+			logf("update checks are turned off in the configuration")
+			return nil
+		}
+		if err := s.Updates.Check(ctx); err != nil {
+			return err
+		}
+		st := s.Updates.Status(ctx)
+		switch {
+		case st.Error != "":
+			logf("could not check: %s", st.Error)
+		case st.Available:
+			logf("%s is available (running %s)", st.Latest, st.Current)
+		default:
+			logf("up to date (%s)", st.Current)
+		}
+		return nil
+	})
 	s.Tasks.Register("rebuild-indexes", "Regenerate hosted repository indexes (Maven metadata, APT/YUM/apk/CRAN/Conda index files)", 7*24*time.Hour, func(ctx context.Context, logf func(string, ...any)) error {
 		return s.rebuildIndexes(ctx, logf)
 	})
@@ -220,7 +242,7 @@ func New(ctx context.Context, cfg config.Config, log *slog.Logger, sys *System) 
 		return x < y
 	}
 	s.API = &api.API{Content: c, Engine: eng, Auth: a, Formats: s.Formats, Tasks: s.Tasks, Deps: s.Deps, Version: Version, Started: time.Now(), OnRepoChange: s.syncDockerListeners,
-		Notify: s.Notify, Logs: sys.Buffer, LogLevel: sys.Level, Config: cfg}
+		Notify: s.Notify, Logs: sys.Buffer, LogLevel: sys.Level, Config: cfg, Updates: s.Updates}
 	return s, nil
 }
 
@@ -614,6 +636,17 @@ func (s *Server) dockerPortHandler(name string) http.HandlerFunc {
 
 func (s *Server) Run(ctx context.Context) error {
 	s.Tasks.Start()
+	// The daily task's first run is a day away; an administrator who has
+	// just installed or upgraded should not wait that long to hear.
+	go func() {
+		select {
+		case <-time.After(time.Minute):
+			if err := s.Updates.Check(ctx); err != nil {
+				s.Log.Debug("update check", "err", err)
+			}
+		case <-ctx.Done():
+		}
+	}()
 	s.syncDockerListeners()
 	s.main = &http.Server{Addr: s.Cfg.Server.Listen, Handler: s.Router(), ReadHeaderTimeout: 30 * time.Second,
 		ReadTimeout: s.Cfg.Server.ReadTimeout, WriteTimeout: s.Cfg.Server.WriteTimeout, TLSConfig: &tls.Config{MinVersion: tls.VersionTLS12}}

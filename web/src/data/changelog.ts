@@ -15,6 +15,22 @@ export interface Release {
 
 export const releases: Release[] = [
   {
+    version: '1.3.0',
+    date: '2026-09-26',
+    changes: [
+      {
+        kind: 'added',
+        text: {
+          en: 'Administrators are told on the dashboard and under the bell when a newer release is out, with a link to what changed. The server asks GitHub once a day, sending nothing but its version; updates.check turns this off.',
+          'zh-TW': '有新版本發佈時,管理員會在首頁和鈴鐺看到提示,並附上更新內容的連結。伺服器每天向 GitHub 查詢一次,只送出自己的版本號;可用 updates.check 關閉。',
+          'zh-CN': '有新版本发布时,管理员会在首页和铃铛看到提示,并附上更新内容的链接。服务器每天向 GitHub 查询一次,只发送自己的版本号;可用 updates.check 关闭。',
+          ja: '新しいリリースが公開されると、管理者はダッシュボードとベルで通知を受け、更新内容へのリンクが表示されます。サーバーは 1 日 1 回 GitHub に問い合わせ、送るのは自身のバージョンだけです。updates.check で無効にできます。',
+          ko: '새 릴리스가 나오면 관리자에게 대시보드와 종 아이콘으로 알리고 변경 내용 링크를 보여 줍니다. 서버는 하루 한 번 GitHub에 확인하며 자신의 버전만 보냅니다. updates.check로 끌 수 있습니다.',
+        },
+      },
+    ],
+  },
+  {
     version: '1.2.0',
     date: '2026-09-26',
     headline: {

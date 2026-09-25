@@ -170,6 +170,15 @@ Every key in [`config.example.yaml`](config.example.yaml) can be set as a
 `HOLIAOKHO_*` environment variable instead. Kubernetes manifests are in
 [`deploy/k8s/`](deploy/k8s/).
 
+**Outbound connections.** Besides the upstreams you configure, the server
+makes two kinds of request on its own. Both can be turned off, and both go
+through the same outbound proxy and CA settings as everything else:
+
+| What | Where | Sends | Turn off |
+|---|---|---|---|
+| Vulnerability scanning | `api.osv.dev` | package names and versions | `HOLIAOKHO_VULNERABILITIES_ENABLED=false` |
+| New-release check, daily | `api.github.com` | a User-Agent with the version, nothing else | `HOLIAOKHO_UPDATES_CHECK=false` |
+
 ## Documentation
 
 - [`docs/nexus-feature-parity.md`](docs/nexus-feature-parity.md) — what Nexus

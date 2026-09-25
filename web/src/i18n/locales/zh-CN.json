@@ -326,7 +326,9 @@
     "vulnsFound": "有 {{n}} 个已存储的包含有已知漏洞",
     "vulnsView": "查看",
     "vulnsStale": "漏洞数据无法更新：已经超过两天无法连接到 OSV。",
-    "vulnsStaleShort": "（未更新：无法连接 OSV）"
+    "vulnsStaleShort": "（未更新：无法连接 OSV）",
+    "updateAvailable": "好料库 {{latest}} 已发布，这台服务器当前是 {{current}}。",
+    "updateNotes": "查看更新内容"
   },
   "email": {
     "encryption": "加密方式",
@@ -498,7 +500,8 @@
     "webhooks": "Webhook"
   },
   "notify": {
-    "none": "暂无需要注意的事项"
+    "none": "暂无需要注意的事项",
+    "update": "好料库 {{v}} 已发布"
   },
   "package": {
     "assets": "文件",
@@ -752,6 +755,7 @@
     "desc": {
       "backup": "按计划将备份归档写入配置的目录",
       "blob-gc": "软删除已无任何文件引用的 blob（保留 1 小时缓冲）",
+      "check-for-updates": "向 GitHub 查询是否有较新的好料库版本（可关闭：updates.check）",
       "cleanup-policies": "对各仓库应用清理策略",
       "compact-blobs": "从存储中永久移除已软删除的 blob（相当于 Nexus 的 Compact blob store）",
       "delete-incomplete-uploads": "删除客户端开始上传却没有完成的文件，例如中断的 docker push（24 小时未更新）",
@@ -769,6 +773,7 @@
     "name": {
       "backup": "备份",
       "blob-gc": "Blob 回收",
+      "check-for-updates": "检查新版本",
       "cleanup-policies": "应用清理策略",
       "compact-blobs": "压实 blob 存储",
       "delete-incomplete-uploads": "删除未完成的上传",

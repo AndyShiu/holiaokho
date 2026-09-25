@@ -14,7 +14,7 @@ import { LANGS, setLanguage } from '@/i18n'
 import { LogoMark, Wordmark } from '@/components/Logo'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { get } from '@/api/client'
-import type { Health, Status, Task } from '@/api/types'
+import type { Health, Status, Task, UpdateStatus } from '@/api/types'
 
 const { Sider, Header, Content } = Layout
 
@@ -45,8 +45,11 @@ function Notifications() {
   const enabled = can('app:status', 'read') && can('app:tasks', 'read')
   const health = useQuery({ queryKey: ['health'], queryFn: () => get<Health>('status/check'), refetchInterval: 60000, enabled })
   const tasks = useQuery({ queryKey: ['tasks'], queryFn: () => get<Task[]>('tasks'), refetchInterval: 60000, enabled })
+  const updates = useQuery({ queryKey: ['updates'], queryFn: () => get<UpdateStatus>('updates'), enabled: enabled && can('app:system', 'read') })
   if (!enabled) return null
   const items: MenuProps['items'] = []
+  const upd = updates.data
+  if (upd?.available) items.push({ key: 'update', label: <span>{t('notify.update', 'Holiaokho {{v}} is available', { v: upd.latest })}</span>, onClick: () => window.open(upd.url, '_blank', 'noopener') })
   Object.entries(health.data?.checks ?? {}).forEach(([k, c]) => {
     if (!c.healthy) items.push({ key: `h:${k}`, label: <span><b>{k}</b> — {c.message ?? t('health.unhealthy', 'unhealthy')}</span>, onClick: () => navigate(k === 'default_admin_password' ? '/change-password' : '/admin/system/health') })
     else if (c.message) items.push({ key: `w:${k}`, label: <span><b>{k}</b> — {c.message}</span>, onClick: () => navigate('/admin/storages') })

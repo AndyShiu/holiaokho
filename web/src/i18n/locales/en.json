@@ -326,7 +326,9 @@
     "vulnsFound": "{{n}} stored packages have known vulnerabilities",
     "vulnsView": "View",
     "vulnsStale": "Vulnerability data could not be refreshed: OSV has been unreachable for more than two days.",
-    "vulnsStaleShort": "(not refreshed: OSV unreachable)"
+    "vulnsStaleShort": "(not refreshed: OSV unreachable)",
+    "updateAvailable": "Holiaokho {{latest}} is available — this server runs {{current}}.",
+    "updateNotes": "What's new"
   },
   "email": {
     "encryption": "Encryption",
@@ -498,7 +500,8 @@
     "webhooks": "Webhooks"
   },
   "notify": {
-    "none": "Nothing needs attention"
+    "none": "Nothing needs attention",
+    "update": "Holiaokho {{v}} is available"
   },
   "package": {
     "assets": "Assets",
@@ -752,6 +755,7 @@
     "desc": {
       "backup": "Write a scheduled backup archive to the configured directory",
       "blob-gc": "Soft-delete blobs no longer referenced by any asset (after a 1h grace period)",
+      "check-for-updates": "Ask GitHub whether a newer Holiaokho release has been published (can be turned off: updates.check)",
       "cleanup-policies": "Apply cleanup policies to their repositories",
       "compact-blobs": "Permanently remove soft-deleted blobs from storage (Nexus 'Compact blob store')",
       "delete-incomplete-uploads": "Delete uploads a client started and never finished, such as an interrupted docker push (untouched for 24h)",
@@ -769,6 +773,7 @@
     "name": {
       "backup": "Backup",
       "blob-gc": "Blob GC",
+      "check-for-updates": "Check for updates",
       "cleanup-policies": "Apply cleanup policies",
       "compact-blobs": "Compact blob store",
       "delete-incomplete-uploads": "Delete incomplete uploads",
