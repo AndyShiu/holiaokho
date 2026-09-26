@@ -22,9 +22,21 @@ import (
 	"github.com/holiaokho/holiaokho/internal/storage"
 )
 
-// Rescan is how long a package's result is trusted. Packages do not change,
+// Rescan is how often a package is checked again. Packages do not change,
 // but the list of known vulnerabilities does, daily.
 const Rescan = 24 * time.Hour
+
+// rescanSlack is how much earlier than Rescan a result counts as due.
+//
+// Without it a daily schedule checks each package every other day: a run
+// stamps its packages as it finishes — 02:00:40, say — and the next day's
+// run starts at 02:00:00, when they are 23h59m old and not yet due, so they
+// wait for the day after. Anything from hourly to daily finds yesterday's
+// results due with a few hours' margin.
+const rescanSlack = 4 * time.Hour
+
+// dueBefore is the check time before which a package is due again.
+func dueBefore(now time.Time) time.Time { return now.Add(-(Rescan - rescanSlack)) }
 
 // Finding is one vulnerability in one stored package.
 type Finding struct {
@@ -42,6 +54,9 @@ type Finding struct {
 	FixedIn    []string   `json:"fixedIn"`
 	Published  *time.Time `json:"published"`
 	FirstSeen  time.Time  `json:"firstSeen"`
+	// LastUsed is when the package was last downloaded, or stored if it
+	// never has been: whether anyone still depends on it.
+	LastUsed time.Time `json:"lastUsed"`
 
 	attrs json.RawMessage // for the purl: a NuGet id's casing lives here
 }
@@ -213,9 +228,9 @@ func (s *Scanner) due(ctx context.Context) ([]due, error) {
 		WHERE r.type IN ('proxy', 'hosted')
 		  AND r.format = ANY($1)
 		  AND coalesce((r.attributes -> 'vulnerabilities' ->> 'scan')::boolean, true)
-		  AND (p.vuln_scanned_at IS NULL OR p.vuln_scanned_at < now() - $2::interval)
+		  AND (p.vuln_scanned_at IS NULL OR p.vuln_scanned_at < $2)
 		ORDER BY p.vuln_scanned_at NULLS FIRST, p.id DESC
-		LIMIT $3`, CoveredFormats(), Rescan.String(), limit)
+		LIMIT $3`, CoveredFormats(), dueBefore(time.Now()), limit)
 	if err != nil {
 		return nil, err
 	}

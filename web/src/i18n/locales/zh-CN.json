@@ -904,47 +904,13 @@
     "tokensOf": "{{name}} 的令牌"
   },
   "vulns": {
-    "title": "漏洞",
-    "sev": {
-      "CRITICAL": "严重",
-      "HIGH": "高",
-      "MODERATE": "中",
-      "LOW": "低",
-      "UNKNOWN": "未评级"
-    },
-    "pkg": {
-      "notCovered": "未检查：OSV 没有这个包的数据。这不代表它是安全的。",
-      "excluded": "未检查：这个 repository 已关闭漏洞扫描。",
-      "pending": "尚未检查。新进的包会在一小时内检查。",
-      "clean": "没有已知漏洞。",
-      "checked": "检查于"
-    },
-    "fixedIn": "修复版本",
-    "noFix": "尚未发布修复版本",
-    "noFixShort": "暂无",
-    "scanStarted": "已开始扫描，完成后结果会显示在这里。",
-    "lastScan": "上次检查",
-    "source": "数据来源 OSV.dev",
-    "scanNow": "立即扫描",
-    "disabled": "漏洞扫描已在服务器配置中关闭（vulnerabilities.enabled）。",
-    "unreachable": "上次扫描无法连接到 OSV，当前结果可能不是最新的。",
     "cov": {
       "scanned": "已检查 {{n}} 个包",
       "pending": "{{n}} 个等待检查",
       "notCovered": "{{n}} 个 OSV 不支持（不等于安全）",
       "excluded": "{{n}} 个位于已关闭扫描的 repository"
     },
-    "searchPlaceholder": "包名称、GHSA 或 CVE 编号",
-    "minSeverity": "严重度（至少）",
-    "noneTitle": "没有已知漏洞",
-    "noMatch": "没有符合条件的结果",
-    "noneHint": "在已检查的 {{n}} 个包中。OSV 不支持的格式不包含在内。",
-    "total": "共 {{n}} 条",
-    "severity": "严重度",
-    "id": "漏洞",
-    "package": "包",
-    "summary": "摘要",
-    "firstSeen": "发现时间",
+    "disabled": "漏洞扫描已在服务器配置中关闭（vulnerabilities.enabled）。",
     "export": {
       "all": "全选",
       "button": "导出报告",
@@ -958,7 +924,42 @@
       "other": "此页面的其他筛选",
       "partial": "报告中会注明排除了哪些严重度，避免被误认为完整列表。",
       "search": "搜索"
-    }
+    },
+    "firstSeen": "发现时间",
+    "fixedIn": "修复版本",
+    "id": "漏洞",
+    "lastScan": "上次检查",
+    "lastUsed": "最后使用",
+    "minSeverity": "严重度（至少）",
+    "noFix": "尚未发布修复版本",
+    "noFixShort": "暂无",
+    "noMatch": "没有符合条件的结果",
+    "noneHint": "在已检查的 {{n}} 个包中。OSV 不支持的格式不包含在内。",
+    "noneTitle": "没有已知漏洞",
+    "package": "包",
+    "pkg": {
+      "notCovered": "未检查：OSV 没有这个包的数据。这不代表它是安全的。",
+      "excluded": "未检查：这个 repository 已关闭漏洞扫描。",
+      "pending": "尚未检查。新进的包会在一小时内检查。",
+      "clean": "没有已知漏洞。",
+      "checked": "检查于"
+    },
+    "scanNow": "立即扫描",
+    "scanStarted": "已开始扫描，完成后结果会显示在这里。",
+    "searchPlaceholder": "包名称、GHSA 或 CVE 编号",
+    "sev": {
+      "CRITICAL": "严重",
+      "HIGH": "高",
+      "MODERATE": "中",
+      "LOW": "低",
+      "UNKNOWN": "未评级"
+    },
+    "severity": "严重度",
+    "source": "数据来源 OSV.dev",
+    "summary": "摘要",
+    "title": "漏洞",
+    "total": "共 {{n}} 条",
+    "unreachable": "上次扫描无法连接到 OSV，当前结果可能不是最新的。"
   },
   "webhooks": {
     "create": "创建 webhook",

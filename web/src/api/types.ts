@@ -56,6 +56,7 @@ export interface VulnFinding {
   packageId: number; repository: string; format: string; namespace: string; name: string; version: string
   id: string; aliases: string[]; summary: string; severity: Severity; score: number | null
   fixedIn: string[]; published: string | null; firstSeen: string
+  lastUsed: string // last downloaded, or stored if never downloaded
 }
 export interface VulnSummary {
   enabled: boolean

@@ -904,47 +904,13 @@
     "tokensOf": "{{name}} のトークン"
   },
   "vulns": {
-    "title": "脆弱性",
-    "sev": {
-      "CRITICAL": "緊急",
-      "HIGH": "高",
-      "MODERATE": "中",
-      "LOW": "低",
-      "UNKNOWN": "未評価"
-    },
-    "pkg": {
-      "notCovered": "未チェック：OSV にこのパッケージのデータがありません。安全という意味ではありません。",
-      "excluded": "未チェック：このリポジトリでは脆弱性スキャンが無効です。",
-      "pending": "まだチェックされていません。新しいパッケージは 1 時間以内にチェックされます。",
-      "clean": "既知の脆弱性はありません。",
-      "checked": "チェック日時"
-    },
-    "fixedIn": "修正バージョン",
-    "noFix": "修正バージョンは未公開",
-    "noFixShort": "なし",
-    "scanStarted": "スキャンを開始しました。完了すると結果がここに表示されます。",
-    "lastScan": "最終チェック",
-    "source": "データ提供 OSV.dev",
-    "scanNow": "今すぐスキャン",
-    "disabled": "脆弱性スキャンはサーバー設定で無効になっています（vulnerabilities.enabled）。",
-    "unreachable": "前回のスキャンで OSV に接続できなかったため、結果が古い可能性があります。",
     "cov": {
       "scanned": "{{n}} 件のパッケージをチェック済み",
       "pending": "{{n}} 件がチェック待ち",
       "notCovered": "{{n}} 件は OSV の対象外（安全という意味ではありません）",
       "excluded": "{{n}} 件はスキャン無効のリポジトリ内"
     },
-    "searchPlaceholder": "パッケージ名、GHSA / CVE ID",
-    "minSeverity": "深刻度（以上）",
-    "noneTitle": "既知の脆弱性はありません",
-    "noMatch": "条件に一致する結果はありません",
-    "noneHint": "チェック済みの {{n}} 件のパッケージの中で。OSV の対象外の形式は含まれません。",
-    "total": "{{n}} 件",
-    "severity": "深刻度",
-    "id": "脆弱性",
-    "package": "パッケージ",
-    "summary": "概要",
-    "firstSeen": "検出日時",
+    "disabled": "脆弱性スキャンはサーバー設定で無効になっています（vulnerabilities.enabled）。",
     "export": {
       "all": "すべて選択",
       "button": "レポートを出力",
@@ -958,7 +924,42 @@
       "other": "このページのその他の絞り込み",
       "partial": "除外した深刻度はレポートに明記され、完全な一覧と誤解されないようにします。",
       "search": "検索"
-    }
+    },
+    "firstSeen": "検出日時",
+    "fixedIn": "修正バージョン",
+    "id": "脆弱性",
+    "lastScan": "最終チェック",
+    "lastUsed": "最終利用",
+    "minSeverity": "深刻度（以上）",
+    "noFix": "修正バージョンは未公開",
+    "noFixShort": "なし",
+    "noMatch": "条件に一致する結果はありません",
+    "noneHint": "チェック済みの {{n}} 件のパッケージの中で。OSV の対象外の形式は含まれません。",
+    "noneTitle": "既知の脆弱性はありません",
+    "package": "パッケージ",
+    "pkg": {
+      "notCovered": "未チェック：OSV にこのパッケージのデータがありません。安全という意味ではありません。",
+      "excluded": "未チェック：このリポジトリでは脆弱性スキャンが無効です。",
+      "pending": "まだチェックされていません。新しいパッケージは 1 時間以内にチェックされます。",
+      "clean": "既知の脆弱性はありません。",
+      "checked": "チェック日時"
+    },
+    "scanNow": "今すぐスキャン",
+    "scanStarted": "スキャンを開始しました。完了すると結果がここに表示されます。",
+    "searchPlaceholder": "パッケージ名、GHSA / CVE ID",
+    "sev": {
+      "CRITICAL": "緊急",
+      "HIGH": "高",
+      "MODERATE": "中",
+      "LOW": "低",
+      "UNKNOWN": "未評価"
+    },
+    "severity": "深刻度",
+    "source": "データ提供 OSV.dev",
+    "summary": "概要",
+    "title": "脆弱性",
+    "total": "{{n}} 件",
+    "unreachable": "前回のスキャンで OSV に接続できなかったため、結果が古い可能性があります。"
   },
   "webhooks": {
     "create": "webhook を作成",

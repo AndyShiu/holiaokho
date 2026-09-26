@@ -57,12 +57,13 @@ type Counts struct {
 
 // PkgEntry is one package version, wherever it is stored.
 type PkgEntry struct {
-	PURL         string   `json:"purl"`
-	Format       string   `json:"format"`
-	Name         string   `json:"name"` // as its ecosystem writes it: group:artifact, @scope/name
-	Version      string   `json:"version"`
-	Repositories []string `json:"repositories"`
-	Severity     string   `json:"highestSeverity"`
+	PURL         string    `json:"purl"`
+	Format       string    `json:"format"`
+	Name         string    `json:"name"` // as its ecosystem writes it: group:artifact, @scope/name
+	Version      string    `json:"version"`
+	Repositories []string  `json:"repositories"`
+	Severity     string    `json:"highestSeverity"`
+	LastUsed     time.Time `json:"lastUsed"` // latest across its repositories
 	// UpgradeTo is the lowest version that fixes every vulnerability listed
 	// that has a fix; FixesAll says whether that is all of them.
 	UpgradeTo       string       `json:"upgradeTo,omitempty"`
@@ -203,6 +204,9 @@ func assemble(r *Report, found []Finding) {
 		}
 		if !contains(p.Repositories, x.Repository) {
 			p.Repositories = append(p.Repositories, x.Repository)
+		}
+		if x.LastUsed.After(p.LastUsed) {
+			p.LastUsed = x.LastUsed
 		}
 		// The same package in two repositories is the same finding twice.
 		if seen[key][x.VulnID] {

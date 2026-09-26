@@ -198,6 +198,9 @@ export default function Vulnerabilities() {
             { title: t('common.repository', 'Repository'), dataIndex: 'repository', width: 160, render: (x: string) => <Link to={`/browse/${x}`} onClick={(e) => e.stopPropagation()} className="hlk-mono" style={{ fontSize: 12 }}>{x}</Link> },
             { title: t('vulns.summary', 'Summary'), dataIndex: 'summary', render: (x: string) => <span style={{ fontSize: 12.5 }}>{x || '—'}</span> },
             { title: t('vulns.fixedIn', 'Fixed in'), dataIndex: 'fixedIn', width: 150, render: (x: string[]) => x.length ? <span className="hlk-mono" style={{ fontSize: 12 }}>{x.join(', ')}</span> : <span style={{ color: 'var(--hlk-text-tertiary)', fontSize: 12 }}>{t('vulns.noFixShort', 'none yet')}</span> },
+            // Whether anyone still pulls it: the same finding matters more in
+            // a package fetched yesterday than in one nobody has touched in months.
+            { title: t('vulns.lastUsed', 'Last used'), dataIndex: 'lastUsed', width: 110, render: (x: string) => <RelTime value={x} /> },
             { title: t('vulns.firstSeen', 'Found'), dataIndex: 'firstSeen', width: 110, render: (x: string) => <RelTime value={x} /> },
           ]}
         />

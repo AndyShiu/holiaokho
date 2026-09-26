@@ -55,7 +55,7 @@ func WriteXLSX(w io.Writer, r *Report, lang string) error {
 	)
 
 	pkgs := [][]cell{{hdr(L("package")), hdr(L("pkgVersion")), hdr(L("severity")), hdr(L("vulnerabilities")),
-		hdr(L("upgradeTo")), hdr(L("fixesAll")), hdr(L("repositories")), hdr("purl")}}
+		hdr(L("upgradeTo")), hdr(L("fixesAll")), hdr(L("lastUsed")), hdr(L("repositories")), hdr("purl")}}
 	vulns := [][]cell{{hdr(L("package")), hdr(L("pkgVersion")), hdr(L("severity")), hdr(L("cvss")), hdr(L("vulnerability")),
 		hdr(L("aliases")), hdr(L("vulnSummary")), hdr(L("fixTo")), hdr(L("fixedIn")), hdr(L("published")),
 		hdr(L("firstSeen")), hdr(L("repositories")), hdr(L("link"))}}
@@ -65,7 +65,7 @@ func WriteXLSX(w io.Writer, r *Report, lang string) error {
 			fixes = L("noFixFor")
 		}
 		pkgs = append(pkgs, []cell{txt(p.Name), txt(p.Version), txt(sev(p.Severity)), num(float64(len(p.Vulnerabilities))),
-			txt(p.UpgradeTo), txt(fixes), txt(strings.Join(p.Repositories, ", ")), txt(p.PURL)})
+			txt(p.UpgradeTo), txt(fixes), txt(p.LastUsed.UTC().Format("2006-01-02")), txt(strings.Join(p.Repositories, ", ")), txt(p.PURL)})
 		for _, v := range p.Vulnerabilities {
 			sc := txt("")
 			if v.Score != nil {
@@ -79,7 +79,7 @@ func WriteXLSX(w io.Writer, r *Report, lang string) error {
 
 	sheets := []sheet{
 		{L("summary"), overview, []float64{34, 40}, false},
-		{L("sheetPackages"), pkgs, []float64{44, 16, 12, 10, 16, 20, 28, 60}, true},
+		{L("sheetPackages"), pkgs, []float64{44, 16, 12, 10, 16, 20, 14, 28, 60}, true},
 		{L("sheetFindings"), vulns, []float64{40, 14, 12, 8, 22, 22, 60, 16, 26, 12, 12, 28, 46}, true},
 	}
 	return writeWorkbook(w, sheets)

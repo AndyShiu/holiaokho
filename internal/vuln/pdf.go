@@ -162,8 +162,8 @@ func WritePDF(w io.Writer, r *Report, lang string) error {
 	// their project is affected and what to move to.
 	pdf.Ln(6)
 	sec(L("sheetPackages"))
-	oSev, oVer, oN, oUp := 26.0, 28.0, 16.0, 36.0
-	oName := contentW - oSev - oVer - oN - oUp
+	oSev, oVer, oN, oUsed, oUp := 26.0, 26.0, 14.0, 24.0, 34.0
+	oName := contentW - oSev - oVer - oN - oUsed - oUp
 	head := func() {
 		pdf.SetFont(family, "B", 8)
 		muted()
@@ -171,7 +171,7 @@ func WritePDF(w io.Writer, r *Report, lang string) error {
 		for _, c := range []struct {
 			w     float64
 			s, al string
-		}{{oSev, L("severity"), "L"}, {oName, L("package"), "L"}, {oVer, L("pkgVersion"), "L"}, {oN, L("vulnerabilities"), "R"}, {oUp, L("upgradeTo"), "R"}} {
+		}{{oSev, L("severity"), "L"}, {oName, L("package"), "L"}, {oVer, L("pkgVersion"), "L"}, {oN, L("vulnerabilities"), "R"}, {oUsed, L("lastUsed"), "R"}, {oUp, L("upgradeTo"), "R"}} {
 			pdf.CellFormat(c.w, 6, " "+c.s+" ", "", 0, c.al, true, 0, "")
 		}
 		pdf.Ln(6)
@@ -190,6 +190,8 @@ func WritePDF(w io.Writer, r *Report, lang string) error {
 		pdf.CellFormat(oName, 6.5, text(truncate(pdf, p.Name, oName-2)), "", 0, "L", false, 0, "")
 		pdf.CellFormat(oVer, 6.5, text(p.Version), "", 0, "L", false, 0, "")
 		pdf.CellFormat(oN, 6.5, fmt.Sprint(len(p.Vulnerabilities)), "", 0, "R", false, 0, "")
+		muted()
+		pdf.CellFormat(oUsed, 6.5, p.LastUsed.UTC().Format("2006-01-02"), "", 0, "R", false, 0, "")
 		up := p.UpgradeTo
 		if up == "" {
 			up = "—"

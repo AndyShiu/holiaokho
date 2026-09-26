@@ -1,6 +1,9 @@
 package vuln
 
-import "testing"
+import (
+	"testing"
+	"time"
+)
 
 func TestCompareVersions(t *testing.T) {
 	less := [][2]string{
@@ -55,5 +58,21 @@ func TestFixFor(t *testing.T) {
 		if got := fixFor(c.current, c.fixed); got != c.want {
 			t.Errorf("fixFor(%s, %v) = %q, want %q", c.current, c.fixed, got, c.want)
 		}
+	}
+}
+
+// A daily schedule must find yesterday's results due. The run stamps its
+// packages when it finishes, a little after it starts, so a threshold of
+// exactly 24 hours skips them and every package is checked every other day.
+func TestADailyScheduleRechecksEveryDay(t *testing.T) {
+	yesterday := time.Date(2026, 9, 27, 2, 0, 0, 0, time.UTC)
+	stamped := yesterday.Add(40 * time.Second) // when yesterday's run finished
+	today := yesterday.Add(24 * time.Hour)     // today's run, on the dot
+	if !stamped.Before(dueBefore(today)) {
+		t.Fatal("yesterday's results are not due at today's run")
+	}
+	// An hourly schedule does not recheck a package it checked an hour ago.
+	if stamped.Before(dueBefore(yesterday.Add(time.Hour))) {
+		t.Fatal("a package checked an hour ago is due again")
 	}
 }

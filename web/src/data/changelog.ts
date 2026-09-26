@@ -15,6 +15,32 @@ export interface Release {
 
 export const releases: Release[] = [
   {
+    version: '1.3.4',
+    date: '2026-09-26',
+    changes: [
+      {
+        kind: 'added',
+        text: {
+          en: 'The Vulnerabilities page and every report show when each package was last used — last downloaded, or stored if it never has been — so a vulnerable package that builds still pull can be told from one nobody has touched in months.',
+          'zh-TW': '「漏洞」頁面與所有報告都會顯示每個套件的「最後使用」時間(最後一次被下載;從未下載過則為存入的時間),可以分辨出仍在被建置使用的有漏洞套件,和已經好幾個月沒人碰的套件。',
+          'zh-CN': '「漏洞」页面与所有报告都会显示每个包的「最后使用」时间(最后一次被下载;从未下载过则为存入的时间),可以区分出仍在被构建使用的有漏洞包,和已经好几个月没人碰的包。',
+          ja: '「脆弱性」ページとすべてのレポートに、各パッケージの最終利用日時(最後にダウンロードされた日時、未ダウンロードなら保存日時)を表示します。ビルドがまだ取得している脆弱なパッケージと、何か月も使われていないものを区別できます。',
+          ko: '「취약점」 페이지와 모든 보고서에 각 패키지의 마지막 사용 시각(마지막 다운로드 시각, 다운로드된 적이 없으면 저장 시각)을 표시합니다. 빌드가 아직 받아 가는 취약한 패키지와 몇 달째 아무도 쓰지 않는 패키지를 구별할 수 있습니다.',
+        },
+      },
+      {
+        kind: 'fixed',
+        text: {
+          en: 'With the vulnerability scan scheduled once a day, each package was rechecked only every other day: a run stamps its packages as it finishes, so at the next day\'s run they were a few seconds short of 24 hours old and skipped. A package now counts as due after 20 hours, so a daily schedule rechecks everything daily.',
+          'zh-TW': '漏洞掃描排程設為每天一次時,每個套件實際上是每兩天才重新檢查:掃描會在結束時記下檢查時間,隔天同一時間開始掃描時,那些套件差幾秒才滿 24 小時而被略過。現在超過 20 小時就算到期,每天一次的排程每天都會完整重掃。',
+          'zh-CN': '漏洞扫描计划设为每天一次时,每个包实际上是每两天才重新检查:扫描会在结束时记下检查时间,隔天同一时间开始扫描时,那些包差几秒才满 24 小时而被跳过。现在超过 20 小时就算到期,每天一次的计划每天都会完整重扫。',
+          ja: '脆弱性スキャンを 1 日 1 回に設定すると、各パッケージは実質 2 日ごとにしか再チェックされていませんでした。実行終了時に時刻を記録するため、翌日の同時刻には 24 時間に数秒足りず対象外になっていました。20 時間を過ぎれば対象とするようにし、1 日 1 回の設定で毎日すべて再チェックされます。',
+          ko: '취약점 스캔을 하루 한 번으로 설정하면 각 패키지가 사실상 이틀에 한 번만 재확인되었습니다. 실행이 끝날 때 시각을 기록하므로 다음 날 같은 시각에는 24시간에 몇 초 모자라 건너뛰었습니다. 이제 20시간이 지나면 대상이 되어 하루 한 번 설정으로도 매일 모두 재확인합니다.',
+        },
+      },
+    ],
+  },
+  {
     version: '1.3.3',
     date: '2026-09-26',
     changes: [

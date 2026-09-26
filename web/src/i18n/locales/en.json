@@ -904,47 +904,13 @@
     "tokensOf": "Tokens of {{name}}"
   },
   "vulns": {
-    "title": "Vulnerabilities",
-    "sev": {
-      "CRITICAL": "Critical",
-      "HIGH": "High",
-      "MODERATE": "Moderate",
-      "LOW": "Low",
-      "UNKNOWN": "Unrated"
-    },
-    "pkg": {
-      "notCovered": "Not checked: OSV has no data for this package. This does not mean it is safe.",
-      "excluded": "Not checked: vulnerability scanning is turned off for this repository.",
-      "pending": "Not checked yet. New packages are checked within the hour.",
-      "clean": "No known vulnerabilities.",
-      "checked": "Checked"
-    },
-    "fixedIn": "Fixed in",
-    "noFix": "No fixed version published",
-    "noFixShort": "none yet",
-    "scanStarted": "Scan started. Results appear here as it finishes.",
-    "lastScan": "Last checked",
-    "source": "data from OSV.dev",
-    "scanNow": "Scan now",
-    "disabled": "Vulnerability scanning is turned off in the server configuration (vulnerabilities.enabled).",
-    "unreachable": "The last scan could not reach OSV, so these results may be out of date.",
     "cov": {
       "scanned": "{{n}} packages checked",
       "pending": "{{n}} waiting to be checked",
       "notCovered": "{{n}} not covered by OSV (not the same as safe)",
       "excluded": "{{n}} in repositories with scanning off"
     },
-    "searchPlaceholder": "Package, GHSA or CVE id",
-    "minSeverity": "Severity (at least)",
-    "noneTitle": "No known vulnerabilities",
-    "noMatch": "Nothing matches these filters",
-    "noneHint": "Among the {{n}} packages checked. Formats OSV does not cover are not included.",
-    "total": "{{n}} findings",
-    "severity": "Severity",
-    "id": "Vulnerability",
-    "package": "Package",
-    "summary": "Summary",
-    "firstSeen": "Found",
+    "disabled": "Vulnerability scanning is turned off in the server configuration (vulnerabilities.enabled).",
     "export": {
       "all": "Select all",
       "button": "Export report",
@@ -958,7 +924,42 @@
       "other": "Other filters on this page",
       "partial": "The report will say which severities it leaves out, so it is not mistaken for the full list.",
       "search": "Search"
-    }
+    },
+    "firstSeen": "Found",
+    "fixedIn": "Fixed in",
+    "id": "Vulnerability",
+    "lastScan": "Last checked",
+    "lastUsed": "Last used",
+    "minSeverity": "Severity (at least)",
+    "noFix": "No fixed version published",
+    "noFixShort": "none yet",
+    "noMatch": "Nothing matches these filters",
+    "noneHint": "Among the {{n}} packages checked. Formats OSV does not cover are not included.",
+    "noneTitle": "No known vulnerabilities",
+    "package": "Package",
+    "pkg": {
+      "notCovered": "Not checked: OSV has no data for this package. This does not mean it is safe.",
+      "excluded": "Not checked: vulnerability scanning is turned off for this repository.",
+      "pending": "Not checked yet. New packages are checked within the hour.",
+      "clean": "No known vulnerabilities.",
+      "checked": "Checked"
+    },
+    "scanNow": "Scan now",
+    "scanStarted": "Scan started. Results appear here as it finishes.",
+    "searchPlaceholder": "Package, GHSA or CVE id",
+    "sev": {
+      "CRITICAL": "Critical",
+      "HIGH": "High",
+      "MODERATE": "Moderate",
+      "LOW": "Low",
+      "UNKNOWN": "Unrated"
+    },
+    "severity": "Severity",
+    "source": "data from OSV.dev",
+    "summary": "Summary",
+    "title": "Vulnerabilities",
+    "total": "{{n}} findings",
+    "unreachable": "The last scan could not reach OSV, so these results may be out of date."
   },
   "webhooks": {
     "create": "Create webhook",

@@ -904,47 +904,13 @@
     "tokensOf": "{{name}} 의 토큰"
   },
   "vulns": {
-    "title": "취약점",
-    "sev": {
-      "CRITICAL": "심각",
-      "HIGH": "높음",
-      "MODERATE": "보통",
-      "LOW": "낮음",
-      "UNKNOWN": "등급 없음"
-    },
-    "pkg": {
-      "notCovered": "확인 안 됨: OSV에 이 패키지의 데이터가 없습니다. 안전하다는 뜻은 아닙니다.",
-      "excluded": "확인 안 됨: 이 리포지터리는 취약점 스캔이 꺼져 있습니다.",
-      "pending": "아직 확인되지 않았습니다. 새 패키지는 한 시간 안에 확인됩니다.",
-      "clean": "알려진 취약점이 없습니다.",
-      "checked": "확인 시각"
-    },
-    "fixedIn": "수정 버전",
-    "noFix": "수정 버전 미공개",
-    "noFixShort": "없음",
-    "scanStarted": "스캔을 시작했습니다. 끝나면 결과가 여기에 표시됩니다.",
-    "lastScan": "마지막 확인",
-    "source": "데이터 출처 OSV.dev",
-    "scanNow": "지금 스캔",
-    "disabled": "서버 설정에서 취약점 스캔이 꺼져 있습니다(vulnerabilities.enabled).",
-    "unreachable": "지난 스캔에서 OSV에 연결하지 못해 결과가 최신이 아닐 수 있습니다.",
     "cov": {
       "scanned": "패키지 {{n}}개 확인됨",
       "pending": "{{n}}개 확인 대기 중",
       "notCovered": "{{n}}개는 OSV 대상 아님(안전하다는 뜻은 아님)",
       "excluded": "{{n}}개는 스캔이 꺼진 리포지터리에 있음"
     },
-    "searchPlaceholder": "패키지, GHSA 또는 CVE ID",
-    "minSeverity": "심각도(이상)",
-    "noneTitle": "알려진 취약점 없음",
-    "noMatch": "조건에 맞는 결과가 없습니다",
-    "noneHint": "확인된 패키지 {{n}}개 중에서. OSV 대상이 아닌 형식은 포함되지 않습니다.",
-    "total": "{{n}}건",
-    "severity": "심각도",
-    "id": "취약점",
-    "package": "패키지",
-    "summary": "요약",
-    "firstSeen": "발견 시각",
+    "disabled": "서버 설정에서 취약점 스캔이 꺼져 있습니다(vulnerabilities.enabled).",
     "export": {
       "all": "모두 선택",
       "button": "보고서 내보내기",
@@ -958,7 +924,42 @@
       "other": "이 페이지의 다른 필터",
       "partial": "보고서에 제외한 심각도가 표시되어 전체 목록으로 오해되지 않습니다.",
       "search": "검색"
-    }
+    },
+    "firstSeen": "발견 시각",
+    "fixedIn": "수정 버전",
+    "id": "취약점",
+    "lastScan": "마지막 확인",
+    "lastUsed": "마지막 사용",
+    "minSeverity": "심각도(이상)",
+    "noFix": "수정 버전 미공개",
+    "noFixShort": "없음",
+    "noMatch": "조건에 맞는 결과가 없습니다",
+    "noneHint": "확인된 패키지 {{n}}개 중에서. OSV 대상이 아닌 형식은 포함되지 않습니다.",
+    "noneTitle": "알려진 취약점 없음",
+    "package": "패키지",
+    "pkg": {
+      "notCovered": "확인 안 됨: OSV에 이 패키지의 데이터가 없습니다. 안전하다는 뜻은 아닙니다.",
+      "excluded": "확인 안 됨: 이 리포지터리는 취약점 스캔이 꺼져 있습니다.",
+      "pending": "아직 확인되지 않았습니다. 새 패키지는 한 시간 안에 확인됩니다.",
+      "clean": "알려진 취약점이 없습니다.",
+      "checked": "확인 시각"
+    },
+    "scanNow": "지금 스캔",
+    "scanStarted": "스캔을 시작했습니다. 끝나면 결과가 여기에 표시됩니다.",
+    "searchPlaceholder": "패키지, GHSA 또는 CVE ID",
+    "sev": {
+      "CRITICAL": "심각",
+      "HIGH": "높음",
+      "MODERATE": "보통",
+      "LOW": "낮음",
+      "UNKNOWN": "등급 없음"
+    },
+    "severity": "심각도",
+    "source": "데이터 출처 OSV.dev",
+    "summary": "요약",
+    "title": "취약점",
+    "total": "{{n}}건",
+    "unreachable": "지난 스캔에서 OSV에 연결하지 못해 결과가 최신이 아닐 수 있습니다."
   },
   "webhooks": {
     "create": "webhook 만들기",

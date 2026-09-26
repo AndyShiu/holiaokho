@@ -904,47 +904,13 @@
     "tokensOf": "{{name}} 的權杖"
   },
   "vulns": {
-    "title": "漏洞",
-    "sev": {
-      "CRITICAL": "嚴重",
-      "HIGH": "高",
-      "MODERATE": "中",
-      "LOW": "低",
-      "UNKNOWN": "未評級"
-    },
-    "pkg": {
-      "notCovered": "未檢查：OSV 沒有這個套件的資料。這不代表它是安全的。",
-      "excluded": "未檢查：這個 repository 已關閉漏洞掃描。",
-      "pending": "尚未檢查。新進的套件會在一小時內檢查。",
-      "clean": "沒有已知漏洞。",
-      "checked": "檢查於"
-    },
-    "fixedIn": "修復版本",
-    "noFix": "尚未發布修復版本",
-    "noFixShort": "尚無",
-    "scanStarted": "已開始掃描，完成後結果會顯示在這裡。",
-    "lastScan": "上次檢查",
-    "source": "資料來源 OSV.dev",
-    "scanNow": "立即掃描",
-    "disabled": "漏洞掃描已在伺服器設定中關閉（vulnerabilities.enabled）。",
-    "unreachable": "上次掃描無法連線到 OSV，目前的結果可能不是最新的。",
     "cov": {
       "scanned": "已檢查 {{n}} 個套件",
       "pending": "{{n}} 個等待檢查",
       "notCovered": "{{n}} 個 OSV 不支援（不等於安全）",
       "excluded": "{{n}} 個位於已關閉掃描的 repository"
     },
-    "searchPlaceholder": "套件名稱、GHSA 或 CVE 編號",
-    "minSeverity": "嚴重度（至少）",
-    "noneTitle": "沒有已知漏洞",
-    "noMatch": "沒有符合條件的結果",
-    "noneHint": "在已檢查的 {{n}} 個套件中。OSV 不支援的格式不包含在內。",
-    "total": "共 {{n}} 筆",
-    "severity": "嚴重度",
-    "id": "漏洞",
-    "package": "套件",
-    "summary": "摘要",
-    "firstSeen": "發現時間",
+    "disabled": "漏洞掃描已在伺服器設定中關閉（vulnerabilities.enabled）。",
     "export": {
       "all": "全選",
       "button": "匯出報告",
@@ -958,7 +924,42 @@
       "other": "此頁面的其他篩選",
       "partial": "報告中會註明排除了哪些嚴重度，避免被誤認為完整清單。",
       "search": "搜尋"
-    }
+    },
+    "firstSeen": "發現時間",
+    "fixedIn": "修復版本",
+    "id": "漏洞",
+    "lastScan": "上次檢查",
+    "lastUsed": "最後使用",
+    "minSeverity": "嚴重度（至少）",
+    "noFix": "尚未發布修復版本",
+    "noFixShort": "尚無",
+    "noMatch": "沒有符合條件的結果",
+    "noneHint": "在已檢查的 {{n}} 個套件中。OSV 不支援的格式不包含在內。",
+    "noneTitle": "沒有已知漏洞",
+    "package": "套件",
+    "pkg": {
+      "notCovered": "未檢查：OSV 沒有這個套件的資料。這不代表它是安全的。",
+      "excluded": "未檢查：這個 repository 已關閉漏洞掃描。",
+      "pending": "尚未檢查。新進的套件會在一小時內檢查。",
+      "clean": "沒有已知漏洞。",
+      "checked": "檢查於"
+    },
+    "scanNow": "立即掃描",
+    "scanStarted": "已開始掃描，完成後結果會顯示在這裡。",
+    "searchPlaceholder": "套件名稱、GHSA 或 CVE 編號",
+    "sev": {
+      "CRITICAL": "嚴重",
+      "HIGH": "高",
+      "MODERATE": "中",
+      "LOW": "低",
+      "UNKNOWN": "未評級"
+    },
+    "severity": "嚴重度",
+    "source": "資料來源 OSV.dev",
+    "summary": "摘要",
+    "title": "漏洞",
+    "total": "共 {{n}} 筆",
+    "unreachable": "上次掃描無法連線到 OSV，目前的結果可能不是最新的。"
   },
   "webhooks": {
     "create": "建立 webhook",

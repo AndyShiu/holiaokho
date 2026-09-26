@@ -14,6 +14,7 @@ import (
 // the fonts lack; scripts/pdf-fonts.sh regenerates them.
 var labels = map[string]map[string]string{
 	"en": {
+		"lastUsed":    "Last used",
 		"notInFilter": "not in this report", "partial": "This report is filtered and does not show every finding.",
 		"title": "Vulnerability report", "generated": "Generated", "source": "Source", "version": "Holiaokho",
 		"filters": "Filters", "none": "none", "coverage": "Coverage",
@@ -30,6 +31,7 @@ var labels = map[string]map[string]string{
 		"CRITICAL": "Critical", "HIGH": "High", "MODERATE": "Moderate", "LOW": "Low", "UNKNOWN": "Unrated",
 	},
 	"zh-TW": {
+		"lastUsed":    "最後使用",
 		"notInFilter": "不在此報告範圍", "partial": "這份報告套用了篩選條件，並未列出所有漏洞。",
 		"title": "漏洞報告", "generated": "產生時間", "source": "資料來源", "version": "好料庫",
 		"filters": "篩選條件", "none": "無", "coverage": "檢查範圍",
@@ -46,6 +48,7 @@ var labels = map[string]map[string]string{
 		"CRITICAL": "嚴重", "HIGH": "高", "MODERATE": "中", "LOW": "低", "UNKNOWN": "未評級",
 	},
 	"zh-CN": {
+		"lastUsed":    "最后使用",
 		"notInFilter": "不在此报告范围", "partial": "这份报告应用了筛选条件，并未列出所有漏洞。",
 		"title": "漏洞报告", "generated": "生成时间", "source": "数据来源", "version": "好料库",
 		"filters": "筛选条件", "none": "无", "coverage": "检查范围",
@@ -62,6 +65,7 @@ var labels = map[string]map[string]string{
 		"CRITICAL": "严重", "HIGH": "高", "MODERATE": "中", "LOW": "低", "UNKNOWN": "未评级",
 	},
 	"ja": {
+		"lastUsed":    "最終利用",
 		"notInFilter": "このレポートの対象外", "partial": "このレポートは絞り込まれており、すべての検出結果を示していません。",
 		"title": "脆弱性レポート", "generated": "作成日時", "source": "データ提供", "version": "Holiaokho",
 		"filters": "絞り込み条件", "none": "なし", "coverage": "チェック範囲",
@@ -78,6 +82,7 @@ var labels = map[string]map[string]string{
 		"CRITICAL": "緊急", "HIGH": "高", "MODERATE": "中", "LOW": "低", "UNKNOWN": "未評価",
 	},
 	"ko": {
+		"lastUsed":    "마지막 사용",
 		"notInFilter": "이 보고서 범위 밖", "partial": "필터가 적용된 보고서로, 모든 취약점을 보여 주지 않습니다.",
 		"title": "취약점 보고서", "generated": "생성 시각", "source": "데이터 출처", "version": "Holiaokho",
 		"filters": "필터", "none": "없음", "coverage": "확인 범위",
