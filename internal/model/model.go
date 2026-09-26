@@ -64,6 +64,9 @@ type ProxyAttrs struct {
 	Blocked bool `json:"blocked"`
 	// AutoBlock temporarily blocks upstream after repeated failures.
 	AutoBlock bool `json:"autoBlock"`
+	// Retries overrides proxy.retries from the configuration for this
+	// repository; nil uses the configured value.
+	Retries *int `json:"retries,omitempty"`
 }
 
 type HostedAttrs struct {

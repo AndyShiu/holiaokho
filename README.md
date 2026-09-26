@@ -184,6 +184,12 @@ through the same outbound proxy and CA settings as everything else:
 | Vulnerability scanning | `api.osv.dev` | package names and versions | `HOLIAOKHO_VULNERABILITIES_ENABLED=false` |
 | New-release check, daily | `api.github.com` | a User-Agent with the version, nothing else | `HOLIAOKHO_UPDATES_CHECK=false` |
 
+**Flaky upstreams.** A download that fails on a dropped connection, a timeout
+or a 429/502/503/504 is tried again twice, with a short backoff, before the
+client sees an error; an upstream's `Retry-After` is honoured up to five
+seconds. Set `proxy.retries` (`HOLIAOKHO_PROXY_RETRIES`) to change the default,
+or override it per repository.
+
 ## Documentation
 
 - [`docs/nexus-feature-parity.md`](docs/nexus-feature-parity.md) — what Nexus

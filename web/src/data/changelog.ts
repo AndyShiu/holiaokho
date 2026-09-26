@@ -21,6 +21,16 @@ export const releases: Release[] = [
       {
         kind: 'added',
         text: {
+          en: 'Proxies retry: a download that fails on a dropped connection, a timeout or a 429/502/503/504 is tried twice more, with a short backoff, before the client sees an error. The upstream\'s Retry-After is honoured up to five seconds. The count is proxy.retries in the configuration and can be set per repository.',
+          'zh-TW': 'Proxy 會自動重試：下載因連線中斷、逾時或 429/502/503/504 失敗時，會稍等後再試兩次，都失敗才回錯誤給用戶端。上游帶 Retry-After 時照它等，最多 5 秒。次數由設定檔的 proxy.retries 決定，也可以在各 repository 個別設定。',
+          'zh-CN': 'Proxy 会自动重试：下载因连接中断、超时或 429/502/503/504 失败时，会稍等后再试两次，都失败才向客户端返回错误。上游带 Retry-After 时按它等待，最多 5 秒。次数由配置文件的 proxy.retries 决定，也可以在各 repository 单独设置。',
+          ja: 'プロキシが再試行します。接続の切断、タイムアウト、429/502/503/504 でダウンロードに失敗すると、少し待ってさらに 2 回試し、それでも失敗したときだけクライアントにエラーを返します。上流の Retry-After は 5 秒まで従います。回数は設定の proxy.retries で、リポジトリごとにも設定できます。',
+          ko: '프록시가 재시도합니다. 연결 끊김, 시간 초과, 429/502/503/504로 다운로드가 실패하면 잠시 기다렸다가 두 번 더 시도하고, 그래도 실패할 때만 클라이언트에 오류를 돌려줍니다. 업스트림의 Retry-After는 5초까지 따릅니다. 횟수는 설정의 proxy.retries이며 저장소마다 지정할 수도 있습니다.',
+        },
+      },
+      {
+        kind: 'added',
+        text: {
           en: 'Deploy through a group, in every format: mvn deploy, npm publish, twine upload, docker push and the rest, sent to a group, land in its first hosted member — one URL in a build for both directions. It takes write permission on the group and on that member; npm login and audit, and Git LFS batch requests, are still answered by the group.',
           'zh-TW': '所有格式都能部署到 group：對 group 執行 mvn deploy、npm publish、twine upload、docker push 等，內容會存進它的第一個 hosted 成員，建置只要設定一個網址就能下載也能上傳。需要同時對 group 與該成員有寫入權限；npm login、audit 與 Git LFS batch 仍由 group 本身回應。',
           'zh-CN': '所有格式都能部署到 group：对 group 执行 mvn deploy、npm publish、twine upload、docker push 等，内容会存入它的第一个 hosted 成员，构建只需配置一个地址就能下载也能上传。需要同时对 group 与该成员有写入权限；npm login、audit 与 Git LFS batch 仍由 group 本身响应。',

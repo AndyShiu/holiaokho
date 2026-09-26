@@ -95,6 +95,10 @@ type Proxy struct {
 	Timeout        time.Duration `yaml:"timeout"`
 	// CACertFile is a PEM bundle appended to the system trust store.
 	CACertFile string `yaml:"ca_cert_file"`
+	// Retries is how many times a failed upstream GET/HEAD is tried again
+	// (connection errors, timeouts, 429/502/503/504). A repository's own
+	// proxy.retries overrides it.
+	Retries int `yaml:"retries"`
 }
 
 // Secrets controls encryption of stored credentials (upstream passwords,
@@ -170,6 +174,7 @@ func Default() Config {
 			UserAgent:      "Holiaokho/0.1",
 			ConnectTimeout: 20 * time.Second,
 			Timeout:        10 * time.Minute,
+			Retries:        2,
 		},
 		Backup:  Backup{Keep: 7},
 		Secrets: Secrets{KeyFile: "./data/secret.key"},
@@ -249,6 +254,11 @@ func applyEnv(c *Config) {
 	str("HTTP_PROXY", &c.Proxy.HTTPProxy)
 	str("NO_PROXY", &c.Proxy.NoProxy)
 	str("CA_CERT_FILE", &c.Proxy.CACertFile)
+	if v, ok := os.LookupEnv("HOLIAOKHO_PROXY_RETRIES"); ok {
+		if n, err := strconv.Atoi(v); err == nil && n >= 0 {
+			c.Proxy.Retries = n
+		}
+	}
 	str("SECRET_KEY", &c.Secrets.Key)
 	str("SECRET_KEY_FILE", &c.Secrets.KeyFile)
 	if v, ok := os.LookupEnv("HOLIAOKHO_SECRET_PREVIOUS_KEYS"); ok && v != "" {

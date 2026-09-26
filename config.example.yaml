@@ -23,6 +23,9 @@ proxy:
   user_agent: "Holiaokho"
   connect_timeout: 20s
   timeout: 10m
+  # A failed upstream GET is tried again this many times (connection errors,
+  # timeouts, 429/502/503/504). Repositories can override it.
+  retries: 2
   # http_proxy: "http://proxy.corp:3128"
   # ca_cert_file: /etc/ssl/corp-ca.pem
 secrets:

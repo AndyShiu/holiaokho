@@ -52,10 +52,10 @@ Nexus 3.95 CE 支援的格式（從公司 DB 的 `<fmt>_component` 表確認）�
 | Proxy：contentMaxAge / metadataMaxAge | ✅ | ✅ |
 | Proxy：negative cache + TTL | ✅ | ✅ |
 | Proxy：上游認證（Basic / Bearer / preemptive） | ✅ | ✅ Basic（預先送出）、registry Bearer token 流程 |
-| Proxy：自訂 CA / trust store、outbound HTTP proxy、連線逾時、重試、autoBlock | ✅ | 部分：自訂 CA、outbound HTTP proxy（全域）、連線逾時、autoBlock 已做；一般請求**不自動重試**（後）。Docker layer 串流下載卡住時會從斷點續傳（1.1.2） |
+| Proxy：自訂 CA / trust store、outbound HTTP proxy、連線逾時、重試、autoBlock | ✅ | ✅ 自訂 CA、outbound HTTP proxy（全域）、連線逾時、autoBlock；**自動重試**（1.4.0）：GET/HEAD 遇到連線錯誤、逾時、429/502/503/504 時重試，預設 2 次（`proxy.retries`，各 repo 可覆寫），遵守 `Retry-After`（最多 5 秒）。Docker layer 串流下載卡住時會從斷點續傳（1.1.2） |
 | Proxy：blocked（暫停上游） | ✅ | ✅（含 autoBlock、stale-if-error） |
 | Group：成員排序、first-match、metadata merge | ✅ | ✅（1.4.0 起成員清單可拖曳或用箭頭排序，新成員加在最後） |
-| Group：deploy 到 group（轉發到第一個 hosted） | ✅ | 部分：Cargo、Conan 已做；Maven、npm 等其他格式未做（後） |
+| Group：deploy 到 group（轉發到第一個 hosted） | ✅ | ✅ 1.4.0：所有格式（Maven、npm、PyPI、Docker 等以官方 client 實測）；需同時對 group 與該 hosted 有寫入權限；npm login／audit、Git LFS batch 仍由 group 回應 |
 | Hosted：writePolicy（ALLOW / ALLOW_ONCE / DENY） | ✅ | ✅ |
 | Maven：layoutPolicy STRICT/PERMISSIVE、versionPolicy RELEASE/SNAPSHOT/MIXED、contentDisposition | ✅ | ✅（contentDisposition 未做） |
 | Maven：snapshot 時間戳版本、`maven-metadata.xml` 產生與 merge、checksum 旁邊檔 | ✅ | ✅ |

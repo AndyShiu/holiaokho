@@ -528,6 +528,9 @@ func (a *API) validateRepo(rp *model.Repository, attrs map[string]json.RawMessag
 		if !strings.HasPrefix(p.RemoteURL, "http://") && !strings.HasPrefix(p.RemoteURL, "https://") {
 			return invalid("proxy.remoteUrl must be an http(s) URL")
 		}
+		if p.Retries != nil && (*p.Retries < 0 || *p.Retries > 10) {
+			return invalid("proxy.retries must be between 0 and 10")
+		}
 		if p.NegativeCacheTTL == 0 {
 			p.NegativeCacheTTL = 1
 		}

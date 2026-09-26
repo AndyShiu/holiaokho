@@ -170,6 +170,10 @@ PDF、Excel 給人看,CSV、JSON(附 purl)給程式與 AI agent 比對專案自�
 | 漏洞掃描 | `api.osv.dev` | 套件名稱與版本 | `HOLIAOKHO_VULNERABILITIES_ENABLED=false` |
 | 每日檢查新版本 | `api.github.com` | 只有帶版本號的 User-Agent | `HOLIAOKHO_UPDATES_CHECK=false` |
 
+**不穩定的上游。** 下載因連線中斷、逾時或 429/502/503/504 失敗時,會稍等後再試兩次,
+都失敗才回錯誤給 client;上游帶 `Retry-After` 時照它等,最多 5 秒。預設次數可用
+`proxy.retries`(`HOLIAOKHO_PROXY_RETRIES`)調整,也可以在各 repository 個別設定。
+
 ## 文件
 
 - [`docs/nexus-feature-parity.zh-TW.md`](docs/nexus-feature-parity.zh-TW.md) ——

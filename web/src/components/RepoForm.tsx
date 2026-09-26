@@ -166,6 +166,12 @@ export function RepoForm({ format, type, value, onChange, editing, existing }: {
               {editing && <SecretHint />}
             </Form.Item>
           </div>
+          <div className="hlk-form-row" style={{ gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <Form.Item label={label('repos.f.retries', 'Upstream retries')}>
+              <InputNumber style={{ width: '100%' }} value={a.proxy?.retries ?? null} onChange={(v) => setAttr('proxy', { retries: v ?? null })} min={0} max={10} placeholder={t('repos.f.retriesDefault', 'Server default')} />
+              {hint(t('repos.f.retriesHint', 'A failed download is tried again this many times (dropped connection, timeout, 429/502/503/504). Empty uses the server\'s proxy.retries, 2 unless configured.'))}
+            </Form.Item>
+          </div>
           <div style={{ display: 'flex', gap: 24 }}>
             <Checkbox checked={!!a.proxy?.autoBlock} onChange={(e) => setAttr('proxy', { autoBlock: e.target.checked })}>{t('repos.f.autoBlock', 'Auto-block when the upstream is unreachable')}</Checkbox>
             <Checkbox checked={!!a.proxy?.blocked} onChange={(e) => setAttr('proxy', { blocked: e.target.checked })}>{t('repos.f.blocked', 'Blocked (serve cache only)')}</Checkbox>

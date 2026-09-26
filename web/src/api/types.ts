@@ -8,7 +8,7 @@ export interface AuthMethods { local: boolean; ldap: boolean; oidc: boolean; oid
 
 export type RepoType = 'hosted' | 'proxy' | 'group'
 export interface RepoAttributes {
-  proxy?: { remoteUrl?: string; contentMaxAge?: number; metadataMaxAge?: number; negativeCacheTtl?: number; username?: string; password?: string; blocked?: boolean; autoBlock?: boolean }
+  proxy?: { remoteUrl?: string; contentMaxAge?: number; metadataMaxAge?: number; negativeCacheTtl?: number; username?: string; password?: string; blocked?: boolean; autoBlock?: boolean; retries?: number | null }
   hosted?: { writePolicy?: 'allow' | 'allow_once' | 'deny' }
   group?: { members?: string[] }
   maven?: { layoutPolicy?: string; versionPolicy?: string }

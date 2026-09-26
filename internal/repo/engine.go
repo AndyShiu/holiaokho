@@ -124,6 +124,8 @@ type Engine struct {
 	// spools are the streamed downloads in progress, by repo and path.
 	spoolMu sync.Mutex
 	spools  map[string]*spool
+	// retries is proxy.retries from the configuration (see doWithRetry).
+	retries int
 	// autoBlock tracks upstream failures per repo (name -> until).
 	blockedMu sync.Mutex
 	blocked   map[string]time.Time
@@ -190,6 +192,7 @@ func NewEngine(c *content.Service, log *slog.Logger, repos RepoResolver, pc conf
 		ua:      pc.UserAgent,
 		blocked: map[string]time.Time{},
 		spools:  map[string]*spool{},
+		retries: pc.Retries,
 	}, nil
 }
 
@@ -504,7 +507,7 @@ func (e *Engine) newUpstreamRequest(ctx context.Context, repo *model.Repository,
 	return req, nil
 }
 
-func (e *Engine) doUpstream(req *http.Request, pol Policy, streamed bool) (*http.Response, error) {
+func (e *Engine) doUpstream(repo *model.Repository, req *http.Request, pol Policy, streamed bool) (*http.Response, error) {
 	c := e.client
 	if pol.Client != nil {
 		c = pol.Client
@@ -517,7 +520,7 @@ func (e *Engine) doUpstream(req *http.Request, pol Policy, streamed bool) (*http
 		cc.Timeout = 0
 		c = &cc
 	}
-	return c.Do(req)
+	return e.doWithRetry(c, repo, req)
 }
 
 // refresh fetches path from upstream and stores it. stale, if non-nil, is
@@ -549,7 +552,7 @@ func (e *Engine) refresh(ctx context.Context, repo *model.Repository, path strin
 			req.Header.Set("If-Modified-Since", lm)
 		}
 	}
-	resp, err := e.doUpstream(req, pol, sp != nil)
+	resp, err := e.doUpstream(repo, req, pol, sp != nil)
 	if err != nil {
 		e.noteFailure(repo)
 		if logx.Disconnected(err) {
@@ -668,7 +671,7 @@ func (e *Engine) resumeUpstream(ctx context.Context, repo *model.Repository, u s
 		return nil, err
 	}
 	req.Header.Set("Range", fmt.Sprintf("bytes=%d-", off))
-	resp, err := e.doUpstream(req, pol, true)
+	resp, err := e.doUpstream(repo, req, pol, true)
 	if err != nil {
 		return nil, err
 	}
@@ -690,7 +693,7 @@ func (e *Engine) passthrough(ctx context.Context, repo *model.Repository, path s
 	if err != nil {
 		return nil, err
 	}
-	resp, err := e.doUpstream(req, pol, false)
+	resp, err := e.doUpstream(repo, req, pol, false)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrUpstream, err)
 	}
@@ -719,7 +722,7 @@ func (e *Engine) Upstream(ctx context.Context, repo *model.Repository, method, p
 	if repo.Proxy.Username != "" {
 		req.SetBasicAuth(repo.Proxy.Username, repo.Proxy.Password)
 	}
-	return e.doUpstream(req, pol, false)
+	return e.doUpstream(repo, req, pol, false)
 }
 
 // ---------------------------------------------------------------- autoBlock
