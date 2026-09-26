@@ -126,7 +126,10 @@ proxy repository 優先供應已快取的內容,只有未命中才連上游,
 (`scripts/e2e-formats.sh`):Maven、npm、Docker/OCI、PyPI、raw、NuGet、Helm、
 Go、APT、YUM、Alpine、RubyGems、Cargo、Composer、Conda、R/CRAN、p2、
 CocoaPods、Terraform、pub、Git LFS、Hugging Face、Ansible Galaxy、Conan、Swift。
-每一種都支援 hosted、proxy 與 group。
+每一種都支援 hosted、proxy 與 group。group 也能接受部署:對 group 執行
+`mvn deploy`、`npm publish`、`twine upload` 或 `docker push`,內容會存進它的第一個
+hosted 成員,建置只需要設定一個網址就能下載也能上傳。呼叫者必須同時對 group
+與該成員有寫入權限。
 
 **存取控制** —— 本機帳號(argon2;匯入時接受 Nexus 的 Shiro 雜湊)、LDAP、
 OIDC、反向代理標頭認證。角色以「對象 × 動作」描述,可細到單一 repository;

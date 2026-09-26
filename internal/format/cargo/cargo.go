@@ -124,14 +124,26 @@ func cargoErr(w http.ResponseWriter, status int, msg string) {
 	writeJSON(w, status, map[string]any{"errors": []map[string]string{{"detail": msg}}})
 }
 
-func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	p := strings.Trim(r.URL.Path, "/")
-	// cargo sends "Authorization: <token>" (no scheme) for API calls.
+// withCargoToken authenticates cargo's "Authorization: <token>" (no scheme),
+// which it sends on API calls.
+func withCargoToken(r *http.Request, d format.Deps) *http.Request {
 	if a := r.Header.Get("Authorization"); a != "" && !strings.Contains(a, " ") && strings.HasPrefix(a, auth.TokenPrefix) {
-		if pr, err := h.d.Auth.Login(r.Context(), auth.ClientIP(r), "", a); err == nil {
-			r = r.WithContext(auth.WithPrincipal(r.Context(), pr))
+		if pr, err := d.Auth.Login(r.Context(), auth.ClientIP(r), "", a); err == nil {
+			return r.WithContext(auth.WithPrincipal(r.Context(), pr))
 		}
 	}
+	return r
+}
+
+// AuthorizeWrite checks a publish addressed to a group with cargo's token
+// (see format.WriteAuthorizer).
+func (Format) AuthorizeWrite(w http.ResponseWriter, r *http.Request, rp *model.Repository, d format.Deps) bool {
+	return format.Authorize(w, withCargoToken(r, d), rp, auth.Write, challenge)
+}
+
+func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	p := strings.Trim(r.URL.Path, "/")
+	r = withCargoToken(r, h.d)
 	switch {
 	case p == "api/v1/crates/new" && r.Method == http.MethodPut:
 		if !format.Authorize(w, r, h.repo, auth.Write, challenge) {
@@ -289,19 +301,10 @@ func (h *handler) download(w http.ResponseWriter, r *http.Request, name, ver str
 // ---------------------------------------------------------------- publish
 
 // publish parses cargo's binary body: u32 json len, json, u32 crate len, crate.
+// Publishes sent to a group reach here already routed to its first hosted
+// member (server.groupDeploys), so one registry entry in .cargo/config.toml
+// serves both directions.
 func (h *handler) publish(w http.ResponseWriter, r *http.Request) {
-	if h.repo.Type == model.Group {
-		// Groups forward publishes to their first hosted member, so a single
-		// registry entry in .cargo/config.toml serves both directions.
-		for _, m := range common.Members(r.Context(), h.d, h.repo) {
-			if m.Type == model.Hosted {
-				(&handler{repo: m, d: h.d, a: attrsOf(m)}).publish(w, r)
-				return
-			}
-		}
-		cargoErr(w, 400, "group has no hosted member to publish to")
-		return
-	}
 	if h.repo.Type != model.Hosted {
 		cargoErr(w, 400, "only hosted registries accept publishes")
 		return

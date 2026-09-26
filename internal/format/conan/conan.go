@@ -317,15 +317,9 @@ func referenceOf(base string) string {
 	return ref
 }
 
+// put stores an upload. Uploads sent to a group reach here already routed to
+// its first hosted member (server.groupDeploys).
 func (h *handler) put(w http.ResponseWriter, r *http.Request, p string) {
-	if h.repo.Type == model.Group {
-		for _, m := range common.Members(r.Context(), h.d, h.repo) {
-			if m.Type == model.Hosted {
-				(&handler{repo: m, d: h.d}).put(w, r, p)
-				return
-			}
-		}
-	}
 	if h.repo.Type != model.Hosted {
 		writeJSON(w, 400, map[string]any{"error": "only hosted remotes accept uploads"})
 		return

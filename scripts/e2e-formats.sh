@@ -89,7 +89,7 @@ composer)
   mk '{"name":"composer-hosted","format":"composer","type":"hosted"}'
   mk '{"name":"composer-group","format":"composer","type":"group","attributes":{"group":{"members":["composer-hosted","packagist"]}}}'
   mkdir -p $T/composer && cp $D/composer.sh $T/composer/run.sh
-  run composer docker run --rm -v $T/composer:/work -w /work composer:2 sh -c "apk add -q zip php83-zip >/dev/null 2>&1; sh /work/run.sh" ;;
+  run composer docker run --rm -e HL_TOKEN -v $T/composer:/work -w /work composer:2 sh -c "apk add -q zip curl php83-zip >/dev/null 2>&1; sh /work/run.sh" ;;
 conda)
   mk '{"name":"conda-forge","format":"conda","type":"proxy","attributes":{"proxy":{"remoteUrl":"https://conda.anaconda.org/conda-forge"}}}'
   mk '{"name":"conda-hosted","format":"conda","type":"hosted"}'
@@ -118,8 +118,10 @@ pub)
 gitlfs)
   mk '{"name":"lfs","format":"gitlfs","type":"hosted"}'
   mkdir -p $T/lfs && cp $D/gitlfs.sh $T/lfs/run.sh
-  run gitlfs docker run --rm -v $T/lfs:/work -w /work alpine:3.20 sh -c "apk add -q git git-lfs >/dev/null && sh /work/run.sh" ;;
+  run gitlfs docker run --rm -e HL_TOKEN -v $T/lfs:/work -w /work alpine:3.20 sh -c "apk add -q git git-lfs >/dev/null && sh /work/run.sh" ;;
 huggingface|ansible)
+  # One test covers both; run it once when both are asked for.
+  [ -n "${hf_done:-}" ] && continue; hf_done=1
   mk '{"name":"hf","format":"huggingface","type":"proxy","attributes":{"proxy":{"remoteUrl":"https://huggingface.co"}}}'
   mk '{"name":"galaxy","format":"ansiblegalaxy","type":"proxy","attributes":{"proxy":{"remoteUrl":"https://galaxy.ansible.com"}}}'
   mk '{"name":"galaxy-hosted","format":"ansiblegalaxy","type":"hosted","attributes":{"hosted":{"writePolicy":"allow_once"}}}'
@@ -131,5 +133,5 @@ conan)
   mk '{"name":"conan-hosted","format":"conan","type":"hosted"}'
   mk '{"name":"conan-group","format":"conan","type":"group","attributes":{"group":{"members":["conan-hosted","conancenter"]}}}'
   mkdir -p $T/conan && cp $D/conan.sh $T/conan/run.sh
-  run conan docker run --rm -v $T/conan:/work -w /work python:3.12-slim bash -c "apt-get update -qq >/dev/null && apt-get install -y -qq cmake g++ make >/dev/null 2>&1; bash /work/run.sh" ;;
+  run conan docker run --rm -e HL_TOKEN -v $T/conan:/work -w /work python:3.12-slim bash -c "apt-get update -qq >/dev/null && apt-get install -y -qq cmake g++ make >/dev/null 2>&1; bash /work/run.sh" ;;
 esac; done

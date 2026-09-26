@@ -1,3 +1,5 @@
+[English](holiaokho-ui-brief.md) | 繁體中文
+
 # Holiaokho（好料庫）Web UI — 設計 Brief
 
 > 給 Claude Design 的完整說明：這個產品是什麼、給誰用、有哪些頁面、每頁的資料與操作、關鍵流程、風格方向、技術限制。
@@ -272,7 +274,7 @@
 - **基本**：name（regex `^[A-Za-z0-9._-]+$`，即時驗證，409 → 「名稱已存在」）、storage（Select，`GET /storages`，預設 `default`）、online（預設 on）。
 - **Proxy**（type=proxy）：remoteUrl（依 format 預填：maven→`https://repo1.maven.org/maven2/`、npm→`https://registry.npmjs.org/`、docker→`https://registry-1.docker.io`、pypi→`https://pypi.org/`、go→`https://proxy.golang.org`、helm 需使用者填、其他依表）、contentMaxAge（分鐘，預設 1440；`-1` 有 checkbox「永久快取」）、metadataMaxAge（預設 1440）、negativeCacheTtl（預設 1440；0 = 關閉）、上游帳密（username／password，密碼規則同 5.0.4）、blocked、autoBlock（預設 on）。
 - **Hosted**（type=hosted）：writePolicy Radio：`allow`（可覆蓋）／`allow_once`（預設；同路徑不可重新上傳，Maven SNAPSHOT 例外）／`deny`（唯讀）。
-- **Group**（type=group）：members 雙欄 Transfer 或可拖曳排序清單，只列同 format 的非 group repo；順序即解析順序，要有說明「先命中的成員優先」。
+- **Group**（type=group）：members 為有順序的清單，可拖曳或用每列的上下箭頭調整、用刪除鈕移除；清單下方的下拉選單加入的成員會排在最後。只列同 format 的非 group repo；順序即解析順序，要有說明「由上往下依序查詢，第一個有該檔案的成員回應」。部署到 group 的內容會存進第一個 hosted 成員。
 - **格式專屬**（依 Step 1 顯示）：
   - maven：layoutPolicy（STRICT／PERMISSIVE）、versionPolicy（RELEASE／SNAPSHOT／MIXED；hosted 才有意義）。
   - docker：httpPort（0=不開）、httpsPort＋tlsCert／tlsKey（PEM 路徑，伺服器端檔案）、subdomain、pathEnabled（預設 on）、forceBasicAuth、indexType（HUB／REGISTRY／CUSTOM；proxy 才顯示）。三種存取方式旁邊各有一行說明對應的 URL 長什麼樣。

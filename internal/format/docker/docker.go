@@ -155,6 +155,21 @@ func (f *Format) Handler(r *model.Repository, d format.Deps) http.Handler {
 	return &handler{f: f, repo: r, d: d, a: AttrsOf(r)}
 }
 
+// AuthorizeWrite checks a push addressed to a group, with Docker's own
+// bearer-token principal and challenge (see format.WriteAuthorizer).
+func (f *Format) AuthorizeWrite(w http.ResponseWriter, r *http.Request, rp *model.Repository, d format.Deps) bool {
+	h := &handler{f: f, repo: rp, d: d, a: AttrsOf(rp)}
+	p := strings.Trim(r.URL.Path, "/")
+	name := ""
+	for _, marker := range []string{"/manifests/", "/blobs/"} {
+		if i := strings.Index(p, marker); i > 0 {
+			name = p[:i]
+			break
+		}
+	}
+	return h.authorize(w, r, name, auth.Write)
+}
+
 // ---------------------------------------------------------------- errors
 
 func regErr(w http.ResponseWriter, status int, code, msg string) {

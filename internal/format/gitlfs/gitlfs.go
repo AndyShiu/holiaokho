@@ -59,6 +59,14 @@ type lock struct {
 	} `json:"owner"`
 }
 
+// IsDeploy forwards object uploads from a group to its hosted member; the
+// batch, verify and lock endpoints are answered by the group itself.
+func (Format) IsDeploy(r *http.Request) bool {
+	p := strings.Trim(r.URL.Path, "/")
+	p = strings.Trim(strings.TrimPrefix(strings.TrimPrefix(p, "info/lfs/"), "info/lfs"), "/")
+	return r.Method == http.MethodPut && strings.HasPrefix(p, "objects/")
+}
+
 func (Format) Handler(r *model.Repository, d format.Deps) http.Handler { return &handler{r, d} }
 
 const challenge = `Basic realm="Holiaokho Git LFS"`

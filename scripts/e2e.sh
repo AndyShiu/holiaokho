@@ -124,6 +124,57 @@ D rmi host.docker.internal:15001/e2e/alpine:t >/dev/null
 check D pull host.docker.internal:15002/e2e/alpine:t         # via group
 check curl -sf http://localhost:15001/v2/e2e/alpine/tags/list
 
+echo "== deploy through a group"
+# One URL for both directions: a deployment sent to a group lands in its first
+# hosted member. Each client below talks only to the group.
+cd "$W/mvn"
+sed -i.bak -e 's#<version>1.1.0-SNAPSHOT</version>#<version>2.0.0</version>#' \
+  -e 's#repository/maven-releases/#repository/maven-public/#; s#repository/maven-snapshots/#repository/maven-public/#' pom.xml
+check mvn -q -s settings.xml -Dmaven.repo.local="$W/m2" deploy
+check curl -sf -o /dev/null "$H/repository/maven-releases/tw/holiaokho/e2e/lib/2.0.0/lib-2.0.0.jar"
+check sh -c "curl -sf '$H/repository/maven-releases/tw/holiaokho/e2e/lib/maven-metadata.xml' | grep -q '<release>2.0.0</release>'"
+if mvn -q -s settings.xml -Dmaven.repo.local="$W/m2" deploy >/dev/null 2>&1; then bad "redeploy through the group still obeys allow_once"; else ok "redeploy through the group still obeys allow_once"; fi
+cd "$W/npm/lib"
+echo '{"name":"@e2e/grouplib","version":"1.0.0","main":"index.js"}' > package.json
+printf 'registry=%s/repository/npm-group/\n//localhost:18081/repository/npm-group/:_auth=%s\n' \
+  "$H" "$(printf '%s' "admin:$ADMIN_PW" | base64)" > .npmrc
+check npm publish --cache "$W/npmcache" --loglevel=error
+check curl -sf -o /dev/null "$H/repository/npm-hosted/@e2e%2fgrouplib"
+check npm dist-tag add @e2e/grouplib@1.0.0 stable --cache "$W/npmcache" --loglevel=error
+check sh -c "curl -sf '$H/repository/npm-hosted/@e2e%2fgrouplib' | grep -q '\"stable\"'"
+# npm's own registry calls stay with the group: an audit is not a publish.
+hdr=$(curl -s -o /dev/null -D - -u "admin:$ADMIN_PW" -H 'Content-Type: application/json' -X POST -d '{}' "$H/repository/npm-group/-/npm/v1/security/advisories/bulk" | tr -d '\r' | grep -i '^x-holiaokho-deployed-to' || true)
+if [ -z "$hdr" ]; then ok "npm audit is answered by the group"; else bad "npm audit is answered by the group ($hdr)"; fi
+cd "$ROOT"
+mkdir -p "$W/py/e2egroup-1.0.0" && echo 'print(1)' > "$W/py/e2egroup-1.0.0/e2egroup.py"
+tar -czf "$W/py/e2egroup-1.0.0.tar.gz" -C "$W/py" e2egroup-1.0.0
+check curl -sf -o /dev/null -u "admin:$ADMIN_PW" -F ':action=file_upload' -F 'name=e2egroup' -F 'version=1.0.0' -F 'filetype=sdist' -F "content=@$W/py/e2egroup-1.0.0.tar.gz" "$H/repository/pypi-group/"
+check sh -c "curl -sf '$H/repository/pypi-hosted/simple/e2egroup/' | grep -q 'e2egroup-1.0.0.tar.gz'"
+check D login host.docker.internal:15002 -u admin -p "$ADMIN_PW"
+D tag alpine:3.20 host.docker.internal:15002/e2e/viagroup:t
+check D push host.docker.internal:15002/e2e/viagroup:t
+check curl -sf -u "admin:$ADMIN_PW" http://localhost:15001/v2/e2e/viagroup/tags/list
+# A group is not a way round a hosted repository's permissions, nor the
+# other way: deploying through a group takes write on both.
+api -X POST $H/api/v1/roles -d '{"id":"group-writer","name":"group-writer","privileges":[{"target":"repo:maven-public","actions":["read","write"]},{"target":"repo:maven-releases","actions":["read"]}]}' >/dev/null
+api -X POST $H/api/v1/roles -d '{"id":"hosted-writer","name":"hosted-writer","privileges":[{"target":"repo:maven-public","actions":["read"]},{"target":"repo:maven-releases","actions":["read","write"]}]}' >/dev/null
+api -X POST $H/api/v1/users -d '{"username":"gw","password":"Group-Writer-2026","roles":["group-writer"]}' >/dev/null
+api -X POST $H/api/v1/users -d '{"username":"hw","password":"Hosted-Writer-2026","roles":["hosted-writer"]}' >/dev/null
+P=tw/holiaokho/e2e/perm/1.0/perm-1.0.pom
+code=$(curl -s -o /dev/null -w '%{http_code}' -u gw:Group-Writer-2026 -X PUT --data-binary '<project/>' "$H/repository/maven-public/$P")
+if [ "$code" = 403 ]; then ok "write on the group alone cannot deploy to its hosted member"; else bad "write on the group alone cannot deploy to its hosted member (got $code)"; fi
+code=$(curl -s -o /dev/null -w '%{http_code}' -u hw:Hosted-Writer-2026 -X PUT --data-binary '<project/>' "$H/repository/maven-public/$P")
+if [ "$code" = 403 ]; then ok "write on the hosted member alone cannot deploy through the group"; else bad "write on the hosted member alone cannot deploy through the group (got $code)"; fi
+api -X POST $H/api/v1/users -d '{"username":"bw","password":"Both-Writer-2026","roles":["group-writer","hosted-writer"]}' >/dev/null
+code=$(curl -s -o /dev/null -w '%{http_code}' -u bw:Both-Writer-2026 -X PUT --data-binary '<project/>' "$H/repository/maven-public/$P")
+if [ "$code" = 201 ]; then ok "write on both deploys through the group"; else bad "write on both deploys through the group (got $code)"; fi
+P=tw/holiaokho/e2e/perm/1.1/perm-1.1.pom
+code=$(curl -s -o /dev/null -w '%{http_code}' -X PUT --data-binary '<project/>' "$H/repository/maven-public/$P")
+if [ "$code" = 401 ]; then ok "anonymous deploy through a group is challenged"; else bad "anonymous deploy through a group is challenged (got $code)"; fi
+mk '{"name":"proxies-only","format":"maven","type":"group","attributes":{"group":{"members":["maven-central"]}}}'
+code=$(curl -s -o /dev/null -w '%{http_code}' -u "admin:$ADMIN_PW" -X PUT --data-binary '<project/>' "$H/repository/proxies-only/$P")
+if [ "$code" = 400 ]; then ok "a group without a hosted member refuses deployments"; else bad "a group without a hosted member refuses deployments (got $code)"; fi
+
 echo "== upstream refusals"
 # GHCR refuses a token for a repository that does not exist. That is an answer,
 # not an outage: counted as a failure it blocked the whole proxy for 30 seconds,

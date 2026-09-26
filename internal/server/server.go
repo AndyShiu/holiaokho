@@ -452,8 +452,35 @@ func (s *Server) repositoryHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	h := f.Handler(rp, s.Deps)
+	h := s.groupDeploys(f, rp, f.Handler(rp, s.Deps))
 	http.StripPrefix(prefix, h).ServeHTTP(w, r)
+}
+
+// groupDeploys lets clients deploy through a group, so one URL in a build
+// serves both directions: a deployment (see format.IsGroupDeploy) goes to
+// the group's first hosted member. The caller needs write permission on the
+// group, and the member's own handler then checks write permission on the
+// member — a group is never a way round a hosted repository's permissions.
+func (s *Server) groupDeploys(f format.Format, rp *model.Repository, h http.Handler) http.Handler {
+	if rp.Type != model.Group {
+		return h
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !format.IsGroupDeploy(f, r) {
+			h.ServeHTTP(w, r)
+			return
+		}
+		target := s.Engine.DeployTarget(r.Context(), rp)
+		if target == nil {
+			format.WriteError(w, http.StatusBadRequest, "repo.group_no_hosted", "group %q has no hosted member to deploy to", rp.Name)
+			return
+		}
+		if !format.AuthorizeGroupWrite(f, w, r, rp, s.Deps) {
+			return
+		}
+		w.Header().Set("X-Holiaokho-Deployed-To", target.Name)
+		f.Handler(target, s.Deps).ServeHTTP(w, r)
+	})
 }
 
 // dockerPathHandler serves /v2/<repo>/<image>/... on the main port (path
@@ -477,7 +504,7 @@ func (s *Server) dockerPathHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`{"errors":[{"code":"NAME_UNKNOWN","message":"repository name not known to registry"}]}`))
 		return
 	}
-	h := s.Docker.Handler(rp, s.Deps)
+	h := s.groupDeploys(s.Docker, rp, s.Docker.Handler(rp, s.Deps))
 	http.StripPrefix("/v2/"+first, h).ServeHTTP(w, r)
 }
 
@@ -627,7 +654,7 @@ func (s *Server) dockerPortHandler(name string) http.HandlerFunc {
 			format.WriteError(w, 404, "repo.not_found", "repository not found")
 			return
 		}
-		h := s.Docker.Handler(rp, s.Deps)
+		h := s.groupDeploys(s.Docker, rp, s.Docker.Handler(rp, s.Deps))
 		http.StripPrefix("/v2", h).ServeHTTP(w, r)
 	}
 }

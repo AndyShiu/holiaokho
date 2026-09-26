@@ -249,6 +249,33 @@ func (e *Engine) Members(ctx context.Context, group *model.Repository) ([]*model
 	return out, nil
 }
 
+// DeployTarget is where a deployment sent to group lands: its first hosted
+// member, looking through nested groups in member order, as Nexus Pro's
+// group deployment does. nil when the group has no hosted member.
+func (e *Engine) DeployTarget(ctx context.Context, group *model.Repository) *model.Repository {
+	seen := map[string]bool{}
+	var walk func(g *model.Repository) *model.Repository
+	walk = func(g *model.Repository) *model.Repository {
+		if seen[g.Name] {
+			return nil
+		}
+		seen[g.Name] = true
+		ms, _ := e.Members(ctx, g)
+		for _, m := range ms {
+			switch m.Type {
+			case model.Hosted:
+				return m
+			case model.Group:
+				if t := walk(m); t != nil {
+					return t
+				}
+			}
+		}
+		return nil
+	}
+	return walk(group)
+}
+
 func (e *Engine) fetchGroup(ctx context.Context, group *model.Repository, path string, pol Policy) (*Result, error) {
 	members, err := e.Members(ctx, group)
 	if err != nil {

@@ -98,6 +98,14 @@ type handler struct {
 	d    format.Deps
 }
 
+// IsDeploy keeps npm's registry-level writes with the group they were sent
+// to: `npm login` (PUT -/user/...) and `npm audit` (POST -/npm/v1/security/...).
+// Publishes, unpublishes and dist-tag changes go to the hosted member.
+func (Format) IsDeploy(r *http.Request) bool {
+	p := strings.TrimPrefix(r.URL.Path, "/")
+	return !strings.HasPrefix(p, "-/user/") && !strings.HasPrefix(p, "-/npm/v1/") && !strings.HasPrefix(p, "-/v1/")
+}
+
 func (Format) Handler(r *model.Repository, d format.Deps) http.Handler {
 	return &handler{repo: r, d: d}
 }

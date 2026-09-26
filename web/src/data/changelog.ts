@@ -19,6 +19,16 @@ export const releases: Release[] = [
     date: '2026-09-27',
     changes: [
       {
+        kind: 'added',
+        text: {
+          en: 'Deploy through a group, in every format: mvn deploy, npm publish, twine upload, docker push and the rest, sent to a group, land in its first hosted member — one URL in a build for both directions. It takes write permission on the group and on that member; npm login and audit, and Git LFS batch requests, are still answered by the group.',
+          'zh-TW': '所有格式都能部署到 group：對 group 執行 mvn deploy、npm publish、twine upload、docker push 等，內容會存進它的第一個 hosted 成員，建置只要設定一個網址就能下載也能上傳。需要同時對 group 與該成員有寫入權限；npm login、audit 與 Git LFS batch 仍由 group 本身回應。',
+          'zh-CN': '所有格式都能部署到 group：对 group 执行 mvn deploy、npm publish、twine upload、docker push 等，内容会存入它的第一个 hosted 成员，构建只需配置一个地址就能下载也能上传。需要同时对 group 与该成员有写入权限；npm login、audit 与 Git LFS batch 仍由 group 本身响应。',
+          ja: 'すべての形式でグループへデプロイできます。グループに対する mvn deploy、npm publish、twine upload、docker push などは最初のホストメンバーに保存されるため、ビルドは 1 つの URL で取得も公開もできます。グループとそのメンバーの両方への書き込み権限が必要です。npm login と audit、Git LFS の batch リクエストは引き続きグループが応答します。',
+          ko: '모든 형식에서 그룹으로 배포할 수 있습니다. 그룹에 대한 mvn deploy, npm publish, twine upload, docker push 등은 첫 번째 호스티드 멤버에 저장되므로, 빌드는 URL 하나로 받기와 올리기를 모두 할 수 있습니다. 그룹과 그 멤버 모두에 대한 쓰기 권한이 필요합니다. npm login과 audit, Git LFS batch 요청은 계속 그룹이 응답합니다.',
+        },
+      },
+      {
         kind: 'fixed',
         text: {
           en: 'A group\'s members are an ordered list you can drag, or move with arrows. A member added to a group now goes last; before, it went first, so a proxy added for a handful of packages was quietly asked before Maven Central for everything.',

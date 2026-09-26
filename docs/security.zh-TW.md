@@ -26,6 +26,8 @@
 - Session cookie：HttpOnly、SameSite=Lax、HTTPS 時 Secure；登入產生新 session id
 - OIDC：state cookie 防 CSRF、`next` 只允許站內路徑；LDAP filter 有 escape；Rut Auth 必須設定 `trustedProxies` 否則忽略 header
 - API 一律經過權限檢查；沒權限的 repo 在搜尋結果中被過濾
+- 部署到 group（1.4.0）：內容會轉存到第一個 hosted 成員，呼叫者必須**同時**對 group 與該成員有寫入權限；group 不會成為繞過 hosted 權限的管道
+- 漏洞資料一律需要登入才能讀取，匿名存取開啟時也一樣（1.3.3）
 
 **輸入處理**
 - 所有 SQL 參數化；LIKE 樣式有 escape

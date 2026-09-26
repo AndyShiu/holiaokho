@@ -26,6 +26,8 @@ English | [繁體中文](security.zh-TW.md)
 - Session cookies: HttpOnly, SameSite=Lax, Secure over HTTPS; a new session id is issued on login
 - OIDC: state cookie prevents CSRF, `next` only allows in-site paths; LDAP filters are escaped; Rut Auth requires `trustedProxies` to be configured, otherwise the header is ignored
 - All API calls go through permission checks; repos without access are filtered out of search results
+- Deploying to a group (1.4.0): the upload is stored in the group's first hosted member, and the caller needs write permission on **both** the group and that member, so a group is never a way round a hosted repository's permissions
+- Vulnerability data always requires signing in, even when anonymous access is on (1.3.3)
 
 **Input handling**
 - All SQL is parameterized; LIKE patterns are escaped

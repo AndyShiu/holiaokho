@@ -64,7 +64,7 @@ Nexus 3.95 CE 支援的格式（從公司 DB 的 `<fmt>_component` 表確認）�
 | Docker：v1 API | ✅（預設關） | 不做（Docker 已棄用） |
 | Docker：forceBasicAuth、Bearer token realm | ✅ | ✅ |
 | Docker：foreign layer 快取、index type（HUB / registry / custom） | ✅ | ✅ index type；foreign layer 由 client 直接抓 |
-| Docker：group 支援 push（Pro） | Pro | 後（我們可以做） |
+| Docker：group 支援 push（Pro） | Pro | ✅ 1.4.0（push 到 group 會存進第一個 hosted 成員） |
 | Routing rules（allow / block regex） | ✅ | ✅ |
 | Content selectors（CSEL 表達式，配合權限） | ✅ | ✅ CSEL 子集（==, !=, =^, =~, and/or/not） |
 | Strict content type validation | ✅ | 後（未做） |
@@ -196,7 +196,7 @@ Nexus 內建的 scheduled tasks：
 | Staging / tagging / promotion | 後 |
 | Repository replication | 後 |
 | Group blob store | 後 |
-| Docker group push | 後（Cargo／Conan 的 group 已轉發到 hosted；Maven 等尚未，見 §2） |
+| Docker group push | ✅ 1.4.0（所有格式都可部署到 group，見 §2） |
 | Content replication、Import/Export | 後 |
 
 ---

@@ -328,6 +328,7 @@ function GroupMembers({ value, candidates, onChange }: { value: string[]; candid
     onChange(ms)
   }
   const available = candidates.filter((c) => !value.includes(c.name))
+  const deployTo = value.find((m) => typeOf(m) === 'hosted')
   return (
     <div style={{ maxWidth: 560 }}>
       <div style={{ fontSize: 12, color: 'var(--hlk-text-secondary)', marginBottom: 10 }}>
@@ -362,6 +363,11 @@ function GroupMembers({ value, candidates, onChange }: { value: string[]; candid
         options={available.map((c) => ({ value: c.name, label: `${c.name} (${t(`type.${c.type}`, c.type)})` }))}
         onChange={(v) => v && onChange([...value, v])}
       />
+      <div style={{ fontSize: 12, color: 'var(--hlk-text-secondary)', marginTop: 8 }}>
+        {deployTo
+          ? t('repos.g.deployTo', 'Deployments sent to this group are stored in {{name}}, its first hosted member.', { name: deployTo })
+          : t('repos.g.noDeploy', 'No hosted member, so this group does not accept deployments.')}
+      </div>
     </div>
   )
 }

@@ -131,7 +131,10 @@ miss — which is why it keeps working when upstream does not.
 Docker (`scripts/e2e-formats.sh`): Maven, npm, Docker/OCI, PyPI, raw, NuGet,
 Helm, Go, APT, YUM, Alpine, RubyGems, Cargo, Composer, Conda, R/CRAN, p2,
 CocoaPods, Terraform, pub, Git LFS, Hugging Face, Ansible Galaxy, Conan, Swift.
-Hosted, proxy and group for every one of them.
+Hosted, proxy and group for every one of them. A group takes deployments
+too: `mvn deploy`, `npm publish`, `twine upload` or `docker push` to the group
+lands in its first hosted member, so a build needs one URL for both
+directions. The caller needs write permission on the group and on that member.
 
 **Access control** — local accounts (argon2; Nexus Shiro hashes accepted on
 import), LDAP, OIDC, reverse-proxy header auth. Roles read as targets times

@@ -52,6 +52,44 @@ type Format interface {
 	Parse(path string) *model.Package
 }
 
+// GroupDeployFilter is implemented by formats whose clients send writes to a
+// group that are not deployments — logins, security audits, batch lookups.
+// IsDeploy reports whether a PUT, POST or PATCH (path relative to the
+// repository) is a deployment. Formats without it treat every such request
+// as one.
+type GroupDeployFilter interface {
+	IsDeploy(r *http.Request) bool
+}
+
+// WriteAuthorizer is implemented by formats that authenticate their
+// clients their own way (Docker bearer tokens) and so must check a write to
+// a group themselves. It writes the 401/403 and returns false on refusal.
+type WriteAuthorizer interface {
+	AuthorizeWrite(w http.ResponseWriter, r *http.Request, rp *model.Repository, d Deps) bool
+}
+
+// IsGroupDeploy reports whether r, addressed to a group of format f, is a
+// deployment to hand to the group's first hosted member.
+func IsGroupDeploy(f Format, r *http.Request) bool {
+	switch r.Method {
+	case http.MethodPut, http.MethodPost, http.MethodPatch:
+	default:
+		return false
+	}
+	if gf, ok := f.(GroupDeployFilter); ok {
+		return gf.IsDeploy(r)
+	}
+	return true
+}
+
+// AuthorizeGroupWrite checks that the caller may write to the group rp.
+func AuthorizeGroupWrite(f Format, w http.ResponseWriter, r *http.Request, rp *model.Repository, d Deps) bool {
+	if a, ok := f.(WriteAuthorizer); ok {
+		return a.AuthorizeWrite(w, r, rp, d)
+	}
+	return Authorize(w, r, rp, auth.Write, `Basic realm="Holiaokho"`)
+}
+
 // Registry maps format names to plugins.
 type Registry struct {
 	mu      sync.RWMutex
