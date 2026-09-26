@@ -625,10 +625,16 @@
       "vulnScanHint": "以 OSV 檢查這個 repository 中的套件是否有已知漏洞。"
     },
     "g": {
+      "add": "加入成員（加在最後）",
+      "allAdded": "所有 {{format}} repository 都已是成員",
       "available": "可選擇",
+      "down": "下移",
       "members": "成員",
-      "moveUp": "點擊以上移",
-      "order": "解析順序："
+      "missing": "找不到",
+      "none": "尚無成員。",
+      "orderHint": "由上往下依序查詢，第一個有該檔案的成員回應。可拖曳或用箭頭調整順序。",
+      "remove": "移除",
+      "up": "上移"
     },
     "genKey": "產生金鑰",
     "genKeyDone": "私鑰已填入。公鑰（儲存後也可從 <repo 網址>/repository-key.gpg 取得）：",

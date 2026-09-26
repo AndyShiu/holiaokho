@@ -15,6 +15,22 @@ export interface Release {
 
 export const releases: Release[] = [
   {
+    version: '1.4.0',
+    date: '2026-09-27',
+    changes: [
+      {
+        kind: 'fixed',
+        text: {
+          en: 'A group\'s members are an ordered list you can drag, or move with arrows. A member added to a group now goes last; before, it went first, so a proxy added for a handful of packages was quietly asked before Maven Central for everything.',
+          'zh-TW': 'Group 的成員改為有順序的清單，可拖曳或用箭頭調整。新加入的成員現在會排在最後；過去會排在最前面，於是為了少數套件加的 proxy，會在不知不覺中比 Maven Central 更早被查詢所有套件。',
+          'zh-CN': 'Group 的成员改为有顺序的列表，可拖动或用箭头调整。新加入的成员现在会排在最后；过去会排在最前面，于是为了少数包加的 proxy，会在不知不觉中比 Maven Central 更早被查询所有包。',
+          ja: 'グループのメンバーを順序付きのリストにし、ドラッグまたは矢印で並べ替えられるようにしました。追加したメンバーは末尾に入ります。以前は先頭に入っていたため、一部のパッケージのために追加したプロキシが、すべてのパッケージについて Maven Central より先に問い合わされていました。',
+          ko: '그룹 멤버를 순서가 있는 목록으로 바꿔 드래그나 화살표로 순서를 조정할 수 있습니다. 새로 추가한 멤버는 이제 맨 뒤에 들어갑니다. 전에는 맨 앞에 들어가서, 몇몇 패키지를 위해 추가한 프록시가 모든 패키지에 대해 Maven Central보다 먼저 조회되었습니다.',
+        },
+      },
+    ],
+  },
+  {
     version: '1.3.5',
     date: '2026-09-26',
     changes: [

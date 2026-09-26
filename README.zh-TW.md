@@ -169,11 +169,11 @@ PDF、Excel 給人看,CSV、JSON(附 purl)給程式與 AI agent 比對專案自�
 
 ## 文件
 
-- [`docs/nexus-feature-parity.md`](docs/nexus-feature-parity.md) ——
+- [`docs/nexus-feature-parity.zh-TW.md`](docs/nexus-feature-parity.zh-TW.md) ——
   Nexus 有什麼,這邊有沒有
-- [`docs/security.md`](docs/security.md) ——
+- [`docs/security.zh-TW.md`](docs/security.zh-TW.md) ——
   信任邊界、已經防護的部分,以及明知還沒做的部分
-- [`docs/holiaokho-ui-brief.md`](docs/holiaokho-ui-brief.md) ——
+- [`docs/holiaokho-ui-brief.zh-TW.md`](docs/holiaokho-ui-brief.zh-TW.md) ——
   介面規格,要改 UI 時看這份
 
 ## 安全
@@ -193,7 +193,7 @@ PDF、Excel 給人看,CSV、JSON(附 purl)給程式與 AI agent 比對專案自�
 這是實際那樣跑起來驗證的,不只是讓掃描器過關。
 
 **掃描全過不等於安全。**
-[`docs/security.md`](docs/security.md) 寫明信任邊界、已經防護的部分,
+[`docs/security.zh-TW.md`](docs/security.zh-TW.md) 寫明信任邊界、已經防護的部分,
 以及明知還沒做的部分。
 
 ## 參與

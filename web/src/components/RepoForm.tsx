@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { App, Button, Checkbox, Form, Input, InputNumber, Modal, Radio, Select, Switch, Tag, Transfer } from 'antd'
+import { ArrowDownOutlined, ArrowUpOutlined, DeleteOutlined, HolderOutlined } from '@ant-design/icons'
+import { App, Button, Checkbox, Form, Input, InputNumber, Modal, Radio, Select, Switch } from 'antd'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { get, post } from '@/api/client'
@@ -184,20 +185,7 @@ export function RepoForm({ format, type, value, onChange, editing, existing }: {
 
       {type === 'group' && (
         <Section title={t('repos.sec.group', 'Group · members (order = resolution order)')} style={{ marginBottom: 16 }}>
-          <Transfer
-            dataSource={members.map((m) => ({ key: m.name, title: `${m.name} (${m.type})` }))}
-            targetKeys={a.group?.members ?? []}
-            onChange={(keys) => setAttr('group', { members: keys as string[] })}
-            render={(i) => i.title!}
-            titles={[t('repos.g.available', 'Available'), t('repos.g.members', 'Members')]}
-            listStyle={{ width: '100%', height: 260 }}
-            showSearch
-          />
-          <div style={{ marginTop: 8, fontSize: 12, color: 'var(--hlk-text-secondary)' }}>
-            {t('repos.g.order', 'Resolution order:')} {(a.group?.members ?? []).map((m, i) => (
-              <Tag key={m} style={{ cursor: 'pointer' }} onClick={() => { const ms = [...(a.group?.members ?? [])]; if (i > 0) { [ms[i - 1], ms[i]] = [ms[i], ms[i - 1]]; setAttr('group', { members: ms }) } }} title={t('repos.g.moveUp', 'Click to move up')}>{i + 1} · {m}</Tag>
-            ))}
-          </div>
+          <GroupMembers value={a.group?.members ?? []} candidates={members} onChange={(ms) => setAttr('group', { members: ms })} />
         </Section>
       )}
 
@@ -320,5 +308,60 @@ export function RepoForm({ format, type, value, onChange, editing, existing }: {
         </div>
       </Section>
     </Form>
+  )
+}
+
+// GroupMembers is the group's member list in resolution order: the first
+// member that has a path answers, so order matters (a proxy placed above
+// maven-central is asked first for everything). New members are added at the
+// end, and rows move by dragging or with the arrows.
+function GroupMembers({ value, candidates, onChange }: { value: string[]; candidates: Repository[]; onChange: (ms: string[]) => void }) {
+  const { t } = useTranslation()
+  const [dragFrom, setDragFrom] = useState<number | null>(null)
+  const [dragOver, setDragOver] = useState<number | null>(null)
+  const typeOf = (n: string) => candidates.find((c) => c.name === n)?.type
+  const move = (from: number, to: number) => {
+    if (to < 0 || to >= value.length || from === to) return
+    const ms = [...value]
+    const [m] = ms.splice(from, 1)
+    ms.splice(to, 0, m)
+    onChange(ms)
+  }
+  const available = candidates.filter((c) => !value.includes(c.name))
+  return (
+    <div style={{ maxWidth: 560 }}>
+      <div style={{ fontSize: 12, color: 'var(--hlk-text-secondary)', marginBottom: 10 }}>
+        {t('repos.g.orderHint', 'Members are asked from top to bottom; the first one that has the file answers. Drag or use the arrows to reorder.')}
+      </div>
+      {value.length === 0 && <div style={{ fontSize: 12, color: 'var(--hlk-text-tertiary)', marginBottom: 8 }}>{t('repos.g.none', 'No members yet.')}</div>}
+      {value.map((m, i) => (
+        <div
+          key={m}
+          className={`hlk-realm${dragOver === i ? ' over' : ''}`}
+          draggable
+          onDragStart={() => setDragFrom(i)}
+          onDragOver={(e) => { e.preventDefault(); setDragOver(i) }}
+          onDragLeave={() => setDragOver((v) => (v === i ? null : v))}
+          onDrop={(e) => { e.preventDefault(); if (dragFrom !== null) move(dragFrom, i); setDragFrom(null); setDragOver(null) }}
+          onDragEnd={() => { setDragFrom(null); setDragOver(null) }}
+        >
+          <HolderOutlined className="hlk-realm-grip" />
+          <span className="hlk-realm-no">{i + 1}</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <span className="hlk-mono" style={{ fontSize: 13, fontWeight: 500 }}>{m}</span>
+            <span style={{ fontSize: 11, color: 'var(--hlk-text-tertiary)', marginLeft: 8 }}>{typeOf(m) ? t(`type.${typeOf(m)}`, typeOf(m)!) : t('repos.g.missing', 'not found')}</span>
+          </div>
+          <Button type="text" size="small" aria-label={t('repos.g.up', 'Move up')} disabled={i === 0} icon={<ArrowUpOutlined />} onClick={() => move(i, i - 1)} />
+          <Button type="text" size="small" aria-label={t('repos.g.down', 'Move down')} disabled={i === value.length - 1} icon={<ArrowDownOutlined />} onClick={() => move(i, i + 1)} />
+          <Button type="text" size="small" danger aria-label={t('repos.g.remove', 'Remove')} icon={<DeleteOutlined />} onClick={() => onChange(value.filter((x) => x !== m))} />
+        </div>
+      ))}
+      <Select
+        style={{ width: '100%', marginTop: 6 }} showSearch value={null as unknown as string} disabled={available.length === 0}
+        placeholder={available.length ? t('repos.g.add', 'Add a member (added last)') : t('repos.g.allAdded', 'Every {{format}} repository is already a member', { format: candidates[0]?.format ?? '' })}
+        options={available.map((c) => ({ value: c.name, label: `${c.name} (${t(`type.${c.type}`, c.type)})` }))}
+        onChange={(v) => v && onChange([...value, v])}
+      />
+    </div>
   )
 }

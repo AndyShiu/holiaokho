@@ -625,10 +625,16 @@
       "vulnScanHint": "Check the packages in this repository against OSV for known vulnerabilities."
     },
     "g": {
+      "add": "Add a member (added last)",
+      "allAdded": "Every {{format}} repository is already a member",
       "available": "Available",
+      "down": "Move down",
       "members": "Members",
-      "moveUp": "Click to move up",
-      "order": "Resolution order:"
+      "missing": "not found",
+      "none": "No members yet.",
+      "orderHint": "Members are asked from top to bottom; the first one that has the file answers. Drag or use the arrows to reorder.",
+      "remove": "Remove",
+      "up": "Move up"
     },
     "genKey": "Generate key",
     "genKeyDone": "Private key filled in. Public key (also available at <repo url>/repository-key.gpg after saving):",
