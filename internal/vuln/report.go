@@ -28,6 +28,15 @@ type Filters struct {
 	Repository  string `json:"repository,omitempty"`
 	Format      string `json:"format,omitempty"`
 	Query       string `json:"query,omitempty"`
+	// Severities, when set, are the levels chosen for the report.
+	Severities []string `json:"severities,omitempty"`
+	// IncludedSeverities are the levels this report can contain. A level
+	// not listed was filtered out — not found to be zero — and Complete is
+	// false whenever any filter narrowed the report. Both are spelled out
+	// so a reader, human or program, cannot mistake a filtered report for
+	// the whole picture.
+	IncludedSeverities []string `json:"includedSeverities"`
+	Complete           bool     `json:"complete"`
 }
 
 // Coverage says how much was looked at, so an empty report is read as what
@@ -97,17 +106,88 @@ func BuildReport(ctx context.Context, c *content.Service, f Filter, enabled bool
 		GeneratedAt: time.Now().UTC(),
 		Version:     version,
 		Source:      "OSV.dev",
-		Filters:     Filters{MinSeverity: f.MinSeverity, Severity: f.Severity, Repository: f.Repository, Format: f.Format, Query: f.Q},
+		Filters:     scope(Filters{MinSeverity: f.MinSeverity, Severity: f.Severity, Severities: f.Severities, Repository: f.Repository, Format: f.Format, Query: f.Q}),
 		Coverage:    Coverage{Scanned: s.Scanned, Pending: s.Pending, NotCovered: s.NotCovered, Excluded: s.Excluded, LastScan: s.LastOKAt},
 	}
 	assemble(r, found)
 	return r, nil
 }
 
+var allSeverities = []string{SeverityCritical, SeverityHigh, SeverityModerate, SeverityLow, SeverityUnknown}
+
+// scope fills in which severities the filters let through.
+func scope(f Filters) Filters {
+	f.IncludedSeverities = nil
+	for _, s := range allSeverities {
+		if f.Includes(s) {
+			f.IncludedSeverities = append(f.IncludedSeverities, s)
+		}
+	}
+	f.Complete = f.MinSeverity == "" && f.Severity == "" && f.Repository == "" && f.Format == "" && f.Query == "" &&
+		len(f.IncludedSeverities) == len(allSeverities)
+	return f
+}
+
+// Includes reports whether findings of severity s can be in the report.
+func (f Filters) Includes(s string) bool {
+	if f.Severity != "" && !strings.EqualFold(f.Severity, s) {
+		return false
+	}
+	if n := SeverityRank(f.MinSeverity); n > 0 && SeverityRank(s) < n {
+		return false
+	}
+	if len(f.Severities) > 0 && !contains(f.Severities, s) {
+		return false
+	}
+	return true
+}
+
+// Slug names the filters for a file name — the one place a CSV can say it
+// is not the whole picture without breaking the parsers that read it.
+func (f Filters) Slug() string {
+	var parts []string
+	if len(f.Severities) > 0 && len(f.IncludedSeverities) < len(allSeverities) {
+		for _, s := range f.IncludedSeverities {
+			parts = append(parts, strings.ToLower(s))
+		}
+		parts = append(parts, "only")
+	} else if f.Severity != "" {
+		parts = append(parts, strings.ToLower(f.Severity)+"-only")
+	} else if f.MinSeverity != "" {
+		parts = append(parts, strings.ToLower(f.MinSeverity)+"-and-above")
+	}
+	if f.Format != "" {
+		parts = append(parts, f.Format)
+	}
+	if f.Repository != "" {
+		parts = append(parts, f.Repository)
+	}
+	if f.Query != "" {
+		parts = append(parts, "search")
+	}
+	slug := strings.Join(parts, "-")
+	return strings.Map(func(r rune) rune {
+		if r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r >= '0' && r <= '9' || r == '-' || r == '.' || r == '_' {
+			return r
+		}
+		return '-'
+	}, slug)
+}
+
 // assemble groups findings by package into r, working out for each package
 // the version to upgrade to.
 func assemble(r *Report, found []Finding) {
 	r.Summary = Counts{BySeverity: map[string]int{}}
+	if r.Filters.IncludedSeverities == nil {
+		r.Filters = scope(r.Filters)
+	}
+	// Levels the report covers are listed even at zero; levels filtered out
+	// are absent, so "none found" and "not looked at" read differently.
+	for _, s := range r.Filters.IncludedSeverities {
+		if s != SeverityUnknown {
+			r.Summary.BySeverity[s] = 0
+		}
+	}
 	byKey := map[string]*PkgEntry{}
 	seen := map[string]map[string]bool{} // package key -> vulnerability ids
 	var order []string

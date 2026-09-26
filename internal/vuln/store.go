@@ -19,8 +19,9 @@ type Filter struct {
 	Repository  string
 	Format      string
 	MinSeverity string
-	Severity    string // exactly this one
-	Q           string // package name or vulnerability id / alias
+	Severity    string   // exactly this one
+	Severities  []string // any of these; chosen in the export dialog
+	Q           string   // package name or vulnerability id / alias
 	PackageID   int64
 	Limit       int
 	Offset      int
@@ -52,6 +53,9 @@ func (f Filter) where() (string, []any) {
 	}
 	if f.Severity != "" {
 		add("v.severity = $%d", strings.ToUpper(f.Severity))
+	}
+	if len(f.Severities) > 0 {
+		add("v.severity = ANY($%d)", f.Severities)
 	}
 	if f.PackageID > 0 {
 		add("p.id = $%d", f.PackageID)

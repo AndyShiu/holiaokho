@@ -945,9 +945,18 @@
     "summary": "摘要",
     "firstSeen": "發現時間",
     "export": {
+      "all": "全選",
       "button": "匯出報告",
+      "download": "下載",
       "forPeople": "閱讀與分享",
-      "forTools": "給程式與 AI agent"
+      "forTools": "給程式與 AI agent",
+      "formatLabel": "格式",
+      "keepOther": "報告也套用這些篩選",
+      "levels": "要包含的嚴重度",
+      "none": "清除",
+      "other": "此頁面的其他篩選",
+      "partial": "報告中會註明排除了哪些嚴重度，避免被誤認為完整清單。",
+      "search": "搜尋"
     }
   },
   "webhooks": {

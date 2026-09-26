@@ -34,9 +34,16 @@ func WriteXLSX(w io.Writer, r *Report, lang string) error {
 		{txt(L("vulnerabilities")), num(float64(r.Summary.Vulnerabilities))},
 	}
 	for _, s := range []string{SeverityCritical, SeverityHigh, SeverityModerate, SeverityLow, SeverityUnknown} {
-		if n := r.Summary.BySeverity[s]; n > 0 {
+		switch n := r.Summary.BySeverity[s]; {
+		case !r.Filters.Includes(s):
+			// Filtered out is not zero.
+			overview = append(overview, []cell{txt("  " + sev(s)), txt("— (" + L("notInFilter") + ")")})
+		case n > 0 || s != SeverityUnknown:
 			overview = append(overview, []cell{txt("  " + sev(s)), num(float64(n))})
 		}
+	}
+	if !r.Filters.Complete {
+		overview = append(overview, []cell{bold(L("partial"))})
 	}
 	overview = append(overview, []cell{}, []cell{bold(L("coverage"))},
 		[]cell{txt(L("scanned")), num(float64(r.Coverage.Scanned))},

@@ -945,9 +945,18 @@
     "summary": "摘要",
     "firstSeen": "发现时间",
     "export": {
+      "all": "全选",
       "button": "导出报告",
+      "download": "下载",
       "forPeople": "阅读与分享",
-      "forTools": "给程序与 AI agent"
+      "forTools": "给程序与 AI agent",
+      "formatLabel": "格式",
+      "keepOther": "报告也应用这些筛选",
+      "levels": "要包含的严重度",
+      "none": "清除",
+      "other": "此页面的其他筛选",
+      "partial": "报告中会注明排除了哪些严重度，避免被误认为完整列表。",
+      "search": "搜索"
     }
   },
   "webhooks": {

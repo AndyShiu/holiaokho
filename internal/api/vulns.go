@@ -2,9 +2,9 @@ package api
 
 import (
 	"bytes"
-	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -122,6 +122,7 @@ func (a *API) vulnExport(w http.ResponseWriter, r *http.Request) {
 		Format:      q.Get("format"),
 		MinSeverity: q.Get("severity"),
 		Severity:    q.Get("level"),
+		Severities:  levels(q.Get("levels")),
 		Q:           q.Get("q"),
 	}, a.Config.Vulns.Enabled, a.Version)
 	if err != nil {
@@ -147,10 +148,27 @@ func (a *API) vulnExport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	a.audit_(r, "vulnerabilities.export", "vulnerabilities", as, map[string]any{"packages": rep.Summary.Packages, "filters": rep.Filters})
-	name := fmt.Sprintf("holiaokho-vulnerabilities-%s.%s", rep.GeneratedAt.Format("20060102-1504"), t.ext)
+	name := "holiaokho-vulnerabilities-" + rep.GeneratedAt.Format("20060102-1504")
+	if slug := rep.Filters.Slug(); slug != "" {
+		name += "-" + slug
+	}
+	name += "." + t.ext
 	w.Header().Set("Content-Type", t.contentType)
 	w.Header().Set("Content-Disposition", `attachment; filename="`+name+`"`)
 	w.Header().Set("Content-Length", strconv.Itoa(buf.Len()))
 	w.Header().Set("Cache-Control", "no-store")
 	w.Write(buf.Bytes())
+}
+
+// levels parses the comma-separated severities chosen for an export,
+// keeping only known ones.
+func levels(v string) []string {
+	var out []string
+	for _, s := range strings.Split(strings.ToUpper(v), ",") {
+		switch s = strings.TrimSpace(s); s {
+		case vuln.SeverityCritical, vuln.SeverityHigh, vuln.SeverityModerate, vuln.SeverityLow, vuln.SeverityUnknown:
+			out = append(out, s)
+		}
+	}
+	return out
 }

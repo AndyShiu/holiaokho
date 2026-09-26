@@ -945,9 +945,18 @@
     "summary": "Summary",
     "firstSeen": "Found",
     "export": {
+      "all": "Select all",
       "button": "Export report",
+      "download": "Download",
       "forPeople": "to read and share",
-      "forTools": "for scripts and AI agents"
+      "forTools": "for scripts and AI agents",
+      "formatLabel": "Format",
+      "keepOther": "Apply them to the report too",
+      "levels": "Severities to include",
+      "none": "Clear",
+      "other": "Other filters on this page",
+      "partial": "The report will say which severities it leaves out, so it is not mistaken for the full list.",
+      "search": "Search"
     }
   },
   "webhooks": {

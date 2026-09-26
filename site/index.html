@@ -63,10 +63,10 @@
     </div>
     <figure class="shot hero-shot">
       <div class="shot-frame">
-        <img class="shot-img en light" src="shots/browse-en-light.jpg" width="1440" height="900" loading="eager" decoding="async" alt="Browsing the packages cached in a Maven proxy">
-        <img class="shot-img en dark" src="shots/browse-en-dark.jpg" width="1440" height="900" loading="eager" decoding="async" alt="Browsing the packages cached in a Maven proxy">
-        <img class="shot-img zh light" src="shots/browse-zh-light.jpg" width="1440" height="900" loading="eager" decoding="async" alt="瀏覽 Maven 代理中已快取的套件">
-        <img class="shot-img zh dark" src="shots/browse-zh-dark.jpg" width="1440" height="900" loading="eager" decoding="async" alt="瀏覽 Maven 代理中已快取的套件">
+        <img class="shot-img en light" src="shots/browse-en-light.webp" srcset="shots/browse-en-light-720.webp 720w, shots/browse-en-light.webp 1440w" sizes="(max-width: 1040px) calc(100vw - 48px), 992px" width="1440" height="900" loading="lazy" fetchpriority="high" decoding="async" alt="Browsing the packages cached in a Maven proxy">
+        <img class="shot-img en dark" src="shots/browse-en-dark.webp" srcset="shots/browse-en-dark-720.webp 720w, shots/browse-en-dark.webp 1440w" sizes="(max-width: 1040px) calc(100vw - 48px), 992px" width="1440" height="900" loading="lazy" fetchpriority="high" decoding="async" alt="Browsing the packages cached in a Maven proxy">
+        <img class="shot-img zh light" src="shots/browse-zh-light.webp" srcset="shots/browse-zh-light-720.webp 720w, shots/browse-zh-light.webp 1440w" sizes="(max-width: 1040px) calc(100vw - 48px), 992px" width="1440" height="900" loading="lazy" fetchpriority="high" decoding="async" alt="瀏覽 Maven 代理中已快取的套件">
+        <img class="shot-img zh dark" src="shots/browse-zh-dark.webp" srcset="shots/browse-zh-dark-720.webp 720w, shots/browse-zh-dark.webp 1440w" sizes="(max-width: 1040px) calc(100vw - 48px), 992px" width="1440" height="900" loading="lazy" fetchpriority="high" decoding="async" alt="瀏覽 Maven 代理中已快取的套件">
       </div>
     </figure>
   </div>
@@ -112,10 +112,10 @@
     <p class="lead zh" lang="zh-Hant">建置用到的每一個依賴都會經過這裡，所以只有它能一次告訴你哪些有問題，也能證明一個 image 從哪裡來。</p>
     <figure class="shot">
       <div class="shot-frame">
-        <img class="shot-img en light" src="shots/vulns-en-light.jpg" width="1440" height="900" loading="lazy" decoding="async" alt="Known vulnerabilities in stored packages, worst first">
-        <img class="shot-img en dark" src="shots/vulns-en-dark.jpg" width="1440" height="900" loading="lazy" decoding="async" alt="Known vulnerabilities in stored packages, worst first">
-        <img class="shot-img zh light" src="shots/vulns-zh-light.jpg" width="1440" height="900" loading="lazy" decoding="async" alt="已存放套件中的已知漏洞，依嚴重度排序">
-        <img class="shot-img zh dark" src="shots/vulns-zh-dark.jpg" width="1440" height="900" loading="lazy" decoding="async" alt="已存放套件中的已知漏洞，依嚴重度排序">
+        <img class="shot-img en light" src="shots/vulns-en-light.webp" srcset="shots/vulns-en-light-720.webp 720w, shots/vulns-en-light.webp 1440w" sizes="(max-width: 1040px) calc(100vw - 48px), 992px" width="1440" height="900" loading="lazy" decoding="async" alt="Known vulnerabilities in stored packages, worst first">
+        <img class="shot-img en dark" src="shots/vulns-en-dark.webp" srcset="shots/vulns-en-dark-720.webp 720w, shots/vulns-en-dark.webp 1440w" sizes="(max-width: 1040px) calc(100vw - 48px), 992px" width="1440" height="900" loading="lazy" decoding="async" alt="Known vulnerabilities in stored packages, worst first">
+        <img class="shot-img zh light" src="shots/vulns-zh-light.webp" srcset="shots/vulns-zh-light-720.webp 720w, shots/vulns-zh-light.webp 1440w" sizes="(max-width: 1040px) calc(100vw - 48px), 992px" width="1440" height="900" loading="lazy" decoding="async" alt="已存放套件中的已知漏洞，依嚴重度排序">
+        <img class="shot-img zh dark" src="shots/vulns-zh-dark.webp" srcset="shots/vulns-zh-dark-720.webp 720w, shots/vulns-zh-dark.webp 1440w" sizes="(max-width: 1040px) calc(100vw - 48px), 992px" width="1440" height="900" loading="lazy" decoding="async" alt="已存放套件中的已知漏洞，依嚴重度排序">
       </div>
     </figure>
     <div class="cards cards-3">
@@ -168,16 +168,16 @@
 <section id="quick-start" class="reveal">
   <div class="wrap">
     <div class="bar"></div>
-    <h2 class="en">Running in one command</h2>
-    <h2 class="zh" lang="zh-Hant">一行指令跑起來</h2>
+    <h2 class="en">Up and running in a minute</h2>
+    <h2 class="zh" lang="zh-Hant">一分鐘跑起來</h2>
     <div class="tabs" role="tablist">
       <button type="button" role="tab" data-tab="compose" aria-selected="true">Docker Compose</button>
       <button type="button" role="tab" data-tab="k8s" aria-selected="false">Kubernetes</button>
     </div>
     <div class="tab-panel" data-panel="compose">
-      <div class="cmd">
-        <span class="prompt" aria-hidden="true">$</span>
-        <code id="cmd-up">curl -fsSLO https://raw.githubusercontent.com/AndyShiu/holiaokho/main/deploy/docker-compose.yml &amp;&amp; docker compose up -d</code>
+      <div class="cmd cmd-block">
+        <pre><code id="cmd-up">curl -fsSLO https://raw.githubusercontent.com/AndyShiu/holiaokho/main/deploy/docker-compose.yml
+docker compose up -d</code></pre>
         <button class="copy" type="button" data-copy="cmd-up"><span class="en">Copy</span><span class="zh" lang="zh-Hant">複製</span></button>
       </div>
       <p class="then en">It pulls the published image and a PostgreSQL to go with it; nothing is built. Then open <code>http://localhost:8081/ui/</code> and point your clients at it exactly as you would at Nexus:</p>

@@ -945,9 +945,18 @@
     "summary": "概要",
     "firstSeen": "検出日時",
     "export": {
+      "all": "すべて選択",
       "button": "レポートを出力",
+      "download": "ダウンロード",
       "forPeople": "閲覧・共有用",
-      "forTools": "スクリプト・AI エージェント用"
+      "forTools": "スクリプト・AI エージェント用",
+      "formatLabel": "形式",
+      "keepOther": "レポートにも適用する",
+      "levels": "含める深刻度",
+      "none": "クリア",
+      "other": "このページのその他の絞り込み",
+      "partial": "除外した深刻度はレポートに明記され、完全な一覧と誤解されないようにします。",
+      "search": "検索"
     }
   },
   "webhooks": {

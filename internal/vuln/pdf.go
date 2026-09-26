@@ -103,11 +103,27 @@ func WritePDF(w io.Writer, r *Report, lang string) error {
 		pdf.RoundedRect(x, y, boxW, 20, 1.6, "1234", "D")
 		tag(pdf, family, x+3, y+3, L(s), s)
 		pdf.SetXY(x+3, y+9.5)
-		pdf.SetFont(family, "B", 16)
-		ink()
-		pdf.CellFormat(boxW-6, 8, fmt.Sprint(r.Summary.BySeverity[s]), "", 0, "L", false, 0, "")
+		if r.Filters.Includes(s) {
+			pdf.SetFont(family, "B", 16)
+			ink()
+			pdf.CellFormat(boxW-6, 8, fmt.Sprint(r.Summary.BySeverity[s]), "", 0, "L", false, 0, "")
+		} else {
+			// Filtered out is not zero: say so instead of printing a 0.
+			pdf.SetFont(family, "B", 16)
+			pdf.SetTextColor(201, 196, 185)
+			pdf.CellFormat(12, 8, "—", "", 0, "L", false, 0, "")
+			pdf.SetFont(family, "", 7.5)
+			muted()
+			pdf.CellFormat(boxW-18, 8, L("notInFilter"), "", 0, "L", false, 0, "")
+		}
 	}
 	pdf.SetY(y + 24)
+	if !r.Filters.Complete {
+		pdf.SetFont(family, "B", 9)
+		pdf.SetTextColor(138, 106, 11)
+		pdf.MultiCell(contentW, 5, L("partial"), "", "L", false)
+		pdf.Ln(1)
+	}
 	pdf.SetFont(family, "", 9.5)
 	ink()
 	pdf.CellFormat(contentW, 5, fmt.Sprintf("%s: %d    %s: %d", L("packages"), r.Summary.Packages, L("vulnerabilities"), r.Summary.Vulnerabilities), "", 1, "L", false, 0, "")

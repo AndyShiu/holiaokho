@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Alert, App, Button, Dropdown, Input, Select, Table } from 'antd'
+import { Alert, App, Button, Checkbox, Input, Modal, Radio, Select, Table } from 'antd'
 import { DownloadOutlined, SearchOutlined } from '@ant-design/icons'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -62,29 +62,43 @@ export default function Vulnerabilities() {
     .map((r) => ({ value: r.name, label: r.name })), [repos.data, covered, format])
   const total = severities.reduce((n, k) => n + (s?.counts[k] ?? 0), 0)
 
-  // The report covers what the page is showing: the same filters, in the
-  // language the page is in. The browser downloads it with the session it
-  // already has.
-  const exportAs = (as: string) => {
-    const p = new URLSearchParams({ as, lang: i18n.language })
-    Object.entries({ severity, level, repository, format, q }).forEach(([k, v]) => { if (v) p.set(k, v) })
+  // Export dialog. The levels start as whatever the page is filtered to —
+  // the dashboard sends people here with "high and above" — but are chosen
+  // explicitly, so nobody downloads a partial report without seeing it is.
+  const [exportOpen, setExportOpen] = useState(false)
+  const [exportAs, setExportAs] = useState('pdf')
+  const [levels, setLevels] = useState<Severity[]>([])
+  const [keepOther, setKeepOther] = useState(true)
+  const allLevels: Severity[] = ['CRITICAL', 'HIGH', 'MODERATE', 'LOW', 'UNKNOWN']
+  const rank = (x: Severity) => ({ CRITICAL: 4, HIGH: 3, MODERATE: 2, LOW: 1, UNKNOWN: 0 })[x]
+  const openExport = () => {
+    setLevels(allLevels.filter((x) => (level ? x === level : severity ? rank(x) >= rank(severity as Severity) : true)))
+    setKeepOther(true)
+    setExportOpen(true)
+  }
+  const otherFilters = [
+    format && `${t('common.format', 'Format')}: ${formatInfo(format).label}`,
+    repository && `${t('common.repository', 'Repository')}: ${repository}`,
+    q && `${t('vulns.export.search', 'Search')}: "${q}"`,
+  ].filter(Boolean) as string[]
+  const doExport = () => {
+    const p = new URLSearchParams({ as: exportAs, lang: i18n.language })
+    if (levels.length < allLevels.length) p.set('levels', levels.join(','))
+    if (keepOther) Object.entries({ repository, format, q }).forEach(([k, v]) => { if (v) p.set(k, v) })
     const a = document.createElement('a')
     a.href = `${API}/vulnerabilities/export?${p}`
     a.rel = 'noopener'
     document.body.appendChild(a)
     a.click()
     a.remove()
+    setExportOpen(false)
   }
-  const exportItems = [
+  const exportFormats = [
     { key: 'pdf', label: 'PDF', hint: t('vulns.export.forPeople', 'to read and share') },
     { key: 'xlsx', label: 'Excel', hint: t('vulns.export.forPeople', 'to read and share') },
     { key: 'csv', label: 'CSV', hint: t('vulns.export.forTools', 'for scripts and AI agents') },
     { key: 'json', label: 'JSON', hint: t('vulns.export.forTools', 'for scripts and AI agents') },
-  ].map((x) => ({
-    key: x.key,
-    label: <span style={{ display: 'inline-flex', gap: 12, justifyContent: 'space-between', minWidth: 190 }}><b>{x.label}</b><span style={{ color: 'var(--hlk-text-tertiary)', fontSize: 12 }}>{x.hint}</span></span>,
-    onClick: () => exportAs(x.key),
-  }))
+  ]
 
   const scanNow = async () => {
     try {
@@ -103,9 +117,7 @@ export default function Vulnerabilities() {
         sub={s?.lastOkAt && <span style={{ color: 'var(--hlk-text-tertiary)', fontSize: 12 }}>{t('vulns.lastScan', 'Last checked')} <RelTime value={s.lastOkAt} /> · {t('vulns.source', 'data from OSV.dev')}</span>}
         extra={
           <span style={{ display: 'inline-flex', gap: 8 }}>
-            <Dropdown menu={{ items: exportItems }} trigger={['click']} placement="bottomRight" disabled={!list.data?.total}>
-              <Button icon={<DownloadOutlined />}>{t('vulns.export.button', 'Export report')}</Button>
-            </Dropdown>
+            <Button icon={<DownloadOutlined />} onClick={openExport} disabled={!total}>{t('vulns.export.button', 'Export report')}</Button>
             {can('app:tasks', 'write') && s?.enabled && <Button onClick={scanNow}>{t('vulns.scanNow', 'Scan now')}</Button>}
           </span>
         }
@@ -190,6 +202,46 @@ export default function Vulnerabilities() {
           ]}
         />
       </div>
+      <Modal
+        open={exportOpen} onCancel={() => setExportOpen(false)} title={t('vulns.export.button', 'Export report')}
+        okText={t('vulns.export.download', 'Download')} onOk={doExport} okButtonProps={{ disabled: levels.length === 0, icon: <DownloadOutlined /> }}
+      >
+        <div className="hlk-section-label" style={{ margin: '8px 0 8px' }}>{t('vulns.export.formatLabel', 'Format')}</div>
+        <Radio.Group value={exportAs} onChange={(e) => setExportAs(e.target.value)} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          {exportFormats.map((f) => (
+            <Radio key={f.key} value={f.key}><b>{f.label}</b> <span style={{ color: 'var(--hlk-text-tertiary)', fontSize: 12 }}>{f.hint}</span></Radio>
+          ))}
+        </Radio.Group>
+
+        <div className="hlk-section-label" style={{ margin: '20px 0 8px', display: 'flex', justifyContent: 'space-between' }}>
+          <span>{t('vulns.export.levels', 'Severities to include')}</span>
+          <a style={{ textTransform: 'none', letterSpacing: 0 }} onClick={() => setLevels(levels.length === allLevels.length ? [] : allLevels)}>
+            {levels.length === allLevels.length ? t('vulns.export.none', 'Clear') : t('vulns.export.all', 'Select all')}
+          </a>
+        </div>
+        <Checkbox.Group value={levels} onChange={(v) => setLevels(allLevels.filter((x) => (v as Severity[]).includes(x)))} style={{ display: 'grid', gap: 8 }}>
+          {allLevels.map((k) => (
+            <Checkbox key={k} value={k}>
+              <span style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
+                <span style={{ display: 'inline-block', width: 88 }}><SeverityTag severity={k} /></span>
+                <span style={{ fontVariantNumeric: 'tabular-nums', color: 'var(--hlk-text-secondary)' }}>{(s?.counts[k] ?? 0).toLocaleString()}</span>
+              </span>
+            </Checkbox>
+          ))}
+        </Checkbox.Group>
+        {levels.length > 0 && levels.length < allLevels.length && (
+          <Alert type="info" showIcon style={{ marginTop: 12 }} message={t('vulns.export.partial', 'The report will say which severities it leaves out, so it is not mistaken for the full list.')} />
+        )}
+
+        {otherFilters.length > 0 && (
+          <>
+            <div className="hlk-section-label" style={{ margin: '20px 0 8px' }}>{t('vulns.export.other', 'Other filters on this page')}</div>
+            <Checkbox checked={keepOther} onChange={(e) => setKeepOther(e.target.checked)}>
+              {t('vulns.export.keepOther', 'Apply them to the report too')}: <span className="hlk-mono" style={{ fontSize: 12 }}>{otherFilters.join(' · ')}</span>
+            </Checkbox>
+          </>
+        )}
+      </Modal>
       <PackageDrawer packageId={pkg} onClose={() => setPkg(null)} onAsset={(id) => setAsset(id)} />
       <AssetDrawer assetId={asset} onClose={() => setAsset(null)} />
     </>

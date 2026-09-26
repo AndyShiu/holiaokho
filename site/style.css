@@ -221,3 +221,10 @@ html:not(.js) .tabs{display:none}
 
 @media (max-width:1000px){.cards-3{grid-template-columns:1fr}}
 @media (max-width:640px){.hero-shot{margin-top:44px}.shot-frame{border-radius:8px}}
+
+/* Copy buttons stay put. The block itself does not scroll — only the code
+   inside it does — because an absolutely positioned button inside a
+   scrolling box scrolls away with the text and ends up on top of it. */
+.cmd{overflow:hidden}
+.cmd > code{flex:1;min-width:0;overflow-x:auto;padding-bottom:2px}
+.cmd-block pre{padding-right:84px}

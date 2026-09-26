@@ -182,3 +182,37 @@ func TestPDFFontsCoverLabels(t *testing.T) {
 		}
 	}
 }
+
+func TestScopeSaysWhatAReportLeftOut(t *testing.T) {
+	all := scope(Filters{})
+	if !all.Complete || len(all.IncludedSeverities) != 5 || all.Slug() != "" {
+		t.Fatalf("unfiltered: %+v slug=%q", all, all.Slug())
+	}
+	chosen := scope(Filters{Severities: []string{SeverityCritical, SeverityHigh}})
+	if chosen.Complete || chosen.Includes(SeverityModerate) || !chosen.Includes(SeverityHigh) {
+		t.Fatalf("chosen: %+v", chosen)
+	}
+	if chosen.Slug() != "critical-high-only" {
+		t.Fatalf("slug %q", chosen.Slug())
+	}
+	// Choosing every level is the whole report, not a filtered one.
+	every := scope(Filters{Severities: allSeverities})
+	if !every.Complete || every.Slug() != "" {
+		t.Fatalf("every level: %+v slug=%q", every, every.Slug())
+	}
+	floor := scope(Filters{MinSeverity: SeverityHigh, Format: "maven"})
+	if floor.Slug() != "high-and-above-maven" || floor.Complete {
+		t.Fatalf("floor: %q %+v", floor.Slug(), floor)
+	}
+
+	// The summary lists covered levels at zero and leaves filtered-out ones
+	// out, so "none found" and "not looked at" read differently.
+	r := &Report{Filters: chosen}
+	assemble(r, nil)
+	if n, ok := r.Summary.BySeverity[SeverityHigh]; !ok || n != 0 {
+		t.Fatalf("covered level missing: %v", r.Summary.BySeverity)
+	}
+	if _, ok := r.Summary.BySeverity[SeverityModerate]; ok {
+		t.Fatalf("filtered-out level present: %v", r.Summary.BySeverity)
+	}
+}

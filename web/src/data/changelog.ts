@@ -15,6 +15,32 @@ export interface Release {
 
 export const releases: Release[] = [
   {
+    version: '1.3.2',
+    date: '2026-09-26',
+    changes: [
+      {
+        kind: 'changed',
+        text: {
+          en: 'Exporting a report now opens a dialog to choose the format and which severities to include, starting from what the page is filtered to. Other filters on the page are listed and can be left out.',
+          'zh-TW': '匯出報告時會開啟對話框,可以選擇格式與要包含的嚴重度,預設帶入頁面目前的篩選。頁面上的其他篩選條件會列出來,可以選擇不套用。',
+          'zh-CN': '导出报告时会打开对话框,可以选择格式与要包含的严重度,默认带入页面当前的筛选。页面上的其他筛选条件会列出来,可以选择不应用。',
+          ja: 'レポートの出力時にダイアログが開き、形式と含める深刻度を選べます。初期値はページの現在の絞り込みです。ページのその他の絞り込みは一覧表示され、適用しないこともできます。',
+          ko: '보고서를 내보낼 때 대화 상자가 열려 형식과 포함할 심각도를 고를 수 있습니다. 기본값은 페이지의 현재 필터입니다. 페이지의 다른 필터는 목록으로 보여 주며 적용하지 않을 수도 있습니다.',
+        },
+      },
+      {
+        kind: 'fixed',
+        text: {
+          en: 'A filtered report showed the severities it left out as 0, which read as "none found". PDF and Excel now mark them as not in the report and say the report is filtered; JSON lists the severities it covers; a CSV, which has nowhere else to say it, carries the filter in its file name.',
+          'zh-TW': '套用篩選的報告會把被排除的嚴重度顯示成 0,看起來像是「沒有找到」。現在 PDF 與 Excel 會標示「不在此報告範圍」並註明報告有套用篩選;JSON 會列出涵蓋的嚴重度;CSV 沒有其他地方可以說明,所以把篩選條件寫進檔名。',
+          'zh-CN': '应用筛选的报告会把被排除的严重度显示成 0,看起来像是「没有找到」。现在 PDF 与 Excel 会标示「不在此报告范围」并注明报告有应用筛选;JSON 会列出覆盖的严重度;CSV 没有其他地方可以说明,所以把筛选条件写进文件名。',
+          ja: '絞り込んだレポートでは、除外した深刻度が 0 と表示され「見つからなかった」ように読めました。PDF と Excel は「このレポートの対象外」と示し絞り込み済みであることを明記、JSON は対象の深刻度を列挙、CSV はファイル名に絞り込み条件を含めます。',
+          ko: '필터를 적용한 보고서에서 제외한 심각도가 0으로 표시되어 「발견되지 않음」처럼 읽혔습니다. 이제 PDF와 Excel은 「이 보고서 범위 밖」으로 표시하고 필터 적용을 명시하며, JSON은 포함한 심각도를 나열하고, CSV는 파일 이름에 필터를 담습니다.',
+        },
+      },
+    ],
+  },
+  {
     version: '1.3.1',
     date: '2026-09-26',
     headline: {

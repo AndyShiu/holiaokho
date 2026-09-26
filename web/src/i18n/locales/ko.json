@@ -945,9 +945,18 @@
     "summary": "요약",
     "firstSeen": "발견 시각",
     "export": {
+      "all": "모두 선택",
       "button": "보고서 내보내기",
+      "download": "다운로드",
       "forPeople": "읽기·공유용",
-      "forTools": "스크립트·AI 에이전트용"
+      "forTools": "스크립트·AI 에이전트용",
+      "formatLabel": "형식",
+      "keepOther": "보고서에도 적용",
+      "levels": "포함할 심각도",
+      "none": "지우기",
+      "other": "이 페이지의 다른 필터",
+      "partial": "보고서에 제외한 심각도가 표시되어 전체 목록으로 오해되지 않습니다.",
+      "search": "검색"
     }
   },
   "webhooks": {
