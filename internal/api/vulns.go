@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/holiaokho/holiaokho/internal/auth"
+	"github.com/holiaokho/holiaokho/internal/content"
 	"github.com/holiaokho/holiaokho/internal/vuln"
 )
 
@@ -56,6 +57,7 @@ func (a *API) vulnList(w http.ResponseWriter, r *http.Request) {
 		Q:           q.Get("q"),
 		Limit:       limit,
 		Offset:      max(offset, 0),
+		Sort:        content.ParseSort(q.Get("sort"), q.Get("order")),
 	})
 	if err != nil {
 		a.fail(w, err)

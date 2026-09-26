@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Alert, App, Button, Drawer, Form, Input, Table, Tag } from 'antd'
+import { Alert, App, Button, Drawer, Form, Input, Tag } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -8,6 +8,7 @@ import type { AuthSettings, Privilege, Role, User } from '@/api/types'
 import { useAuth } from '@/auth/AuthContext'
 import { ConfirmDelete, PageHeader, useErrorText } from '@/components/Common'
 import { PrivilegeEditor, summarise } from '@/components/PrivilegeEditor'
+import { SortableTable } from '@/components/SortableTable'
 
 const BUILTIN = ['admin', 'anonymous', 'developer']
 
@@ -42,7 +43,7 @@ export default function Roles() {
     <>
       <PageHeader title={t('nav.roles', 'Roles')} count={roles.data?.length} extra={canWrite && <Button type="primary" icon={<PlusOutlined />} onClick={() => { form.resetFields(); setPrivs([{ target: 'repo:*', actions: ['read'] }]); setDrawer('new') }}>{t('roles.create', 'Create role')}</Button>} />
       <div className="hlk-card" style={{ padding: 0 }}>
-        <Table<Role>
+        <SortableTable<Role>
           rowKey="id" loading={roles.isLoading} dataSource={roles.data ?? []} className="hlk-table hlk-clickable" pagination={false} size="middle"
           onRow={(r) => ({ onClick: () => { form.setFieldsValue({ id: r.id, name: r.name, description: r.description }); setPrivs(r.privileges.map((p) => ({ ...p, actions: [...p.actions] }))); setDrawer(r) } })}
           columns={[

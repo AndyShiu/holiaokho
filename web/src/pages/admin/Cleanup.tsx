@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Alert, App, Button, Drawer, Form, Input, InputNumber, Radio, Select, Table, Tag } from 'antd'
+import { Alert, App, Button, Drawer, Form, Input, InputNumber, Radio, Select, Tag } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -11,6 +11,7 @@ import { ConfirmDelete, PageHeader, useErrorText } from '@/components/Common'
 import { RelTime } from '@/components/Format'
 import { formatInfo } from '@/theme/tokens'
 import { TestPanel } from './Selectors'
+import { SortableTable } from '@/components/SortableTable'
 
 function summary(p: CleanupPolicy, t: (k: string, d: string, o?: any) => string) {
   const c = p.criteria
@@ -83,14 +84,14 @@ export default function Cleanup() {
     <>
       <PageHeader title={t('nav.cleanup', 'Cleanup Policies')} count={policies.data?.length} sub={cleanupTask && <span>{t('cleanup.nextRun', 'Applied by the cleanup-policies task · next run')} <RelTime value={cleanupTask.nextRun} /> · <Link to="/admin/tasks">{t('nav.tasks', 'Tasks')}</Link></span>} extra={canWrite && <Button type="primary" icon={<PlusOutlined />} onClick={() => open('new')}>{t('cleanup.create', 'Create policy')}</Button>} />
       <div className="hlk-card" style={{ padding: 0 }}>
-        <Table<CleanupPolicy>
+        <SortableTable<CleanupPolicy>
           rowKey="id" loading={policies.isLoading} dataSource={policies.data ?? []} className="hlk-table hlk-clickable" pagination={false} size="middle"
           onRow={(p) => ({ onClick: () => open(p) })}
           columns={[
             { title: t('common.name', 'Name'), dataIndex: 'name', width: 200, render: (x: string) => <span style={{ fontWeight: 500 }}>{x}</span> },
             { title: t('common.format', 'Format'), dataIndex: 'format', width: 120, render: (x: string) => (x ? formatInfo(x).label : <Tag>{t('common.all', 'All')}</Tag>) },
-            { title: t('cleanup.criteria', 'Criteria'), render: (_: unknown, p) => <span style={{ fontSize: 12 }}>{summary(p, t as any) || '—'}</span> },
-            { title: t('cleanup.assigned', 'Repositories'), width: 260, render: (_: unknown, p) => (p.repositories ?? []).map((r) => <Tag key={r} className="hlk-mono" style={{ fontSize: 11 }}>{r}</Tag>) },
+            { title: t('cleanup.criteria', 'Criteria'), sortValue: (p: any) => summary(p, t as any), render: (_: unknown, p) => <span style={{ fontSize: 12 }}>{summary(p, t as any) || '—'}</span> },
+            { title: t('cleanup.assigned', 'Repositories'), sortValue: (p: any) => (p.repositories ?? []).length, width: 260, render: (_: unknown, p) => (p.repositories ?? []).map((r) => <Tag key={r} className="hlk-mono" style={{ fontSize: 11 }}>{r}</Tag>) },
             { title: '', width: 80, render: (_: unknown, p) => can('app:repositories', 'delete') && <a style={{ color: 'var(--hlk-error)', fontSize: 12 }} onClick={(e) => { e.stopPropagation(); setToDelete(p) }}>{t('common.delete', 'Delete')}</a> },
           ]}
         />

@@ -717,3 +717,33 @@ func (c *captureWriter) Write(b []byte) (int, error) { return c.buf.Write(b) }
 func (c *captureWriter) WriteHeader(int)             {}
 
 var _ = config.Config{}
+
+// cronPreview lists the next times a cron expression fires, computed by the
+// scheduler's own parser in the server's time zone — the one tasks actually
+// run in. The UI used to work this out in the browser, in the browser's
+// zone: "0 2 * * *" read as 02:00 in Taipei while the server, on UTC, ran it
+// at 10:00 there.
+func (a *API) cronPreview(w http.ResponseWriter, r *http.Request) {
+	sc, err := task.ParseCron(r.URL.Query().Get("expr"))
+	if err != nil {
+		writeJSON(w, 200, map[string]any{"valid": false, "error": err.Error()})
+		return
+	}
+	now := time.Now()
+	zone, offset := now.Zone()
+	next := make([]string, 0, 5)
+	t := now
+	for i := 0; i < 5; i++ {
+		t = sc.Next(t)
+		if t.IsZero() {
+			break
+		}
+		next = append(next, t.UTC().Format(time.RFC3339))
+	}
+	writeJSON(w, 200, map[string]any{
+		"valid":        true,
+		"next":         next,
+		"serverZone":   zone,
+		"serverOffset": offset / 60, // minutes east of UTC
+	})
+}

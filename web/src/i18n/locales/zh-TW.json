@@ -303,10 +303,13 @@
     "invalid": "表示式格式錯誤",
     "monthly": "每月 {{dom}} 日 {{time}}",
     "next5": "接下來 5 次執行",
+    "serverAt": "伺服器 {{time}}",
+    "serverZone": "伺服器時間：{{zone}}",
     "tplDaily": "每天 02:00",
     "tplHourly": "每小時",
     "tplSunday": "每週日 03:00",
-    "weekly": "每週星期 {{dow}} {{time}}"
+    "weekly": "每週星期 {{dow}} {{time}}",
+    "zoneNote": "cron 裡的時間以伺服器時區 {{zone}} 計算，不是你的時區。下方的執行時間已換算成你的時間。"
   },
   "dashboard": {
     "activity": "最近活動",

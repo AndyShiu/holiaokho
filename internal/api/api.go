@@ -173,6 +173,7 @@ func (a *API) Router() http.Handler {
 		r.Get("/", a.need("app:tasks", auth.Read, a.listTasks))
 		r.Post("/{name}/run", a.need("app:tasks", auth.Write, a.runTask))
 		r.Get("/runs", a.need("app:tasks", auth.Read, a.taskRuns))
+		r.Get("/cron-preview", a.need("app:tasks", auth.Read, a.cronPreview))
 	})
 	r.Route("/cleanup-policies", func(r chi.Router) {
 		r.Get("/", a.need("app:repositories", auth.Read, a.listCleanup))
@@ -321,9 +322,12 @@ func (a *API) audit_(r *http.Request, action, targetType, targetID string, detai
 // ------------------------------------------------------------------ status
 
 func (a *API) status(w http.ResponseWriter, r *http.Request) {
+	zone, offset := time.Now().Zone()
 	writeJSON(w, 200, map[string]any{
 		"name": "Holiaokho", "version": a.Version, "uptime": time.Since(a.Started).Round(time.Second).String(),
 		"formats": a.Formats.Names(),
+		// Scheduled tasks run on the server's clock; the UI says which.
+		"timeZone": zone, "utcOffsetMinutes": offset / 60,
 	})
 }
 
@@ -825,7 +829,8 @@ func (a *API) listPackages(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	limit, _ := strconv.Atoi(q.Get("limit"))
 	offset, _ := strconv.Atoi(q.Get("offset"))
-	hits, err := a.Content.Search(r.Context(), content.SearchQuery{Repo: rp.Name, Q: q.Get("q"), Name: q.Get("name"), Namespace: q.Get("namespace"), Limit: limit, Offset: offset})
+	hits, err := a.Content.Search(r.Context(), content.SearchQuery{Repo: rp.Name, Q: q.Get("q"), Name: q.Get("name"), Namespace: q.Get("namespace"), Limit: limit, Offset: offset,
+		Sort: content.ParseSort(q.Get("sort"), q.Get("order"))})
 	if err != nil {
 		a.fail(w, err)
 		return
@@ -1203,7 +1208,8 @@ func (a *API) search(w http.ResponseWriter, r *http.Request) {
 	limit, _ := strconv.Atoi(q.Get("limit"))
 	offset, _ := strconv.Atoi(q.Get("offset"))
 	hits, err := a.Content.Search(r.Context(), content.SearchQuery{Q: q.Get("q"), Format: q.Get("format"), Repo: q.Get("repository"),
-		Namespace: q.Get("namespace"), Name: q.Get("name"), Version: q.Get("version"), Limit: limit, Offset: offset})
+		Namespace: q.Get("namespace"), Name: q.Get("name"), Version: q.Get("version"), Limit: limit, Offset: offset,
+		Sort: content.ParseSort(q.Get("sort"), q.Get("order"))})
 	if err != nil {
 		a.fail(w, err)
 		return

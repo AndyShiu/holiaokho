@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { App, Button, Drawer, Table, Tag } from 'antd'
+import { App, Button, Drawer, Tag } from 'antd'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { del, get } from '@/api/client'
@@ -11,6 +11,7 @@ import { Copyable } from './Copyable'
 import { fmtBytes, AbsTime, RelTime } from './Format'
 import { repoBase } from './UsageSnippets'
 import { PackageVulnsSection } from './Vulns'
+import { SortableTable } from '@/components/SortableTable'
 
 // GET /assets/{id} answers with the asset plus its repository and a ready-made
 // download URL, not a bare asset.
@@ -126,7 +127,7 @@ export function PackageDrawer({ packageId, onClose, onDeleted, onAsset }: { pack
             ...attrs.slice(0, 12).map(([k, val]) => [k, <span className="hlk-mono" style={{ fontSize: 12 }}>{String(val)}</span>] as [React.ReactNode, React.ReactNode]),
           ]} />
           <div className="hlk-section-label" style={{ margin: '20px 0 8px' }}>{t('package.assets', 'Assets')} · {v.assets.length}</div>
-          <Table<Asset>
+          <SortableTable<Asset>
             size="small" rowKey="id" pagination={false} dataSource={v.assets} className="hlk-table hlk-clickable"
             onRow={(a) => ({ onClick: () => onAsset?.(a.id) })}
             columns={[
@@ -143,7 +144,7 @@ export function PackageDrawer({ packageId, onClose, onDeleted, onAsset }: { pack
               <p style={{ margin: '0 0 10px', fontSize: 12, color: 'var(--hlk-text-secondary)' }}>
                 {t('package.attachmentsHint', 'Signatures, SBOMs and attestations that name this image as their subject.')}
               </p>
-              <Table<Referrer>
+              <SortableTable<Referrer>
                 size="small" rowKey="digest" pagination={false} dataSource={refs.data} className="hlk-table"
                 columns={[
                   {

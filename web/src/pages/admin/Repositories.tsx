@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { App, Button, Dropdown, Input, Select, Switch, Table } from 'antd'
+import { App, Button, Dropdown, Input, Select, Switch } from 'antd'
 import { MoreOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -15,6 +15,7 @@ import { fmtBytes, Num } from '@/components/Format'
 import { formatInfo } from '@/theme/tokens'
 import { invalidate } from './repoApi'
 import { repoBase } from '@/components/UsageSnippets'
+import { SortableTable } from '@/components/SortableTable'
 
 export default function Repositories() {
   const { t } = useTranslation()
@@ -70,7 +71,7 @@ export default function Repositories() {
         }
       />
       <div className="hlk-card" style={{ padding: 0 }}>
-        <Table<Repository>
+        <SortableTable<Repository>
           rowKey="name" loading={repos.isLoading} dataSource={list} className="hlk-table" scroll={{ x: 1160 }} size="middle" pagination={{ pageSize: 20, showSizeChanger: false, showTotal: (total, r) => `${r[0]}–${r[1]} / ${total}` }}
           locale={{ emptyText: <EmptyState title={t('repos.empty', 'No repositories yet')} hint={t('repos.emptyHint', 'Create a proxy for Maven Central or npm to get started.')} action={canWrite && <Button type="primary" onClick={() => navigate('/admin/repositories/new')}>{t('repos.create', 'Create Repository')}</Button>} /> }}
           columns={[
@@ -81,8 +82,8 @@ export default function Repositories() {
             { title: t('dashboard.packages', 'Packages'), width: 100, align: 'right', sorter: (a, b) => (a.stats?.packages ?? 0) - (b.stats?.packages ?? 0), render: (_: unknown, r) => <Num value={r.stats?.packages} /> },
             { title: t('asset.size', 'Size'), width: 100, align: 'right', sorter: (a, b) => (a.stats?.size ?? 0) - (b.stats?.size ?? 0), render: (_: unknown, r) => <span className="hlk-num">{fmtBytes(r.stats?.size)}</span> },
             { title: 'URL', render: (_: unknown, r) => <Copyable text={repoBase(r)} style={{ fontSize: 11.5, maxWidth: 360 }} /> },
-            { title: t('nav.routing', 'Routing'), width: 120, render: (_: unknown, r) => <span style={{ fontSize: 12 }}>{r.routingRuleId ? rules.data?.find((x) => x.id === r.routingRuleId)?.name ?? '…' : '—'}</span> },
-            { title: t('nav.cleanup', 'Cleanup'), width: 90, align: 'center', render: (_: unknown, r) => { const n = (policies.data ?? []).filter((p) => p.repositories?.includes(r.name)).length; return <span style={{ fontSize: 12 }}>{n || '—'}</span> } },
+            { title: t('nav.routing', 'Routing'), sortValue: (r: any) => (r.routingRuleId ? rules.data?.find((x) => x.id === r.routingRuleId)?.name : ''), width: 120, render: (_: unknown, r) => <span style={{ fontSize: 12 }}>{r.routingRuleId ? rules.data?.find((x) => x.id === r.routingRuleId)?.name ?? '…' : '—'}</span> },
+            { title: t('nav.cleanup', 'Cleanup'), sortValue: (r: any) => (policies.data ?? []).filter((p) => p.repositories?.includes(r.name)).length, width: 90, align: 'center', render: (_: unknown, r) => { const n = (policies.data ?? []).filter((p) => p.repositories?.includes(r.name)).length; return <span style={{ fontSize: 12 }}>{n || '—'}</span> } },
             {
               title: '', width: 44, render: (_: unknown, r) => (
                 <Dropdown

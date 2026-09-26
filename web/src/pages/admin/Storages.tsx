@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Alert, App, Button, Checkbox, Drawer, Form, Input, InputNumber, Progress, Radio, Table, Tag } from 'antd'
+import { Alert, App, Button, Checkbox, Drawer, Form, Input, InputNumber, Progress, Radio, Tag } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -8,6 +8,7 @@ import type { Health, Storage } from '@/api/types'
 import { useAuth } from '@/auth/AuthContext'
 import { PageHeader, SecretHint, useErrorText } from '@/components/Common'
 import { fmtBytes, StatusDot } from '@/components/Format'
+import { SortableTable } from '@/components/SortableTable'
 
 const GB = 1024 ** 3
 
@@ -50,12 +51,12 @@ export default function Storages() {
     <>
       <PageHeader title={t('nav.storages', 'Storages')} count={storages.data?.length} extra={canWrite && <Button type="primary" icon={<PlusOutlined />} onClick={() => { form.resetFields(); setOpen('new') }}>{t('storages.create', 'Create Storage')}</Button>} />
       <div className="hlk-card" style={{ padding: 0, marginBottom: 16 }}>
-        <Table<Storage>
+        <SortableTable<Storage>
           rowKey="id" loading={storages.isLoading} dataSource={storages.data ?? []} className="hlk-table" pagination={false} size="middle"
           columns={[
             { title: t('common.name', 'Name'), dataIndex: 'name', render: (x: string) => <span className="hlk-mono" style={{ fontWeight: 500 }}>{x}</span> },
             { title: t('common.type', 'Type'), dataIndex: 'type', width: 80, render: (x: string) => <Tag>{x}</Tag> },
-            { title: t('storages.location', 'Location'), render: (_: unknown, s) => <span className="hlk-mono" style={{ fontSize: 12 }}>{s.type === 'fs' ? s.config?.path : `${s.config?.bucket}${s.config?.prefix ? '/' + s.config.prefix : ''} @ ${s.config?.endpoint || s.config?.region || 's3'}`}</span> },
+            { title: t('storages.location', 'Location'), sortValue: (s: any) => s.config?.path ?? s.config?.bucket ?? '', render: (_: unknown, s) => <span className="hlk-mono" style={{ fontSize: 12 }}>{s.type === 'fs' ? s.config?.path : `${s.config?.bucket}${s.config?.prefix ? '/' + s.config.prefix : ''} @ ${s.config?.endpoint || s.config?.region || 's3'}`}</span> },
             {
               title: t('storages.usage', 'Usage'), width: 260, render: (_: unknown, s) => {
                 const c = check(s.name)
@@ -69,7 +70,7 @@ export default function Storages() {
                 )
               },
             },
-            { title: t('common.status', 'Status'), width: 200, render: (_: unknown, s) => { const c = check(s.name); return c ? <span style={{ display: 'inline-flex', gap: 8, alignItems: 'center', fontSize: 12 }}><StatusDot status={!c.healthy ? 'error' : c.message ? 'warning' : 'success'} />{c.message ?? t('health.ok', 'OK')}</span> : null } },
+            { title: t('common.status', 'Status'), sortValue: (s: any) => check(s.name)?.healthy, width: 200, render: (_: unknown, s) => { const c = check(s.name); return c ? <span style={{ display: 'inline-flex', gap: 8, alignItems: 'center', fontSize: 12 }}><StatusDot status={!c.healthy ? 'error' : c.message ? 'warning' : 'success'} />{c.message ?? t('health.ok', 'OK')}</span> : null } },
             { title: '', width: 80, render: (_: unknown, s) => canWrite && <a onClick={() => { form.setFieldsValue({ name: s.name, type: s.type, config: { ...s.config, secretKey: s.config?.secretKey ? '***' : '' }, quotaGb: s.quotaBytes ? +(s.quotaBytes / GB).toFixed(2) : 0 }); setOpen(s) }}>{t('common.edit', 'Edit')}</a> },
           ]}
         />

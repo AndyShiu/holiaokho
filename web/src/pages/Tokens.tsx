@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Alert, App, Button, Checkbox, DatePicker, Form, Input, Modal, Radio, Table } from 'antd'
+import { Alert, App, Button, Checkbox, DatePicker, Form, Input, Modal, Radio } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -10,6 +10,7 @@ import { useAuth } from '@/auth/AuthContext'
 import { PageHeader, useErrorText } from '@/components/Common'
 import { Copyable } from '@/components/Copyable'
 import { RelTime } from '@/components/Format'
+import { SortableTable } from '@/components/SortableTable'
 
 export function TokenList({ base }: { base: string }) {
   const { t } = useTranslation()
@@ -38,7 +39,7 @@ export function TokenList({ base }: { base: string }) {
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
         <Button type="primary" icon={<PlusOutlined />} onClick={() => { form.resetFields(); setOpen(true) }}>{t('tokens.create', 'Create token')}</Button>
       </div>
-      <Table<Token>
+      <SortableTable<Token>
         rowKey="id" loading={tokens.isLoading} dataSource={tokens.data ?? []} className="hlk-table" pagination={false} size="middle"
         rowClassName={(x) => (expired(x) ? 'hlk-expired' : '')}
         columns={[

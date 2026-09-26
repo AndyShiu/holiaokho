@@ -303,10 +303,13 @@
     "invalid": "表达式格式错误",
     "monthly": "每月 {{dom}} 日 {{time}}",
     "next5": "接下来 5 次执行",
+    "serverAt": "服务器 {{time}}",
+    "serverZone": "服务器时间：{{zone}}",
     "tplDaily": "每天 02:00",
     "tplHourly": "每小时",
     "tplSunday": "每周日 03:00",
-    "weekly": "每周星期 {{dow}} {{time}}"
+    "weekly": "每周星期 {{dow}} {{time}}",
+    "zoneNote": "cron 里的时间按服务器时区 {{zone}} 计算，不是你的时区。下方的执行时间已换算成你的时间。"
   },
   "dashboard": {
     "activity": "最近活动",

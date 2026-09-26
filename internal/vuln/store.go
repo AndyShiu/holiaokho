@@ -25,8 +25,22 @@ type Filter struct {
 	PackageID   int64
 	Limit       int
 	Offset      int
+	Sort        content.Sort
 
 	unnotified bool
+}
+
+// listSort are the columns the findings list sorts by.
+var listSort = map[string]content.SortColumn{
+	"severity":   {Exprs: []string{severityOrder, "v.score"}},
+	"id":         {Exprs: []string{"v.id"}},
+	"package":    {Exprs: []string{"p.namespace", "p.name", "p.version"}, Version: true},
+	"version":    {Exprs: []string{"p.version"}, Version: true},
+	"repository": {Exprs: []string{"r.name"}},
+	"summary":    {Exprs: []string{"v.summary"}},
+	"lastUsed":   {Exprs: []string{"coalesce(p.last_downloaded_at, p.created_at)"}},
+	"firstSeen":  {Exprs: []string{"pv.first_seen"}},
+	"published":  {Exprs: []string{"v.published"}},
 }
 
 const optedIn = `coalesce((r.attributes -> 'vulnerabilities' ->> 'scan')::boolean, true)`
@@ -87,8 +101,10 @@ func List(ctx context.Context, c *content.Service, f Filter) ([]Finding, int, er
 	}
 	q := `SELECT pv.package_id, r.name, r.format, p.namespace, p.name, p.version,
 			v.id, v.aliases, v.summary, v.severity, v.score::float8, pv.fixed_in, v.published, pv.first_seen, p.attrs,
-			coalesce(p.last_downloaded_at, p.created_at) ` + from +
-		` ORDER BY ` + severityOrder + ` DESC, v.score DESC NULLS LAST, v.published DESC NULLS LAST, p.name, p.version`
+			coalesce(p.last_downloaded_at, p.created_at) ` + from
+	// Worst first unless asked otherwise.
+	q += c.OrderBy(ctx, f.Sort, listSort,
+		severityOrder+` DESC, v.score DESC NULLS LAST, v.published DESC NULLS LAST, p.name, p.version`, "pv.package_id, v.id")
 	if f.Limit > 0 {
 		args = append(args, f.Limit, f.Offset)
 		q += fmt.Sprintf(" LIMIT $%d OFFSET $%d", len(args)-1, len(args))

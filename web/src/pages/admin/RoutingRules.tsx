@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Alert, App, Button, Drawer, Form, Input, Radio, Table, Tag, Tooltip } from 'antd'
+import { Alert, App, Button, Drawer, Form, Input, Radio, Tag, Tooltip } from 'antd'
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -8,6 +8,7 @@ import type { Repository, RoutingRule } from '@/api/types'
 import { useAuth } from '@/auth/AuthContext'
 import { ConfirmDelete, PageHeader, useErrorText } from '@/components/Common'
 import { TestPanel } from './Selectors'
+import { SortableTable } from '@/components/SortableTable'
 
 export default function RoutingRules() {
   const { t } = useTranslation()
@@ -46,7 +47,7 @@ export default function RoutingRules() {
     <>
       <PageHeader title={t('nav.routing', 'Routing Rules')} count={rules.data?.length} sub={t('routing.sub', 'Block or allow request paths per repository, e.g. keep a proxy from fetching internal group IDs from the internet.')} extra={canWrite && <Button type="primary" icon={<PlusOutlined />} onClick={() => { form.resetFields(); setMatchers(['']); setResult(null); setDrawer('new') }}>{t('routing.create', 'Create rule')}</Button>} />
       <div className="hlk-card" style={{ padding: 0 }}>
-        <Table<RoutingRule>
+        <SortableTable<RoutingRule>
           rowKey="id" loading={rules.isLoading} dataSource={rules.data ?? []} className="hlk-table hlk-clickable" pagination={false} size="middle"
           onRow={(r) => ({ onClick: () => { form.setFieldsValue(r); setMatchers(r.matchers.length ? r.matchers : ['']); setResult(null); setDrawer(r) } })}
           columns={[
@@ -54,7 +55,7 @@ export default function RoutingRules() {
             { title: t('routing.mode', 'Mode'), dataIndex: 'mode', width: 90, render: (m: string) => <Tag color={m === 'allow' ? 'success' : 'error'}>{m}</Tag> },
             { title: t('routing.matchers', 'Matchers'), dataIndex: 'matchers', width: 120, render: (ms: string[]) => <Tooltip title={<div className="hlk-mono" style={{ fontSize: 11 }}>{ms.map((m) => <div key={m}>{m}</div>)}</div>}><span style={{ fontSize: 12 }}>{ms.length} regex</span></Tooltip> },
             { title: t('common.description', 'Description'), dataIndex: 'description', render: (x: string) => <span style={{ color: 'var(--hlk-text-secondary)' }}>{x}</span> },
-            { title: t('routing.usedBy', 'Used by'), width: 240, render: (_: unknown, r) => usedBy(r.id).map((n) => <Tag key={n} className="hlk-mono" style={{ fontSize: 11 }}>{n}</Tag>) },
+            { title: t('routing.usedBy', 'Used by'), sortValue: (r: any) => usedBy(r.id).length, width: 240, render: (_: unknown, r) => usedBy(r.id).map((n) => <Tag key={n} className="hlk-mono" style={{ fontSize: 11 }}>{n}</Tag>) },
             { title: '', width: 80, render: (_: unknown, r) => can('app:repositories', 'delete') && <a style={{ color: 'var(--hlk-error)', fontSize: 12 }} onClick={(e) => { e.stopPropagation(); setToDelete(r) }}>{t('common.delete', 'Delete')}</a> },
           ]}
         />

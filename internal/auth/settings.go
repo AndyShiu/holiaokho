@@ -19,10 +19,10 @@ type Settings struct {
 	Password PasswordPolicy `json:"password"`
 	// Anonymous enables unauthenticated access. nil means "not set here", in
 	// which case auth.anonymous_enabled from the config file applies.
-	Anonymous *bool `json:"anonymous,omitempty"`
-	LDAP     LDAPConfig     `json:"ldap"`
-	OIDC     OIDCConfig     `json:"oidc"`
-	Rut      RutConfig      `json:"rut"`
+	Anonymous *bool      `json:"anonymous,omitempty"`
+	LDAP      LDAPConfig `json:"ldap"`
+	OIDC      OIDCConfig `json:"oidc"`
+	Rut       RutConfig  `json:"rut"`
 }
 
 type LDAPConfig struct {

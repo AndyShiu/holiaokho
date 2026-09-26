@@ -303,10 +303,13 @@
     "invalid": "式の形式が不正です",
     "monthly": "毎月 {{dom}} 日 {{time}}",
     "next5": "次の 5 回の実行",
+    "serverAt": "サーバー {{time}}",
+    "serverZone": "サーバー時刻：{{zone}}",
     "tplDaily": "毎日 02:00",
     "tplHourly": "1 時間ごと",
     "tplSunday": "毎週日曜 03:00",
-    "weekly": "毎週 曜日 {{dow}} {{time}}"
+    "weekly": "毎週 曜日 {{dow}} {{time}}",
+    "zoneNote": "式の時刻はサーバーのタイムゾーン {{zone}} で計算されます。下の実行時刻はあなたの時刻で表示しています。"
   },
   "dashboard": {
     "activity": "最近のアクティビティ",

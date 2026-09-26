@@ -303,10 +303,13 @@
     "invalid": "invalid expression",
     "monthly": "day {{dom}} of every month at {{time}}",
     "next5": "Next 5 runs",
+    "serverAt": "server {{time}}",
+    "serverZone": "server time: {{zone}}",
     "tplDaily": "Daily 02:00",
     "tplHourly": "Hourly",
     "tplSunday": "Sunday 03:00",
-    "weekly": "every week on day {{dow}} at {{time}}"
+    "weekly": "every week on day {{dow}} at {{time}}",
+    "zoneNote": "Times in the expression are in the server's zone, {{zone}}, not yours. The runs below are shown in your time."
   },
   "dashboard": {
     "activity": "Recent activity",

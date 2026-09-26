@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { App, Button, Input, Segmented, Select, Skeleton, Switch, Table, Tag } from 'antd'
+import { App, Button, Input, Segmented, Select, Skeleton, Switch, Tag } from 'antd'
 import { CopyOutlined, DownloadOutlined, ReloadOutlined } from '@ant-design/icons'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -10,6 +10,7 @@ import { KV, PageHeader, useErrorText } from '@/components/Common'
 import { copyText } from '@/components/Copyable'
 import { AbsTime, fmtBytes, StatusDot } from '@/components/Format'
 import { FormatIcon } from '@/components/FormatIcon'
+import { SortableTable } from '@/components/SortableTable'
 
 function HealthTab() {
   const { t } = useTranslation()
@@ -27,11 +28,11 @@ function HealthTab() {
         <StatusDot status={failed ? 'error' : warned ? 'warning' : 'success'} /><span style={{ fontWeight: 500 }}>{allGood ? t('dashboard.allGood', 'All services healthy') : t('dashboard.attention', '{{n}} need attention', { n: failed + warned })}</span>
         <div style={{ flex: 1 }} /><Button size="small" icon={<ReloadOutlined />} onClick={() => qc.invalidateQueries({ queryKey: ['health'] })}>{t('health.recheck', 'Re-check')}</Button>
       </div>
-      <Table rowKey="key" dataSource={rows} pagination={false} size="middle" className="hlk-table" loading={q.isLoading} columns={[
+      <SortableTable rowKey="key" dataSource={rows} pagination={false} size="middle" className="hlk-table" loading={q.isLoading} columns={[
         { title: t('health.check', 'Check'), dataIndex: 'key', render: (x: string) => <span className="hlk-mono">{x}</span> },
-        { title: t('common.status', 'Status'), width: 120, render: (_: unknown, r: any) => <span style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}><StatusDot status={!r.healthy ? 'error' : r.message ? 'warning' : 'success'} />{r.healthy ? 'OK' : t('health.unhealthy', 'unhealthy')}</span> },
-        { title: t('health.message', 'Message'), render: (_: unknown, r: any) => (r.code ? t(`health.msg.${r.code}`, { defaultValue: r.message }) : r.message) || '—' },
-        { title: t('storages.usage', 'Usage'), width: 220, render: (_: unknown, r: any) => (r.usedBytes !== undefined ? `${fmtBytes(r.usedBytes)}${r.quotaBytes ? ` / ${fmtBytes(r.quotaBytes)}` : ''}` : '') },
+        { title: t('common.status', 'Status'), sortValue: (r: any) => r.healthy, width: 120, render: (_: unknown, r: any) => <span style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}><StatusDot status={!r.healthy ? 'error' : r.message ? 'warning' : 'success'} />{r.healthy ? 'OK' : t('health.unhealthy', 'unhealthy')}</span> },
+        { title: t('health.message', 'Message'), sortValue: (r: any) => r.message, render: (_: unknown, r: any) => (r.code ? t(`health.msg.${r.code}`, { defaultValue: r.message }) : r.message) || '—' },
+        { title: t('storages.usage', 'Usage'), sortValue: (r: any) => r.usedBytes, width: 220, render: (_: unknown, r: any) => (r.usedBytes !== undefined ? `${fmtBytes(r.usedBytes)}${r.quotaBytes ? ` / ${fmtBytes(r.quotaBytes)}` : ''}` : '') },
       ]} />
     </div>
   )
@@ -55,7 +56,7 @@ function InfoTab() {
         {group(t('info.runtime', 'Runtime'), [['hostname', d.hostname], ['pid', d.pid], ['uptime', d.uptime], ['cpus', d.cpus], ['goroutines', d.goroutines], ['heap', fmtBytes(mem.heapAllocBytes)], ['sys', fmtBytes(mem.sysBytes)], ['numGC', mem.numGC]])}
         {group(t('info.database', 'Database'), Object.entries(d.database ?? {}))}
         <div className="hlk-card"><div className="hlk-section-label" style={{ marginBottom: 12 }}>Formats · {d.formats?.length}</div><div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>{(d.formats ?? []).map((f: string) => <Tag key={f} style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}><FormatIcon format={f} size={14} />{f}</Tag>)}</div></div>
-        {Array.isArray(d.storages) && <div className="hlk-card" style={{ gridColumn: '1 / -1' }}><div className="hlk-section-label" style={{ marginBottom: 12 }}>{t('nav.storages', 'Storages')}</div><Table size="small" pagination={false} rowKey={(r: any) => r.name ?? JSON.stringify(r)} dataSource={d.storages} columns={Object.keys(d.storages[0] ?? {}).map((k) => ({ title: k, dataIndex: k, render: (v: any) => <span className="hlk-mono" style={{ fontSize: 12 }}>{typeof v === 'number' && k.toLowerCase().includes('bytes') ? fmtBytes(v) : typeof v === 'object' ? JSON.stringify(v) : String(v)}</span> }))} /></div>}
+        {Array.isArray(d.storages) && <div className="hlk-card" style={{ gridColumn: '1 / -1' }}><div className="hlk-section-label" style={{ marginBottom: 12 }}>{t('nav.storages', 'Storages')}</div><SortableTable size="small" pagination={false} rowKey={(r: any) => r.name ?? JSON.stringify(r)} dataSource={d.storages} columns={Object.keys(d.storages[0] ?? {}).map((k) => ({ title: k, dataIndex: k, render: (v: any) => <span className="hlk-mono" style={{ fontSize: 12 }}>{typeof v === 'number' && k.toLowerCase().includes('bytes') ? fmtBytes(v) : typeof v === 'object' ? JSON.stringify(v) : String(v)}</span> }))} /></div>}
       </div>
     </>
   )
@@ -153,7 +154,7 @@ function AuditTab() {
         <div style={{ flex: 1 }} />
         <Select size="small" value={limit} onChange={setLimit} options={[100, 500, 2000].map((n) => ({ value: n, label: `${t('audit.last', 'last')} ${n}` }))} />
       </div>
-      <Table<AuditEntry>
+      <SortableTable<AuditEntry>
         rowKey="id" loading={q.isLoading} dataSource={rows} size="small" className="hlk-table" pagination={{ pageSize: 50, showSizeChanger: false }}
         expandable={{ expandedRowRender: (r) => <pre className="hlk-logbox" style={{ margin: 0, fontSize: 11 }}>{JSON.stringify(r.detail, null, 2)}</pre>, rowExpandable: (r) => !!r.detail }}
         columns={[

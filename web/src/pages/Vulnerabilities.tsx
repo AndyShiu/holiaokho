@@ -13,6 +13,7 @@ import { FormatIcon } from '@/components/FormatIcon'
 import { Num, RelTime } from '@/components/Format'
 import { SeverityTag, VulnId, packageLabel, severities } from '@/components/Vulns'
 import { formatInfo } from '@/theme/tokens'
+import { useServerSort } from '@/components/SortableTable'
 
 const PAGE = 50
 
@@ -33,14 +34,15 @@ export default function Vulnerabilities() {
   const q = sp.get('q') ?? ''
   const [input, setInput] = useState(q)
   const [page, setPage] = useState(0)
+  const sort = useServerSort(() => setPage(0))
   const [pkg, setPkg] = useState<string | null>(null)
   const [asset, setAsset] = useState<string | null>(null)
 
   const summary = useQuery({ queryKey: ['vuln-summary'], queryFn: () => get<VulnSummary>('vulnerabilities/summary') })
   const repos = useQuery({ queryKey: ['repositories'], queryFn: () => get<Repository[]>('repositories') })
   const list = useQuery({
-    queryKey: ['vulns', severity, level, repository, format, q, page],
-    queryFn: () => get<{ items: VulnFinding[]; total: number }>('vulnerabilities', { severity, level, repository, format, q, limit: PAGE, offset: page * PAGE }),
+    queryKey: ['vulns', severity, level, repository, format, q, page, sort.params],
+    queryFn: () => get<{ items: VulnFinding[]; total: number }>('vulnerabilities', { severity, level, repository, format, q, limit: PAGE, offset: page * PAGE, ...sort.params }),
   })
   useEffect(() => setInput(q), [q])
   useEffect(() => {
@@ -174,6 +176,7 @@ export default function Vulnerabilities() {
         <Table<VulnFinding>
           rowKey={(r) => `${r.packageId}:${r.id}`} loading={list.isLoading} dataSource={list.data?.items ?? []} className="hlk-table hlk-clickable" scroll={{ x: 1000 }} size="middle"
           onRow={(r) => ({ onClick: () => setPkg(String(r.packageId)) })}
+          onChange={sort.onChange}
           locale={{
             emptyText: (
               <EmptyState
@@ -184,10 +187,10 @@ export default function Vulnerabilities() {
           }}
           pagination={{ current: page + 1, pageSize: PAGE, total: list.data?.total ?? 0, onChange: (p) => setPage(p - 1), showSizeChanger: false, showTotal: (n) => t('vulns.total', '{{n}} findings', { n }) }}
           columns={[
-            { title: t('vulns.severity', 'Severity'), dataIndex: 'severity', width: 130, render: (_: unknown, r) => <SeverityTag severity={r.severity} score={r.score} /> },
-            { title: t('vulns.id', 'Vulnerability'), dataIndex: 'id', width: 190, render: (_: unknown, r) => <span onClick={(e) => e.stopPropagation()}><VulnId f={r} /></span> },
+            { title: t('vulns.severity', 'Severity'), dataIndex: 'severity', width: 130, ...sort.col('severity'), render: (_: unknown, r) => <SeverityTag severity={r.severity} score={r.score} /> },
+            { title: t('vulns.id', 'Vulnerability'), dataIndex: 'id', width: 190, ...sort.col('id'), render: (_: unknown, r) => <span onClick={(e) => e.stopPropagation()}><VulnId f={r} /></span> },
             {
-              title: t('vulns.package', 'Package'), render: (_: unknown, r) => (
+              title: t('vulns.package', 'Package'), ...sort.col('package'), render: (_: unknown, r) => (
                 <span style={{ display: 'inline-flex', gap: 8, alignItems: 'center', minWidth: 0 }}>
                   <FormatIcon format={r.format} size={16} />
                   <span className="hlk-mono" style={{ fontSize: 12.5, fontWeight: 500 }}>{packageLabel(r)}</span>
@@ -195,13 +198,13 @@ export default function Vulnerabilities() {
                 </span>
               ),
             },
-            { title: t('common.repository', 'Repository'), dataIndex: 'repository', width: 160, render: (x: string) => <Link to={`/browse/${x}`} onClick={(e) => e.stopPropagation()} className="hlk-mono" style={{ fontSize: 12 }}>{x}</Link> },
-            { title: t('vulns.summary', 'Summary'), dataIndex: 'summary', render: (x: string) => <span style={{ fontSize: 12.5 }}>{x || '—'}</span> },
+            { title: t('common.repository', 'Repository'), dataIndex: 'repository', width: 160, ...sort.col('repository'), render: (x: string) => <Link to={`/browse/${x}`} onClick={(e) => e.stopPropagation()} className="hlk-mono" style={{ fontSize: 12 }}>{x}</Link> },
+            { title: t('vulns.summary', 'Summary'), dataIndex: 'summary', ...sort.col('summary'), render: (x: string) => <span style={{ fontSize: 12.5 }}>{x || '—'}</span> },
             { title: t('vulns.fixedIn', 'Fixed in'), dataIndex: 'fixedIn', width: 150, render: (x: string[]) => x.length ? <span className="hlk-mono" style={{ fontSize: 12 }}>{x.join(', ')}</span> : <span style={{ color: 'var(--hlk-text-tertiary)', fontSize: 12 }}>{t('vulns.noFixShort', 'none yet')}</span> },
             // Whether anyone still pulls it: the same finding matters more in
             // a package fetched yesterday than in one nobody has touched in months.
-            { title: t('vulns.lastUsed', 'Last used'), dataIndex: 'lastUsed', width: 110, render: (x: string) => <RelTime value={x} /> },
-            { title: t('vulns.firstSeen', 'Found'), dataIndex: 'firstSeen', width: 110, render: (x: string) => <RelTime value={x} /> },
+            { title: t('vulns.lastUsed', 'Last used'), dataIndex: 'lastUsed', width: 110, ...sort.col('lastUsed'), render: (x: string) => <RelTime value={x} /> },
+            { title: t('vulns.firstSeen', 'Found'), dataIndex: 'firstSeen', width: 110, ...sort.col('firstSeen'), render: (x: string) => <RelTime value={x} /> },
           ]}
         />
       </div>

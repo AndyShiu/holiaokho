@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Alert, App, Button, Drawer, Form, Input, Modal, Select, Switch, Table, Tag } from 'antd'
+import { Alert, App, Button, Drawer, Form, Input, Modal, Select, Switch, Tag } from 'antd'
 import { PlusOutlined, SearchOutlined } from '@ant-design/icons'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -10,6 +10,7 @@ import { ConfirmDelete, PageHeader, useErrorText } from '@/components/Common'
 import { PasswordRules, passwordOk } from '@/components/PasswordRules'
 import { RelTime } from '@/components/Format'
 import { TokenList } from '@/pages/Tokens'
+import { SortableTable } from '@/components/SortableTable'
 
 const sourceColor: Record<string, string> = { local: 'default', ldap: 'blue', oidc: 'purple', rut: 'gold' }
 
@@ -59,7 +60,7 @@ export default function Users() {
         {canWrite && <Button type="primary" icon={<PlusOutlined />} onClick={() => { form.resetFields(); setPw(''); setFailed(undefined); setDrawer('new') }}>{t('users.create', 'Create user')}</Button>}
       </>} />
       <div className="hlk-card" style={{ padding: 0 }}>
-        <Table<User>
+        <SortableTable<User>
           rowKey="id" loading={users.isLoading} dataSource={list} className="hlk-table" scroll={{ x: 1100 }} size="middle" pagination={{ pageSize: 25, showSizeChanger: false }}
           columns={[
             { title: t('login.username', 'Username'), dataIndex: 'username', sorter: (a, b) => a.username.localeCompare(b.username), render: (x: string) => <span className="hlk-mono" style={{ fontWeight: 500 }}>{x}</span> },

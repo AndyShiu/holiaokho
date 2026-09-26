@@ -11,6 +11,7 @@ import { EmptyState, PageHeader } from '@/components/Common'
 import { RelTime } from '@/components/Format'
 import { AssetDrawer, PackageDrawer } from '@/components/Drawers'
 import { formatInfo } from '@/theme/tokens'
+import { useServerSort } from '@/components/SortableTable'
 
 export default function Search() {
   const { t } = useTranslation()
@@ -22,11 +23,12 @@ export default function Search() {
   const version = sp.get('version') ?? ''
   const [input, setInput] = useState(q)
   const [page, setPage] = useState(0)
+  const sort = useServerSort(() => setPage(0))
   const [pkg, setPkg] = useState<string | null>(sp.get('package'))
   const [asset, setAsset] = useState<string | null>(null)
   const repos = useQuery({ queryKey: ['repositories'], queryFn: () => get<Repository[]>('repositories') })
   const active = !!(q || format || repository || namespace || version)
-  const results = useQuery({ queryKey: ['search', q, format, repository, namespace, version, page], queryFn: () => get<SearchHit[]>('search', { q, format, repository, namespace, version, limit: 50, offset: page * 50 }), enabled: active })
+  const results = useQuery({ queryKey: ['search', q, format, repository, namespace, version, page, sort.params], queryFn: () => get<SearchHit[]>('search', { q, format, repository, namespace, version, limit: 50, offset: page * 50, ...sort.params }), enabled: active })
   useEffect(() => setInput(q), [q])
   useEffect(() => {
     const id = setTimeout(() => { if (input !== q) update({ q: input }) }, 400)
@@ -65,16 +67,17 @@ export default function Search() {
           <Table<SearchHit>
             rowKey="id" loading={results.isLoading} dataSource={results.data ?? []} className="hlk-table hlk-clickable" scroll={{ x: 1000 }} size="middle"
             onRow={(r) => ({ onClick: () => setPkg(r.id) })}
+            onChange={sort.onChange}
             locale={{ emptyText: <EmptyState title={t('search.noResults', 'No packages match')} /> }}
             pagination={{ current: page + 1, pageSize: 50, total: (results.data?.length ?? 0) < 50 ? page * 50 + (results.data?.length ?? 0) : (page + 2) * 50, onChange: (p) => setPage(p - 1), showSizeChanger: false }}
             columns={[
               { title: '', width: 40, render: (_: unknown, r) => <FormatIcon format={r.format} size={18} /> },
-              { title: t('common.repository', 'Repository'), dataIndex: 'repository', render: (x: string) => <Link to={`/browse/${x}`} onClick={(e) => e.stopPropagation()} className="hlk-mono" style={{ fontSize: 12 }}>{x}</Link> },
-              { title: t('package.namespace', 'Namespace'), dataIndex: 'namespace', render: (x: string) => <span className="hlk-mono" style={{ fontSize: 12 }}>{x || '—'}</span> },
-              { title: t('common.name', 'Name'), dataIndex: 'name', render: (x: string) => <span className="hlk-mono" style={{ fontSize: 12.5, fontWeight: 500 }}>{x}</span> },
-              { title: t('package.version', 'Version'), dataIndex: 'version', render: (x: string) => <span className="hlk-mono" style={{ fontSize: 12 }}>{x}</span> },
-              { title: t('asset.lastDownloaded', 'Last downloaded'), dataIndex: 'lastDownloadedAt', width: 140, render: (x: string) => <RelTime value={x} empty={t('common.never', 'never')} /> },
-              { title: t('common.created', 'Created'), dataIndex: 'createdAt', width: 130, render: (x: string) => <RelTime value={x} /> },
+              { title: t('common.repository', 'Repository'), dataIndex: 'repository', ...sort.col('repository'), render: (x: string) => <Link to={`/browse/${x}`} onClick={(e) => e.stopPropagation()} className="hlk-mono" style={{ fontSize: 12 }}>{x}</Link> },
+              { title: t('package.namespace', 'Namespace'), dataIndex: 'namespace', ...sort.col('namespace'), render: (x: string) => <span className="hlk-mono" style={{ fontSize: 12 }}>{x || '—'}</span> },
+              { title: t('common.name', 'Name'), dataIndex: 'name', ...sort.col('name'), render: (x: string) => <span className="hlk-mono" style={{ fontSize: 12.5, fontWeight: 500 }}>{x}</span> },
+              { title: t('package.version', 'Version'), dataIndex: 'version', ...sort.col('version'), render: (x: string) => <span className="hlk-mono" style={{ fontSize: 12 }}>{x}</span> },
+              { title: t('asset.lastDownloaded', 'Last downloaded'), dataIndex: 'lastDownloadedAt', width: 140, ...sort.col('lastDownloadedAt'), render: (x: string) => <RelTime value={x} empty={t('common.never', 'never')} /> },
+              { title: t('common.created', 'Created'), dataIndex: 'createdAt', width: 130, ...sort.col('createdAt'), render: (x: string) => <RelTime value={x} /> },
             ]}
           />
         </div>

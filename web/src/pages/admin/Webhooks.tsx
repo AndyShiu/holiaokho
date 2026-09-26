@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Alert, App, Button, Drawer, Form, Input, Select, Switch, Table, Tag } from 'antd'
+import { Alert, App, Button, Drawer, Form, Input, Select, Switch, Tag } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -9,6 +9,7 @@ import { useAuth } from '@/auth/AuthContext'
 import { ConfirmDelete, PageHeader, SecretHint, useErrorText } from '@/components/Common'
 import { CodeBlock } from '@/components/Copyable'
 import { RelTime } from '@/components/Format'
+import { SortableTable } from '@/components/SortableTable'
 
 const EVENTS = ['asset.created', 'asset.deleted', 'package.deleted', 'repository.create', 'repository.update', 'repository.delete', 'repository.invalidate_cache', 'user.create', 'user.update', 'user.delete', 'task.failed', '*']
 
@@ -47,7 +48,7 @@ const ok = crypto.timingSafeEqual(Buffer.from(sig.slice(7)), Buffer.from(mac))`
     <>
       <PageHeader title={t('nav.webhooks', 'Webhooks')} count={hooks.data?.length} extra={canWrite && <Button type="primary" icon={<PlusOutlined />} onClick={() => { form.resetFields(); setDrawer('new') }}>{t('webhooks.create', 'Create webhook')}</Button>} />
       <div className="hlk-card" style={{ padding: 0, marginBottom: 16 }}>
-        <Table<Webhook>
+        <SortableTable<Webhook>
           rowKey="id" loading={hooks.isLoading} dataSource={hooks.data ?? []} className="hlk-table hlk-clickable" scroll={{ x: 1050 }} pagination={false} size="middle"
           onRow={(h) => ({ onClick: () => { form.setFieldsValue({ ...h, secret: h.secret ? '***' : '' }); setDrawer(h) } })}
           columns={[

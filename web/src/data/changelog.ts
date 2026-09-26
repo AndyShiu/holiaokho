@@ -15,6 +15,42 @@ export interface Release {
 
 export const releases: Release[] = [
   {
+    version: '1.3.5',
+    date: '2026-09-26',
+    changes: [
+      {
+        kind: 'added',
+        text: {
+          en: 'Every table can be sorted by clicking a column header. Search results, a repository\'s packages and the Vulnerabilities list are sorted by the server, so the order covers all results rather than just the page on screen; versions sort as versions (3.9 before 3.12).',
+          'zh-TW': '所有表格都可以點擊標題列排序。搜尋結果、repository 的套件清單與「漏洞」清單由伺服器排序，排的是全部結果而不只是目前這一頁；版本號會依版本大小排序（3.9 排在 3.12 前面）。',
+          'zh-CN': '所有表格都可以点击标题栏排序。搜索结果、repository 的包列表与「漏洞」列表由服务器排序，排的是全部结果而不只是当前这一页；版本号按版本大小排序（3.9 排在 3.12 前面）。',
+          ja: 'すべての表で列見出しをクリックして並べ替えられます。検索結果、リポジトリのパッケージ一覧、「脆弱性」一覧はサーバー側で並べ替えるため、表示中のページだけでなく全件が対象です。バージョンはバージョン順に並びます（3.9 は 3.12 より前）。',
+          ko: '모든 표에서 열 머리글을 클릭해 정렬할 수 있습니다. 검색 결과, 저장소의 패키지 목록, 「취약점」 목록은 서버에서 정렬하므로 화면의 한 페이지가 아니라 전체 결과가 대상입니다. 버전은 버전 순으로 정렬됩니다(3.9가 3.12보다 앞).',
+        },
+      },
+      {
+        kind: 'fixed',
+        text: {
+          en: 'A cron schedule\'s "next runs" preview was worked out in your browser\'s time zone, but tasks run on the server\'s clock: on a server in UTC, "0 2 * * *" was previewed as 02:00 your time while it actually ran at 02:00 UTC. The preview now comes from the server, names the server\'s time zone, and shows each run in your time next to the server\'s.',
+          'zh-TW': 'cron 排程的「接下來執行時間」預覽原本以瀏覽器的時區計算，但任務是依伺服器時鐘執行：伺服器在 UTC 時，「0 2 * * *」預覽顯示為你的 02:00，實際卻在 UTC 02:00 執行。現在預覽改由伺服器計算，會標明伺服器時區，並同時列出你的時間與伺服器時間。',
+          'zh-CN': 'cron 计划的「接下来执行时间」预览原本按浏览器的时区计算，但任务是按服务器时钟执行：服务器在 UTC 时，「0 2 * * *」预览显示为你的 02:00，实际却在 UTC 02:00 执行。现在预览改由服务器计算，会标明服务器时区，并同时列出你的时间与服务器时间。',
+          ja: 'cron スケジュールの「次回実行」プレビューはブラウザのタイムゾーンで計算されていましたが、タスクはサーバーの時計で実行されます。サーバーが UTC の場合、「0 2 * * *」はあなたの 02:00 と表示されながら実際は UTC 02:00 に実行されていました。プレビューはサーバーが計算し、サーバーのタイムゾーンを明示して、あなたの時刻とサーバーの時刻を並べて表示します。',
+          ko: 'cron 일정의 「다음 실행」 미리보기가 브라우저 시간대로 계산되었지만 작업은 서버 시계로 실행됩니다. 서버가 UTC이면 「0 2 * * *」가 사용자 시간 02:00으로 표시되면서 실제로는 UTC 02:00에 실행되었습니다. 이제 미리보기를 서버가 계산하고 서버 시간대를 표시하며, 각 실행을 사용자 시간과 서버 시간으로 함께 보여 줍니다.',
+        },
+      },
+      {
+        kind: 'fixed',
+        text: {
+          en: 'The task filter above the run history is a dropdown; as a row of buttons it had grown wider than the page.',
+          'zh-TW': '執行記錄上方的任務篩選改為下拉選單；原本的按鈕列在任務變多後已超出頁面寬度。',
+          'zh-CN': '执行记录上方的任务筛选改为下拉菜单；原来的按钮栏在任务变多后已超出页面宽度。',
+          ja: '実行履歴の上にあるタスクの絞り込みをドロップダウンにしました。ボタンの列はタスクが増えてページ幅を超えていました。',
+          ko: '실행 기록 위의 작업 필터를 드롭다운으로 바꿨습니다. 버튼 줄은 작업이 늘어 페이지 폭을 넘었습니다.',
+        },
+      },
+    ],
+  },
+  {
     version: '1.3.4',
     date: '2026-09-26',
     changes: [

@@ -303,10 +303,13 @@
     "invalid": "식 형식이 잘못되었습니다",
     "monthly": "매월 {{dom}}일 {{time}}",
     "next5": "다음 5회 실행",
+    "serverAt": "서버 {{time}}",
+    "serverZone": "서버 시간: {{zone}}",
     "tplDaily": "매일 02:00",
     "tplHourly": "매시",
     "tplSunday": "매주 일요일 03:00",
-    "weekly": "매주 요일 {{dow}} {{time}}"
+    "weekly": "매주 요일 {{dow}} {{time}}",
+    "zoneNote": "식의 시간은 서버 시간대 {{zone}} 기준입니다. 아래 실행 시각은 사용자 시간으로 표시됩니다."
   },
   "dashboard": {
     "activity": "최근 활동",

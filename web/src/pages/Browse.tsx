@@ -15,6 +15,7 @@ import { fmtBytes, RelTime } from '@/components/Format'
 import { AssetDrawer, PackageDrawer } from '@/components/Drawers'
 import { UsageSnippets, repoBase } from '@/components/UsageSnippets'
 import { formatInfo } from '@/theme/tokens'
+import { SortableTable, useServerSort } from '@/components/SortableTable'
 
 function dirName(path: string) {
   const parts = path.split('/').filter(Boolean)
@@ -31,8 +32,9 @@ export function RepoContent({ repo, path, onNavigate, showPackages = true, initi
   const [pkgQ, setPkgQ] = useState('')
   const [page, setPage] = useState(0)
   const [upload, setUpload] = useState(false)
+  const pkgSort = useServerSort(() => setPage(0))
   const browse = useQuery({ queryKey: ['browse', repo.name, path], queryFn: () => get<BrowseResult>(`repositories/${repo.name}/browse`, { path }), staleTime: 30000 })
-  const packages = useQuery({ queryKey: ['packages', repo.name, pkgQ, page], queryFn: () => get<Package[]>(`repositories/${repo.name}/packages`, { q: pkgQ, limit: 50, offset: page * 50 }), enabled: tab === 'packages' })
+  const packages = useQuery({ queryKey: ['packages', repo.name, pkgQ, page, pkgSort.params], queryFn: () => get<Package[]>(`repositories/${repo.name}/packages`, { q: pkgQ, limit: 50, offset: page * 50, ...pkgSort.params }), enabled: tab === 'packages' })
   const crumbs = path.split('/').filter(Boolean)
   const isDocker = repo.format === 'docker'
   const canWrite = canRepo(repo.name, repo.format, 'write')
@@ -88,7 +90,7 @@ export function RepoContent({ repo, path, onNavigate, showPackages = true, initi
                 ) : (rows.length === 0 && !path) ? (
                   <EmptyState title={t('browse.empty', 'This repository has no content yet')} hint={repo.type === 'proxy' ? t('browse.emptyProxy', 'Content appears here after the first download through the proxy.') : repo.type === 'hosted' ? t('browse.emptyHosted', 'Upload something or push from a client.') : undefined} action={canWrite && repo.type === 'hosted' ? <Button type="primary" onClick={() => setUpload(true)}>{t('browse.upload', 'Upload')}</Button> : undefined} />
                 ) : (
-                  <Table
+                  <SortableTable
                     size="small" rowKey="key" pagination={rows.length > 200 ? { pageSize: 200, showSizeChanger: false } : false} dataSource={rows} className="hlk-table hlk-clickable"
                     onRow={(r) => ({ onClick: () => (r.dir ? onNavigate(r.path) : setAsset(r.file!.id)) })}
                     columns={[
@@ -101,9 +103,9 @@ export function RepoContent({ repo, path, onNavigate, showPackages = true, initi
                           </span>
                         ),
                       },
-                      { title: t('asset.size', 'Size'), width: 100, render: (_: unknown, r) => (r.dir ? '' : fmtBytes(r.file!.size)) },
-                      { title: t('common.updated', 'Updated'), width: 130, render: (_: unknown, r) => (r.dir ? '' : <RelTime value={r.file!.updatedAt} />) },
-                      ...(repo.type !== 'hosted' ? [{ title: t('asset.cacheExpires', 'Cache expires'), width: 130, render: (_: unknown, r: any) => (r.dir ? '' : r.file!.cacheExpiresAt ? <span style={{ color: new Date(r.file!.cacheExpiresAt) < new Date() ? 'var(--hlk-text-tertiary)' : undefined }}><RelTime value={r.file!.cacheExpiresAt} /></span> : '—') }] : []),
+                      { title: t('asset.size', 'Size'), width: 100, sortValue: (r) => r.file?.size, render: (_: unknown, r) => (r.dir ? '' : fmtBytes(r.file!.size)) },
+                      { title: t('common.updated', 'Updated'), width: 130, sortValue: (r) => r.file?.updatedAt, render: (_: unknown, r) => (r.dir ? '' : <RelTime value={r.file!.updatedAt} />) },
+                      ...(repo.type !== 'hosted' ? [{ title: t('asset.cacheExpires', 'Cache expires'), width: 130, sortValue: (r: any) => r.file?.cacheExpiresAt, render: (_: unknown, r: any) => (r.dir ? '' : r.file!.cacheExpiresAt ? <span style={{ color: new Date(r.file!.cacheExpiresAt) < new Date() ? 'var(--hlk-text-tertiary)' : undefined }}><RelTime value={r.file!.cacheExpiresAt} /></span> : '—') }] : []),
                       { title: '', width: 120, render: (_: unknown, r) => (r.dir ? null : <span onClick={(e) => e.stopPropagation()}><a href={`${repoBase(repo)}/${r.path}`} target="_blank">{t('common.download', 'Download')}</a> · <a onClick={() => setAsset(r.file!.id)}>{t('common.details', 'Details')}</a></span>) },
                     ]}
                   />
@@ -119,13 +121,14 @@ export function RepoContent({ repo, path, onNavigate, showPackages = true, initi
                 <Table<Package>
                   size="small" rowKey="id" loading={packages.isLoading} dataSource={packages.data ?? []} className="hlk-table hlk-clickable"
                   onRow={(p) => ({ onClick: () => setPkg(p.id) })}
+                  onChange={pkgSort.onChange}
                   pagination={{ current: page + 1, pageSize: 50, total: (packages.data?.length ?? 0) < 50 ? page * 50 + (packages.data?.length ?? 0) : (page + 2) * 50, onChange: (p) => setPage(p - 1), showSizeChanger: false }}
                   columns={[
-                    { title: t('package.namespace', 'Namespace'), dataIndex: 'namespace', render: (x: string) => <span className="hlk-mono" style={{ fontSize: 12 }}>{x || '—'}</span> },
-                    { title: t('common.name', 'Name'), dataIndex: 'name', render: (x: string) => <span className="hlk-mono" style={{ fontSize: 12.5, fontWeight: 500 }}>{x}</span> },
-                    { title: t('package.version', 'Version'), dataIndex: 'version', render: (x: string) => <span className="hlk-mono" style={{ fontSize: 12 }}>{x}</span> },
-                    { title: t('asset.lastDownloaded', 'Last downloaded'), dataIndex: 'lastDownloadedAt', width: 140, render: (x: string) => <RelTime value={x} empty={t('common.never', 'never')} /> },
-                    { title: t('common.created', 'Created'), dataIndex: 'createdAt', width: 130, render: (x: string) => <RelTime value={x} /> },
+                    { title: t('package.namespace', 'Namespace'), dataIndex: 'namespace', ...pkgSort.col('namespace'), render: (x: string) => <span className="hlk-mono" style={{ fontSize: 12 }}>{x || '—'}</span> },
+                    { title: t('common.name', 'Name'), dataIndex: 'name', ...pkgSort.col('name'), render: (x: string) => <span className="hlk-mono" style={{ fontSize: 12.5, fontWeight: 500 }}>{x}</span> },
+                    { title: t('package.version', 'Version'), dataIndex: 'version', ...pkgSort.col('version'), render: (x: string) => <span className="hlk-mono" style={{ fontSize: 12 }}>{x}</span> },
+                    { title: t('asset.lastDownloaded', 'Last downloaded'), dataIndex: 'lastDownloadedAt', width: 140, ...pkgSort.col('lastDownloadedAt'), render: (x: string) => <RelTime value={x} empty={t('common.never', 'never')} /> },
+                    { title: t('common.created', 'Created'), dataIndex: 'createdAt', width: 130, ...pkgSort.col('createdAt'), render: (x: string) => <RelTime value={x} /> },
                   ]}
                 />
               </>

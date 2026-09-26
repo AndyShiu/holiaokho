@@ -902,6 +902,18 @@ type SearchQuery struct {
 	Version   string
 	Limit     int
 	Offset    int
+	Sort      Sort
+}
+
+// searchSort are the columns a package list sorts by.
+var searchSort = map[string]SortColumn{
+	"repository": {Exprs: []string{"r.name"}},
+	// Names sort naturally too, and versions of one package follow in order.
+	"namespace":        {Exprs: []string{"p.namespace", "p.name", "p.version"}, Version: true},
+	"name":             {Exprs: []string{"p.name", "p.namespace", "p.version"}, Version: true},
+	"version":          {Exprs: []string{"p.version"}, Version: true},
+	"lastDownloadedAt": {Exprs: []string{"p.last_downloaded_at"}},
+	"createdAt":        {Exprs: []string{"p.created_at"}},
 }
 
 type SearchHit struct {
@@ -944,7 +956,8 @@ func (s *Service) Search(ctx context.Context, q SearchQuery) ([]SearchHit, error
 		sql += " WHERE " + strings.Join(where, " AND ")
 	}
 	args = append(args, q.Limit, q.Offset)
-	sql += fmt.Sprintf(" ORDER BY p.namespace, p.name, p.created_at DESC LIMIT $%d OFFSET $%d", len(args)-1, len(args))
+	sql += s.OrderBy(ctx, q.Sort, searchSort, "p.namespace, p.name, p.created_at DESC", "p.id")
+	sql += fmt.Sprintf(" LIMIT $%d OFFSET $%d", len(args)-1, len(args))
 	rows, err := s.DB.Pool.Query(ctx, sql, args...)
 	if err != nil {
 		return nil, err
