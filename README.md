@@ -162,6 +162,12 @@ covered — never as clean. On by default; any repository can opt out. Findings
 export as a report: PDF or Excel to read, CSV or JSON — with purls — for
 scripts and AI agents checking a project's own dependencies.
 
+**Malicious packages** — downloads of packages OSV lists as malicious (the
+OpenSSF malicious-packages database) are refused before a build can run
+them, from the cache and on the way in from a proxy alike. Every block is
+recorded and the first is sent by email and webhook; an administrator can
+let a wrongly listed version through, with the reason on record.
+
 **Storage** — local filesystem or any S3-compatible service, content-addressed
 and reference-counted, so an identical file referenced by ten repositories
 occupies the disk once.
@@ -181,7 +187,7 @@ through the same outbound proxy and CA settings as everything else:
 
 | What | Where | Sends | Turn off |
 |---|---|---|---|
-| Vulnerability scanning | `api.osv.dev` | package names and versions | `HOLIAOKHO_VULNERABILITIES_ENABLED=false` |
+| Vulnerability scanning, and checking a package on its first download | `api.osv.dev` | package names and versions | `HOLIAOKHO_VULNERABILITIES_ENABLED=false` (the download check alone: `HOLIAOKHO_VULNERABILITIES_BLOCK_MALICIOUS=false`) |
 | New-release check, daily | `api.github.com` | a User-Agent with the version, nothing else | `HOLIAOKHO_UPDATES_CHECK=false` |
 
 **Flaky upstreams.** A download that fails on a dropped connection, a timeout

@@ -182,6 +182,12 @@ func MapError(w http.ResponseWriter, err error, log *slog.Logger) {
 		WriteError(w, http.StatusInsufficientStorage, "storage.quota", "%s", err.Error())
 	case errors.Is(err, repo.ErrInvalidPath):
 		WriteError(w, http.StatusBadRequest, "path.invalid", "invalid path")
+	case errors.Is(err, repo.ErrMalicious):
+		// "error" is what npm and several other clients print from a
+		// registry's error body; the reason must reach the developer.
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusForbidden)
+		json.NewEncoder(w).Encode(map[string]any{"code": "package.malicious", "message": err.Error(), "error": err.Error()})
 	case errors.Is(err, repo.ErrUpstreamDenied):
 		WriteError(w, http.StatusBadGateway, "upstream.denied", "%s", err.Error())
 	case errors.Is(err, repo.ErrUpstream):

@@ -48,6 +48,14 @@
 - 備份檔含密文，需要同一把 key 才能使用
 - TLS 最低 1.2
 
+**供應鏈：惡意套件（1.4.0）**
+- OSV 列為惡意的套件（OpenSSF malicious-packages 的 `MAL-` 紀錄，以及分類為 CWE-506 的公告）下載一律拒絕（403 `package.malicious`），無論來自快取或 proxy 上游；group 的其他成員也不會代為提供
+- 已掃描過的套件依掃描結果判定；新套件在第一次被要求時即時查詢 OSV（5 秒逾時，同一版本同時多個請求只查一次，結果快取 1 小時）
+- **OSV 無法連線時放行**（fail open）並記錄警告：內網環境無路由對外是正常部署，fail closed 會讓所有建置停擺。需要 fail closed 的環境應以 `vulnerabilities.osv_url` 指向內部 OSV 鏡像
+- 每次攔截都記錄（套件、repository、使用者、次數），第一次攔截寄 email 與 `package.blocked` webhook
+- 只有 `app:system write` 能允許被列為惡意的版本，必須填原因，允許與撤銷都寫入稽核紀錄
+- 這是已知惡意套件的名單比對，不是行為分析：尚未被收錄的惡意套件不會被擋
+
 ## 2026-09-13 審查發現與修正
 
 | 嚴重度 | 問題 | 修正 |

@@ -180,7 +180,7 @@ Nexus 內建的 scheduled tasks：
 | Backup / restore | ✅（H2 export） | ✅ 含 blobs 的 tar.gz，CLI 與 API |
 | Nexus 升級／migration 工具 | ✅ | ⏸ 已實作（`import-nexus`）但預設關閉，需 `HOLIAOKHO_ENABLE_NEXUS_IMPORT=1`；暫不對外 |
 | Branding、Outreach、Analytics 上傳 | ✅ | 不做 |
-| Malware remediation / Repository Firewall / RHC | IQ / Pro | 不接 Sonatype IQ；改為自己做**漏洞掃描**（1.2.0，見 §8）。惡意套件攔截（Firewall）未做 |
+| Malware remediation / Repository Firewall / RHC | IQ / Pro | 不接 Sonatype IQ；改為自己做**漏洞掃描**（1.2.0）與**惡意套件攔截**（1.4.0，以 OSV／OpenSSF malicious-packages 名單在下載時拒絕，見 §8） |
 
 ## 7. Nexus 付費版才有的功能
 
@@ -221,6 +221,7 @@ Nexus 內建的 scheduled tasks：
 | 漏洞清單與報告列出每個套件的「最後使用」時間（最後下載，從未下載則為存入時間） | ✅ | 1.3.4 |
 | 全站表格可點標題列排序；分頁的清單（搜尋、套件、漏洞）由伺服器排序，版本號依版本大小排序 | ✅ | 1.3.5 |
 | cron 預覽由伺服器計算並標明伺服器時區，同時列出使用者時間與伺服器時間 | ✅ | 1.3.5 |
+| 惡意套件攔截：OSV 列為惡意（MAL-、CWE-506）的套件在下載時拒絕（快取與 proxy 皆然），攔截紀錄、email／webhook 通知、管理員可附原因放行；報告標示「請移除」 | ✅ | 1.4.0 |
 
 ---
 

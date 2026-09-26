@@ -150,6 +150,10 @@ GHSA、CVE 與各生態系編號合併為一筆,依嚴重度排序,並列出修�
 絕不標為「安全」。預設開啟,每個 repository 可以個別關閉。掃描結果可以匯出成報告:
 PDF、Excel 給人看,CSV、JSON(附 purl)給程式與 AI agent 比對專案自己的依賴。
 
+**惡意套件攔截** —— OSV 列為惡意的套件(OpenSSF malicious-packages 資料庫),無論來自
+快取或正要從 proxy 上游取得,都會在建置執行它之前拒絕下載。每次攔截都有紀錄,第一次會以
+email 與 webhook 通知;被誤列的版本可由管理員放行,並記錄原因。
+
 **儲存** —— 本機檔案系統或任何 S3 相容服務。內容定址並計算引用數,
 所以同一個檔案就算被十個 repository 引用,磁碟上也只有一份。
 
@@ -167,7 +171,7 @@ PDF、Excel 給人看,CSV、JSON(附 purl)給程式與 AI agent 比對專案自�
 
 | 用途 | 連到 | 送出內容 | 關閉方式 |
 |---|---|---|---|
-| 漏洞掃描 | `api.osv.dev` | 套件名稱與版本 | `HOLIAOKHO_VULNERABILITIES_ENABLED=false` |
+| 漏洞掃描,以及套件首次下載時的檢查 | `api.osv.dev` | 套件名稱與版本 | `HOLIAOKHO_VULNERABILITIES_ENABLED=false`(只關下載檢查:`HOLIAOKHO_VULNERABILITIES_BLOCK_MALICIOUS=false`) |
 | 每日檢查新版本 | `api.github.com` | 只有帶版本號的 User-Agent | `HOLIAOKHO_UPDATES_CHECK=false` |
 
 **不穩定的上游。** 下載因連線中斷、逾時或 429/502/503/504 失敗時,會稍等後再試兩次,

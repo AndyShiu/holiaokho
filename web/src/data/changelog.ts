@@ -21,6 +21,16 @@ export const releases: Release[] = [
       {
         kind: 'added',
         text: {
+          en: 'Malicious packages are refused at download. Versions OSV lists as malicious (the OpenSSF malicious-packages database, and advisories classed CWE-506) are blocked from the cache and from proxies alike — before a build runs them, not after a scan finds them stored. Blocks are listed on the Vulnerabilities page and the first of each is sent by email and as a package.blocked webhook; an administrator can let a wrongly listed version through, with a reason. Reports mark these packages "remove" instead of an upgrade. vulnerabilities.block_malicious turns it off.',
+          'zh-TW': '下載時攔截惡意套件。OSV 列為惡意的版本（OpenSSF malicious-packages 資料庫，以及分類為 CWE-506 的公告），無論來自快取或 proxy 都會被拒絕——在建置執行它之前，而不是等掃描發現它已經存進來之後。攔截紀錄列在「漏洞」頁，每個套件第一次被攔截時會以 email 與 package.blocked webhook 通知；被誤列的版本可由管理員附上原因放行。報告中這類套件標示為「移除」而非升級版本。可用 vulnerabilities.block_malicious 關閉。',
+          'zh-CN': '下载时拦截恶意包。OSV 列为恶意的版本（OpenSSF malicious-packages 数据库，以及归类为 CWE-506 的公告），无论来自缓存还是 proxy 都会被拒绝——在构建执行它之前，而不是等扫描发现它已经存进来之后。拦截记录列在「漏洞」页，每个包第一次被拦截时会以 email 与 package.blocked webhook 通知；被误列的版本可由管理员附上原因放行。报告中这类包标为「移除」而非升级版本。可用 vulnerabilities.block_malicious 关闭。',
+          ja: 'ダウンロード時に悪意あるパッケージをブロックします。OSV が悪意ありとするバージョン（OpenSSF malicious-packages データベースと CWE-506 に分類されたアドバイザリ）は、キャッシュからもプロキシからも拒否されます。スキャンで保存済みと分かってからではなく、ビルドが実行する前に止めます。ブロックは「脆弱性」ページに一覧表示され、各パッケージの最初のブロックはメールと package.blocked Webhook で通知されます。誤って載ったバージョンは管理者が理由を添えて許可できます。レポートではアップグレード先の代わりに「削除」と表示します。vulnerabilities.block_malicious で無効にできます。',
+          ko: '다운로드 시 악성 패키지를 차단합니다. OSV가 악성으로 분류한 버전(OpenSSF malicious-packages 데이터베이스, CWE-506으로 분류된 권고)은 캐시에서든 프록시에서든 거부됩니다. 스캔이 저장된 것을 찾은 뒤가 아니라 빌드가 실행하기 전에 막습니다. 차단 내역은 「취약점」 페이지에 나오고, 각 패키지의 첫 차단은 이메일과 package.blocked 웹훅으로 알립니다. 잘못 분류된 버전은 관리자가 사유를 남기고 허용할 수 있습니다. 보고서는 이런 패키지에 업그레이드 대신 「제거」를 표시합니다. vulnerabilities.block_malicious로 끌 수 있습니다.',
+        },
+      },
+      {
+        kind: 'added',
+        text: {
           en: 'Proxies retry: a download that fails on a dropped connection, a timeout or a 429/502/503/504 is tried twice more, with a short backoff, before the client sees an error. The upstream\'s Retry-After is honoured up to five seconds. The count is proxy.retries in the configuration and can be set per repository.',
           'zh-TW': 'Proxy 會自動重試：下載因連線中斷、逾時或 429/502/503/504 失敗時，會稍等後再試兩次，都失敗才回錯誤給用戶端。上游帶 Retry-After 時照它等，最多 5 秒。次數由設定檔的 proxy.retries 決定，也可以在各 repository 個別設定。',
           'zh-CN': 'Proxy 会自动重试：下载因连接中断、超时或 429/502/503/504 失败时，会稍等后再试两次，都失败才向客户端返回错误。上游带 Retry-After 时按它等待，最多 5 秒。次数由配置文件的 proxy.retries 决定，也可以在各 repository 单独设置。',

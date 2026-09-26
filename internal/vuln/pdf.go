@@ -200,9 +200,22 @@ func WritePDF(w io.Writer, r *Report, lang string) error {
 		}
 		pdf.SetFont(family, "B", 8.5)
 		pdf.SetTextColor(46, 158, 107)
+		if p.Malicious {
+			up = L("remove") + " †"
+			pdf.SetTextColor(200, 50, 40)
+		}
 		pdf.CellFormat(oUp, 6.5, text(up), "", 1, "R", false, 0, "")
 		pdf.SetDrawColor(236, 232, 224)
 		pdf.Line(margin, y+6.5, margin+contentW, y+6.5)
+	}
+	for _, p := range r.Packages {
+		if p.Malicious { // the footnote only when a † is shown
+			pdf.SetFont(family, "", 7.5)
+			muted()
+			pdf.Ln(1.5)
+			pdf.CellFormat(contentW, 4, "† "+L("maliciousNote"), "", 1, "L", false, 0, "")
+			break
+		}
 	}
 	for _, p := range r.Packages {
 		if p.UpgradeTo != "" && !p.FixesAll { // the footnote only when a * is shown
@@ -281,10 +294,14 @@ func WritePDF(w io.Writer, r *Report, lang string) error {
 
 			pdf.SetXY(margin+colSev+colID+colSum, rowY+1)
 			fix := v.FixTo
-			if fix == "" {
+			switch {
+			case v.Malicious:
+				fix = L("remove")
+				pdf.SetTextColor(200, 50, 40)
+			case fix == "":
 				fix = "—"
 				muted()
-			} else {
+			default:
 				pdf.SetTextColor(46, 158, 107)
 			}
 			pdf.SetFont(family, "B", 8.5)

@@ -71,3 +71,31 @@ func (s *Server) announceVulnerabilities(ctx context.Context, found []vuln.Findi
 	}
 	return nil
 }
+
+// announceBlocked tells the notification recipients, by email and as a
+// "package.blocked" webhook, that a download of a malicious package was
+// refused — the first time for each package version and repository. Someone
+// asked for it: a build depends on it, or a developer mistyped a name the
+// way the package's author hoped.
+func (s *Server) announceBlocked(ctx context.Context, b vuln.Block) {
+	s.Notify.Emit(notify.Event{Event: "package.blocked", Data: b})
+	who := b.User
+	if who == "" {
+		who = "an anonymous client"
+	}
+	var m strings.Builder
+	fmt.Fprintf(&m, "A download of %s %s from %s was refused: it is a known malicious package.\n\n", b.Name, b.Version, b.Repository)
+	fmt.Fprintf(&m, "Requested by: %s\n", who)
+	fmt.Fprintf(&m, "Record:       %s  https://osv.dev/vulnerability/%s\n", b.VulnID, b.VulnID)
+	if b.Summary != "" {
+		fmt.Fprintf(&m, "              %s\n", b.Summary)
+	}
+	m.WriteString("\nWhatever asked for it — a build, a lock file, a developer's machine — should be checked.\n")
+	if base := strings.TrimSuffix(s.Cfg.Server.BaseURL, "/"); base != "" {
+		fmt.Fprintf(&m, "\nBlocked downloads: %s/ui/vulnerabilities?tab=blocked\n", base)
+	}
+	subject := fmt.Sprintf("[Holiaokho] Blocked malicious package %s %s", b.Name, b.Version)
+	if err := s.Notify.SendMail(ctx, nil, subject, m.String()); err != nil {
+		s.Log.Debug("blocked-package mail not sent", "err", err)
+	}
+}

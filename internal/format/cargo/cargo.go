@@ -294,6 +294,10 @@ func (h *handler) download(w http.ResponseWriter, r *http.Request, name, ver str
 			format.ServeResult(w, r, h.d, res)
 			return
 		}
+		if errors.Is(err, repo.ErrMalicious) {
+			cargoErr(w, 403, err.Error())
+			return
+		}
 	}
 	cargoErr(w, 404, "crate not found")
 }

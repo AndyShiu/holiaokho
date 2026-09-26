@@ -131,6 +131,10 @@ type Vulns struct {
 	// NotifyMinSeverity is the lowest severity worth an email or webhook
 	// when newly found: CRITICAL, HIGH, MODERATE or LOW.
 	NotifyMinSeverity string `yaml:"notify_min_severity"`
+	// BlockMalicious refuses downloads of packages OSV lists as malicious
+	// (MAL- records, CWE-506), from proxies and the cache alike. Needs
+	// Enabled; follows each repository's vulnerability-scan setting.
+	BlockMalicious bool `yaml:"block_malicious"`
 }
 
 // Updates configures checking for a newer release.
@@ -179,7 +183,7 @@ func Default() Config {
 		Backup:  Backup{Keep: 7},
 		Secrets: Secrets{KeyFile: "./data/secret.key"},
 		Log:     Log{Level: "info", Format: "text"},
-		Vulns:   Vulns{Enabled: true, OSVURL: "https://api.osv.dev", NotifyMinSeverity: "HIGH"},
+		Vulns:   Vulns{Enabled: true, OSVURL: "https://api.osv.dev", NotifyMinSeverity: "HIGH", BlockMalicious: true},
 		Updates: Updates{Check: true, URL: "https://api.github.com/repos/AndyShiu/holiaokho/releases/latest"},
 	}
 }
@@ -271,6 +275,7 @@ func applyEnv(c *Config) {
 	boolean("VULNERABILITIES_ENABLED", &c.Vulns.Enabled)
 	str("VULNERABILITIES_OSV_URL", &c.Vulns.OSVURL)
 	str("VULNERABILITIES_NOTIFY_MIN_SEVERITY", &c.Vulns.NotifyMinSeverity)
+	boolean("VULNERABILITIES_BLOCK_MALICIOUS", &c.Vulns.BlockMalicious)
 	boolean("UPDATES_CHECK", &c.Updates.Check)
 	str("UPDATES_URL", &c.Updates.URL)
 }

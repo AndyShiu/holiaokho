@@ -57,6 +57,12 @@ export interface VulnFinding {
   id: string; aliases: string[]; summary: string; severity: Severity; score: number | null
   fixedIn: string[]; published: string | null; firstSeen: string
   lastUsed: string // last downloaded, or stored if never downloaded
+  malicious?: boolean // malicious code, not a bug: remove it; downloads are refused
+}
+export interface BlockedDownload {
+  purl: string; repository: string; format: string; name: string; version: string
+  id: string; summary: string; attempts: number; firstAt: string; lastAt: string; lastUser: string
+  allowed: { reason: string; by: string; at: string } | null
 }
 export interface VulnSummary {
   enabled: boolean

@@ -80,9 +80,11 @@ type Server struct {
 	API     *api.API
 	Deps    format.Deps
 	Docker  *docker.Format
-	Tokens  *docker.TokenIssuer
-	Notify  *notify.Service
-	Sys     *System
+	// Guard refuses malicious packages; nil when blocking is off.
+	Guard  *vuln.Guard
+	Tokens *docker.TokenIssuer
+	Notify *notify.Service
+	Sys    *System
 
 	main    *http.Server
 	tlsSrv  *http.Server
@@ -212,6 +214,12 @@ func New(ctx context.Context, cfg config.Config, log *slog.Logger, sys *System) 
 		}
 		return scanner.Run(ctx, logf)
 	})
+	// Malicious packages are refused at download, before a build runs them;
+	// the scan above only finds them once they are stored.
+	if cfg.Vulns.Enabled && cfg.Vulns.BlockMalicious {
+		s.Guard = &vuln.Guard{Content: c, OSV: scanner.OSV, Log: log, OnFirstBlock: s.announceBlocked}
+		eng.Gate = s.Guard.Check
+	}
 	s.Updates = &update.Checker{DB: d.Pool, HTTP: eng.HTTPClient(), URL: cfg.Updates.URL, Current: Version, Enabled: cfg.Updates.Check}
 	s.Tasks.Register("check-for-updates", "Ask GitHub whether a newer Holiaokho release has been published (can be turned off: updates.check)", 24*time.Hour, func(ctx context.Context, logf func(string, ...any)) error {
 		if !cfg.Updates.Check {
@@ -242,7 +250,7 @@ func New(ctx context.Context, cfg config.Config, log *slog.Logger, sys *System) 
 		return x < y
 	}
 	s.API = &api.API{Content: c, Engine: eng, Auth: a, Formats: s.Formats, Tasks: s.Tasks, Deps: s.Deps, Version: Version, Started: time.Now(), OnRepoChange: s.syncDockerListeners,
-		Notify: s.Notify, Logs: sys.Buffer, LogLevel: sys.Level, Config: cfg, Updates: s.Updates}
+		Notify: s.Notify, Logs: sys.Buffer, LogLevel: sys.Level, Config: cfg, Updates: s.Updates, Guard: s.Guard}
 	return s, nil
 }
 

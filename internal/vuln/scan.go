@@ -57,6 +57,9 @@ type Finding struct {
 	// LastUsed is when the package was last downloaded, or stored if it
 	// never has been: whether anyone still depends on it.
 	LastUsed time.Time `json:"lastUsed"`
+	// Malicious marks a malicious package rather than a bug: there is no
+	// version to upgrade to, and downloads of it are refused.
+	Malicious bool `json:"malicious"`
 
 	attrs json.RawMessage // for the purl: a NuGet id's casing lives here
 }
@@ -173,6 +176,11 @@ func (s *Scanner) Run(ctx context.Context, logf func(string, ...any)) error {
 		for _, g := range groups {
 			rows = append(rows, row{g.rep, recs.fixed(g.members, base)})
 			keep = append(keep, g.rep)
+			// The finding is listed under its representative, which may be
+			// the GitHub advisory rather than the MAL- record beside it.
+			if recs.malicious(g.members) && !recs.byID[g.rep].malicious {
+				batch.Queue(`UPDATE vulnerabilities SET malicious = true, severity = 'CRITICAL' WHERE id = $1`, g.rep)
+			}
 		}
 		js, _ := json.Marshal(rows)
 		for _, id := range ids {
@@ -254,9 +262,10 @@ type recordSet struct {
 }
 
 type stored struct {
-	aliases  []string
-	severity string
-	fixed    map[string][]string
+	aliases   []string
+	severity  string
+	fixed     map[string][]string
+	malicious bool
 }
 
 // fixed is the union of the versions the group's records say fix the
@@ -274,6 +283,16 @@ func (r *recordSet) fixed(members []string, purlNoVersion string) []string {
 	return out
 }
 
+// malicious reports whether any of a group's records says malicious code.
+func (r *recordSet) malicious(members []string) bool {
+	for _, id := range members {
+		if r.byID[id].malicious {
+			return true
+		}
+	}
+	return false
+}
+
 // records loads the wanted records from the database, fetching from OSV
 // only those not stored yet or modified since they were. A rescan of
 // unchanged packages therefore costs one querybatch call and no fetches.
@@ -283,7 +302,7 @@ func (s *Scanner) records(ctx context.Context, want map[string]time.Time) (*reco
 	for id := range want {
 		ids = append(ids, id)
 	}
-	rows, err := s.Content.DB.Pool.Query(ctx, `SELECT id, aliases, severity, fixed, coalesce(modified, 'epoch') FROM vulnerabilities WHERE id = ANY($1)`, ids)
+	rows, err := s.Content.DB.Pool.Query(ctx, `SELECT id, aliases, severity, fixed, coalesce(modified, 'epoch'), malicious FROM vulnerabilities WHERE id = ANY($1)`, ids)
 	if err != nil {
 		return nil, err
 	}
@@ -293,7 +312,7 @@ func (s *Scanner) records(ctx context.Context, want map[string]time.Time) (*reco
 		var st stored
 		var id string
 		var mod time.Time
-		if err := rows.Scan(&id, &st.aliases, &st.severity, &st.fixed, &mod); err != nil {
+		if err := rows.Scan(&id, &st.aliases, &st.severity, &st.fixed, &mod, &st.malicious); err != nil {
 			rows.Close()
 			return nil, err
 		}
@@ -349,7 +368,7 @@ func (s *Scanner) fetch(ctx context.Context, rs *recordSet, ids []string) error 
 					continue
 				}
 				rs.mu.Lock()
-				rs.byID[rec.ID] = stored{nonNil(rec.Aliases), sev, fixed}
+				rs.byID[rec.ID] = stored{nonNil(rec.Aliases), sev, fixed, rec.Malicious()}
 				rs.fetched++
 				rs.mu.Unlock()
 			}
@@ -375,12 +394,12 @@ func (s *Scanner) save(ctx context.Context, rec *Record, sev string, score *floa
 		pub = &rec.Published
 	}
 	_, err := s.Content.DB.Pool.Exec(ctx, `
-		INSERT INTO vulnerabilities (id, aliases, summary, severity, score, published, modified, fixed, fetched_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, now())
+		INSERT INTO vulnerabilities (id, aliases, summary, severity, score, published, modified, fixed, malicious, fetched_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, now())
 		ON CONFLICT (id) DO UPDATE SET aliases = EXCLUDED.aliases, summary = EXCLUDED.summary,
 			severity = EXCLUDED.severity, score = EXCLUDED.score, published = EXCLUDED.published,
-			modified = EXCLUDED.modified, fixed = EXCLUDED.fixed, fetched_at = now()`,
-		rec.ID, nonNil(rec.Aliases), summaryOf(rec), sev, score, pub, rec.Modified, fixed)
+			modified = EXCLUDED.modified, fixed = EXCLUDED.fixed, malicious = EXCLUDED.malicious, fetched_at = now()`,
+		rec.ID, nonNil(rec.Aliases), summaryOf(rec), sev, score, pub, rec.Modified, fixed, rec.Malicious())
 	return err
 }
 

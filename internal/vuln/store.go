@@ -101,7 +101,7 @@ func List(ctx context.Context, c *content.Service, f Filter) ([]Finding, int, er
 	}
 	q := `SELECT pv.package_id, r.name, r.format, p.namespace, p.name, p.version,
 			v.id, v.aliases, v.summary, v.severity, v.score::float8, pv.fixed_in, v.published, pv.first_seen, p.attrs,
-			coalesce(p.last_downloaded_at, p.created_at) ` + from
+			coalesce(p.last_downloaded_at, p.created_at), v.malicious ` + from
 	// Worst first unless asked otherwise.
 	q += c.OrderBy(ctx, f.Sort, listSort,
 		severityOrder+` DESC, v.score DESC NULLS LAST, v.published DESC NULLS LAST, p.name, p.version`, "pv.package_id, v.id")
@@ -118,7 +118,7 @@ func List(ctx context.Context, c *content.Service, f Filter) ([]Finding, int, er
 	for rows.Next() {
 		var x Finding
 		if err := rows.Scan(&x.PackageID, &x.Repository, &x.Format, &x.Namespace, &x.Name, &x.Version,
-			&x.VulnID, &x.Aliases, &x.Summary, &x.Severity, &x.Score, &x.FixedIn, &x.Published, &x.FirstSeen, &x.attrs, &x.LastUsed); err != nil {
+			&x.VulnID, &x.Aliases, &x.Summary, &x.Severity, &x.Score, &x.FixedIn, &x.Published, &x.FirstSeen, &x.attrs, &x.LastUsed, &x.Malicious); err != nil {
 			return nil, 0, err
 		}
 		out = append(out, x)

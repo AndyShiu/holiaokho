@@ -30,6 +30,7 @@ import (
 	"github.com/holiaokho/holiaokho/internal/secrets"
 	"github.com/holiaokho/holiaokho/internal/task"
 	"github.com/holiaokho/holiaokho/internal/update"
+	"github.com/holiaokho/holiaokho/internal/vuln"
 )
 
 //go:embed openapi.yaml
@@ -52,6 +53,8 @@ type API struct {
 	LogLevel     *slog.LevelVar
 	Config       config.Config
 	Updates      *update.Checker
+	// Guard is told when a malicious package is allowed; nil when blocking is off.
+	Guard *vuln.Guard
 }
 
 // passwordChangeOnly blocks an account whose password somebody else chose.
@@ -154,6 +157,10 @@ func (a *API) Router() http.Handler {
 	r.Get("/vulnerabilities", a.signedIn(a.need("app:search", auth.Read, a.vulnList)))
 	r.Get("/vulnerabilities/summary", a.signedIn(a.need("app:search", auth.Read, a.vulnSummary)))
 	r.Get("/vulnerabilities/export", a.signedIn(a.need("app:search", auth.Read, a.vulnExport)))
+	r.Get("/vulnerabilities/blocked", a.signedIn(a.need("app:search", auth.Read, a.blockedList)))
+	// Letting a malicious package through is an administrator's decision.
+	r.Post("/vulnerabilities/allowed", a.need("app:system", auth.Write, a.allowPackage))
+	r.Delete("/vulnerabilities/allowed", a.need("app:system", auth.Write, a.disallowPackage))
 	// Upgrading is an administrator's decision, so only they are told.
 	r.Get("/updates", a.need("app:system", auth.Read, func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, 200, a.Updates.Status(r.Context()))

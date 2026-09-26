@@ -296,6 +296,10 @@ func (h *handler) groupFetch(w http.ResponseWriter, r *http.Request, p, id, ver,
 			format.ServeResult(w, r, h.d, res)
 			return
 		}
+		if errors.Is(err, repo.ErrMalicious) {
+			format.MapError(w, err, h.d.Log)
+			return
+		}
 	}
 	writeJSON(w, 404, map[string]any{"error": "not found"})
 }

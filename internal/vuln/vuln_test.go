@@ -202,3 +202,24 @@ func TestCollapseBorrowsARating(t *testing.T) {
 		t.Fatalf("got %+v", got)
 	}
 }
+
+func TestMaliciousRecords(t *testing.T) {
+	mal := &Record{ID: "MAL-2025-20690"}
+	aliased := &Record{ID: "GHSA-9x64-5r7x-2q53", Aliases: []string{"MAL-2025-20690"}}
+	cwe := &Record{ID: "GHSA-mh6f-8j2x-4483"}
+	cwe.DatabaseSpecific.CWEIDs = []string{"CWE-506"}
+	bug := &Record{ID: "GHSA-jfh8-c2jp-5v3q", Aliases: []string{"CVE-2021-44228"}}
+	bug.DatabaseSpecific.CWEIDs = []string{"CWE-502", "CWE-917"}
+	for _, r := range []*Record{mal, aliased, cwe} {
+		if !r.Malicious() {
+			t.Errorf("%s: not seen as malicious", r.ID)
+		}
+		// MAL- records carry no rating; malicious code is critical anyway.
+		if sev, _ := r.rating(); sev != SeverityCritical {
+			t.Errorf("%s: rated %s, want CRITICAL", r.ID, sev)
+		}
+	}
+	if bug.Malicious() {
+		t.Errorf("%s: a vulnerability is not a malicious package", bug.ID)
+	}
+}

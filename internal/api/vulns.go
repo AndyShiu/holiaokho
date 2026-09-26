@@ -174,3 +174,105 @@ func levels(v string) []string {
 	}
 	return out
 }
+
+// blockedList lists refused downloads of malicious packages, in the
+// repositories the caller can read, most recent first.
+func (a *API) blockedList(w http.ResponseWriter, r *http.Request) {
+	p := auth.PrincipalFrom(r.Context())
+	var names []string
+	for _, rp := range a.reposByID(r) {
+		if p.CanRepo(rp.Name, rp.Format, auth.Read) {
+			names = append(names, rp.Name)
+		}
+	}
+	type allowed struct {
+		Reason string    `json:"reason"`
+		By     string    `json:"by"`
+		At     time.Time `json:"at"`
+	}
+	type row struct {
+		PURL       string    `json:"purl"`
+		Repository string    `json:"repository"`
+		Format     string    `json:"format"`
+		Name       string    `json:"name"`
+		Version    string    `json:"version"`
+		VulnID     string    `json:"id"`
+		Summary    string    `json:"summary"`
+		Attempts   int       `json:"attempts"`
+		FirstAt    time.Time `json:"firstAt"`
+		LastAt     time.Time `json:"lastAt"`
+		LastUser   string    `json:"lastUser"`
+		Allowed    *allowed  `json:"allowed"`
+	}
+	rows, err := a.Content.DB.Pool.Query(r.Context(), `
+		SELECT b.purl, b.repository, b.format, b.name, b.version, b.vuln_id, b.summary, b.attempts,
+		       b.first_at, b.last_at, b.last_user, al.reason, al.allowed_by, al.allowed_at
+		  FROM malware_blocks b LEFT JOIN malware_allowed al ON al.purl = b.purl
+		 WHERE b.repository = ANY($1)
+		 ORDER BY b.last_at DESC LIMIT 1000`, names)
+	if err != nil {
+		a.fail(w, err)
+		return
+	}
+	defer rows.Close()
+	out := []row{}
+	for rows.Next() {
+		var x row
+		var reason, by *string
+		var at *time.Time
+		if err := rows.Scan(&x.PURL, &x.Repository, &x.Format, &x.Name, &x.Version, &x.VulnID, &x.Summary, &x.Attempts,
+			&x.FirstAt, &x.LastAt, &x.LastUser, &reason, &by, &at); err != nil {
+			a.fail(w, err)
+			return
+		}
+		if reason != nil {
+			x.Allowed = &allowed{*reason, *by, *at}
+		}
+		out = append(out, x)
+	}
+	writeJSON(w, 200, map[string]any{"blocking": a.Guard != nil, "items": out})
+}
+
+// allowPackage lets one package version through the malicious-package
+// check, in every repository, with the reason on record.
+func (a *API) allowPackage(w http.ResponseWriter, r *http.Request) {
+	var in struct {
+		PURL   string `json:"purl"`
+		Reason string `json:"reason"`
+	}
+	if err := readJSON(r, &in); err != nil || in.PURL == "" || strings.TrimSpace(in.Reason) == "" {
+		writeErr(w, 400, "validation", "purl and reason are required")
+		return
+	}
+	user := auth.PrincipalFrom(r.Context()).Username
+	if _, err := a.Content.DB.Pool.Exec(r.Context(), `
+		INSERT INTO malware_allowed (purl, reason, allowed_by) VALUES ($1, $2, $3)
+		ON CONFLICT (purl) DO UPDATE SET reason = EXCLUDED.reason, allowed_by = EXCLUDED.allowed_by, allowed_at = now()`,
+		in.PURL, strings.TrimSpace(in.Reason), user); err != nil {
+		a.fail(w, err)
+		return
+	}
+	if a.Guard != nil {
+		a.Guard.Forget(in.PURL)
+	}
+	a.audit_(r, "package.allow_malicious", "package", in.PURL, map[string]any{"reason": in.Reason})
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// disallowPackage withdraws an allowance: the package is refused again.
+func (a *API) disallowPackage(w http.ResponseWriter, r *http.Request) {
+	purl := r.URL.Query().Get("purl")
+	if purl == "" {
+		writeErr(w, 400, "validation", "purl is required")
+		return
+	}
+	if _, err := a.Content.DB.Pool.Exec(r.Context(), `DELETE FROM malware_allowed WHERE purl = $1`, purl); err != nil {
+		a.fail(w, err)
+		return
+	}
+	if a.Guard != nil {
+		a.Guard.Forget(purl)
+	}
+	a.audit_(r, "package.disallow_malicious", "package", purl, nil)
+	w.WriteHeader(http.StatusNoContent)
+}

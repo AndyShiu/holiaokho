@@ -221,6 +221,28 @@ done
 code=$(curl -s -o /dev/null -w '%{http_code}' "$H/repository/maven-central/org/apache/logging/log4j/log4j-core/2.14.1/log4j-core-2.14.1.jar")
 if [ "$code" = 200 ]; then ok "anonymous can still pull"; else bad "anonymous can still pull (got $code)"; fi
 
+echo "== malicious packages"
+# flatmap-stream 0.1.1 carried the 2018 event-stream payload. The registry has
+# long since removed it; the guard must refuse it before asking upstream.
+TGZ=flatmap-stream/-/flatmap-stream-0.1.1.tgz
+for r in npm-proxy npm-group; do
+  code=$(curl -s -o "$W/mal.json" -w '%{http_code}' -u "admin:$ADMIN_PW" "$H/repository/$r/$TGZ")
+  if [ "$code" = 403 ] && grep -q '"package.malicious"' "$W/mal.json"; then ok "malicious package refused via $r"; else bad "malicious package refused via $r (got $code $(cat "$W/mal.json"))"; fi
+done
+check curl -sf -o /dev/null -u "admin:$ADMIN_PW" "$H/repository/npm-proxy/lodash/-/lodash-4.17.21.tgz"
+n=$(curl -s -u "admin:$ADMIN_PW" "$H/api/v1/vulnerabilities/blocked" | python3 -c "import sys,json; print(sum(b['attempts'] for b in json.load(sys.stdin)['items'] if b['name']=='flatmap-stream'))")
+if [ "$n" -ge 2 ]; then ok "blocked downloads are recorded ($n)"; else bad "blocked downloads are recorded (got $n)"; fi
+code=$(curl -s -o /dev/null -w '%{http_code}' "$H/api/v1/vulnerabilities/blocked")
+if [ "$code" = 401 ]; then ok "anonymous cannot read blocked downloads"; else bad "anonymous cannot read blocked downloads (got $code)"; fi
+code=$(curl -s -o /dev/null -w '%{http_code}' -u bw:Both-Writer-2026 -H 'Content-Type: application/json' -X POST -d '{"purl":"pkg:npm/flatmap-stream@0.1.1","reason":"x"}' "$H/api/v1/vulnerabilities/allowed")
+if [ "$code" = 403 ]; then ok "only an administrator can allow a malicious package"; else bad "only an administrator can allow a malicious package (got $code)"; fi
+check curl -sf -o /dev/null -u "admin:$ADMIN_PW" -H 'Content-Type: application/json' -X POST -d '{"purl":"pkg:npm/flatmap-stream@0.1.1","reason":"e2e: allow path"}' "$H/api/v1/vulnerabilities/allowed"
+code=$(curl -s -o /dev/null -w '%{http_code}' -u "admin:$ADMIN_PW" "$H/repository/npm-proxy/$TGZ")
+if [ "$code" = 404 ]; then ok "an allowed package goes to upstream (which no longer has it)"; else bad "an allowed package goes to upstream (got $code)"; fi
+check curl -sf -o /dev/null -u "admin:$ADMIN_PW" -X DELETE "$H/api/v1/vulnerabilities/allowed?purl=pkg:npm/flatmap-stream@0.1.1"
+code=$(curl -s -o /dev/null -w '%{http_code}' -u "admin:$ADMIN_PW" "$H/repository/npm-proxy/$TGZ")
+if [ "$code" = 403 ]; then ok "withdrawing the allowance blocks it again"; else bad "withdrawing the allowance blocks it again (got $code)"; fi
+
 echo "== oci referrers"
 # Signatures, SBOMs and attestations are separate manifests that name the image
 # they describe. Exercised with the API directly rather than cosign so the test

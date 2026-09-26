@@ -117,7 +117,8 @@ type Record struct {
 	Modified         time.Time  `json:"modified"`
 	Withdrawn        *time.Time `json:"withdrawn"`
 	DatabaseSpecific struct {
-		Severity string `json:"severity"`
+		Severity string   `json:"severity"`
+		CWEIDs   []string `json:"cwe_ids"`
 	} `json:"database_specific"`
 	Severity []struct {
 		Type  string `json:"type"`
@@ -183,7 +184,42 @@ func (o *OSV) do(req *http.Request, into any) error {
 // rating works out a record's severity and, when it comes from a CVSS
 // vector, its score. The advisory's own rating wins over a computed one:
 // it is what the people who triaged the issue decided.
+// Malicious reports whether the record describes a malicious package rather
+// than a bug: an entry from the OpenSSF malicious-packages database (MAL-…),
+// or one aliased to it, or an advisory classed CWE-506, embedded malicious
+// code. Such a package has no safe version to upgrade to; it is to be
+// removed, and not downloaded in the first place.
+func (r *Record) Malicious() bool {
+	if strings.HasPrefix(r.ID, "MAL-") {
+		return true
+	}
+	for _, a := range r.Aliases {
+		if strings.HasPrefix(a, "MAL-") {
+			return true
+		}
+	}
+	return contains(r.DatabaseSpecific.CWEIDs, "CWE-506")
+}
+
+// Query returns the records OSV has for one package version, in full.
+func (o *OSV) Query(ctx context.Context, purl string) ([]Record, error) {
+	var out struct {
+		Vulns []Record `json:"vulns"`
+	}
+	if err := o.post(ctx, "/v1/query", map[string]any{"package": map[string]string{"purl": purl}}, &out); err != nil {
+		return nil, err
+	}
+	return out.Vulns, nil
+}
+
 func (r *Record) rating() (severity string, score *float64) {
+	defer func() {
+		// Malicious code is critical whatever else the record says, and MAL-
+		// records carry no rating at all.
+		if r.Malicious() {
+			severity = SeverityCritical
+		}
+	}()
 	for _, s := range r.Severity {
 		if strings.HasPrefix(s.Type, "CVSS_V3") {
 			if v, ok := cvss3Score(s.Score); ok {

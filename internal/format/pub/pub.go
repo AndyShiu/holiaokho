@@ -241,8 +241,13 @@ func (h *handler) archive(w http.ResponseWriter, r *http.Request, p string) {
 				continue
 			}
 		}
-		if res, err := h.d.Engine.Fetch(r.Context(), rp, p, mp); err == nil {
+		res, err := h.d.Engine.Fetch(r.Context(), rp, p, mp)
+		if err == nil {
 			format.ServeResult(w, r, h.d, res)
+			return
+		}
+		if errors.Is(err, repo.ErrMalicious) {
+			format.MapError(w, err, h.d.Log)
 			return
 		}
 	}

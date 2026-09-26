@@ -69,6 +69,7 @@
 ├── Dashboard
 ├── Browse（瀏覽所有 repository 與內容）        ← Developer 主要入口
 ├── Search（跨 repo 搜尋套件）
+├── Vulnerabilities（漏洞清單與匯出；已攔截的惡意套件）
 ├── Repositories（管理）
 │   ├── 列表
 │   ├── 建立精靈（選格式 → 選型態 → 設定）
@@ -257,6 +258,26 @@
 - 沒有任何條件時不查，顯示空狀態與範例關鍵字（`gson`、`@babel/core`、`library/alpine`）。
 - 刪除版本後從結果移除。
 
+### 6.5.1 漏洞 `/ui/vulnerabilities?tab=&level=&severity=&format=&repository=&q=`
+
+**權限**：需登入（匿名一律 401，即使匿名存取開啟）＋`app:search read`；只列出使用者可讀 repo 中的結果。允許惡意套件需 `app:system write`。
+
+**版面**：頂部 Segmented 兩個分頁——「漏洞」與「已攔截的惡意套件（N）」，`tab=blocked` 同步到 URL。
+
+**漏洞分頁**
+- 四張嚴重度卡片（Critical／High／Moderate／Low，點擊即篩選該等級）＋涵蓋範圍說明（已檢查、待檢查、OSV 未涵蓋——不等於安全、已關閉掃描）。
+- 篩選列：關鍵字（套件、GHSA、CVE）、嚴重度下限、format、repository。
+- 結果表（伺服器排序、分頁 50）：嚴重度（惡意套件另加紅色「惡意套件」Tag）、漏洞編號（連到 osv.dev，附 CVE 別名）、套件、repository、摘要、修復版本（惡意套件顯示「請移除，沒有安全的版本」）、最後使用、發現時間。列點擊開 Package Drawer。
+- 右上「匯出報告」：選格式（PDF／Excel／CSV／JSON）與要包含的嚴重度；PDF 跟隨介面語言。「立即掃描」（`app:tasks write`）。
+
+**已攔截的惡意套件分頁**
+- 說明：OSV 列為惡意的套件，無論來自快取或上游一律拒絕下載，第一次攔截會以 email 與 `package.blocked` webhook 通知。
+- 表格：套件、repository、列為惡意的紀錄（MAL-／GHSA 編號＋摘要）、嘗試次數、最後要求者、最後／首次攔截時間、狀態（已攔截／已允許，hover 顯示允許者與原因）。
+- 管理員動作：「允許…」開 Modal（警告＋必填原因，`POST /vulnerabilities/allowed`），「重新攔截」（Popconfirm，`DELETE /vulnerabilities/allowed?purl=`）；都寫入稽核紀錄。
+- 伺服器關閉攔截時（`vulnerabilities.block_malicious: false`）顯示提示。
+
+**資料來源**：`GET /vulnerabilities/summary`、`GET /vulnerabilities?…&sort&order`、`GET /vulnerabilities/export?as&levels&lang`、`GET /vulnerabilities/blocked`。
+
 ### 6.6 Repositories 管理 `/ui/admin/repositories`
 
 **權限**：`app:repositories read`；建立／編輯 `write`；刪除 `delete`。
@@ -403,9 +424,9 @@ Tabs：
 
 **列表**（`GET /tasks`，有 running 時 3s 輪詢）：name（翻譯＋原名）、description、排程（`cron` 有值顯示 cron＋人話；否則顯示 `interval`）、enabled Switch、lastRun（相對時間＋`lastStatus` 色點）、nextRun、running spinner；列動作：「立即執行」（`POST /tasks/{name}/run` → 202 → toast 並開始輪詢）、「設定排程」。
 
-**排程 Modal**（`PUT /tasks/{name}/schedule {cron?, enabled}`）：Radio「預設間隔」／「Cron」；cron 輸入框＋常用範本（每天 02:00、每小時、每週日）＋人話解析＋「接下來 5 次執行時間」預覽（前端用 cron 解析函式庫計算）；enabled 開關。
+**排程 Modal**（`PUT /tasks/{name}/schedule {cron?, enabled}`）：Radio「預設間隔」／「Cron」；cron 輸入框＋常用範本（每天 02:00、每小時、每週日）＋人話解析＋「接下來 5 次執行時間」預覽（由伺服器計算：`GET /tasks/cron-preview?expr=`，因為排程依伺服器時鐘執行；畫面標明伺服器時區，時區不同時並列使用者時間與伺服器時間）；enabled 開關。
 
-**執行記錄**（頁面下半或 Tab；`GET /tasks/runs?task=`）：時間、任務、狀態 Tag（success／failed／running）、耗時、展開列顯示 `log`（等寬、深色底）。
+**執行記錄**（頁面下半或 Tab；`GET /tasks/runs?task=`，任務篩選用可搜尋的下拉選單）：時間、任務、狀態 Tag（success／failed／running）、耗時、展開列顯示 `log`（等寬、深色底）。
 
 **內建任務清單與翻譯**：`blob-gc`（回收未引用 blob，軟刪除）、`compact-blobs`（實際刪除檔案釋放空間）、`cleanup-policies`（套用清理規則）、`prune-expired`（清過期快取／session／token）、`rebuild-indexes`（重建各格式索引）、`backup`（有設定才出現）。
 

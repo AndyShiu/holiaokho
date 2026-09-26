@@ -60,19 +60,26 @@ func WriteXLSX(w io.Writer, r *Report, lang string) error {
 		hdr(L("aliases")), hdr(L("vulnSummary")), hdr(L("fixTo")), hdr(L("fixedIn")), hdr(L("published")),
 		hdr(L("firstSeen")), hdr(L("repositories")), hdr(L("link"))}}
 	for _, p := range r.Packages {
-		fixes := L("yes")
+		fixes, up := L("yes"), p.UpgradeTo
 		if !p.FixesAll {
 			fixes = L("noFixFor")
 		}
+		if p.Malicious {
+			up, fixes = L("remove"), L("maliciousNote")
+		}
 		pkgs = append(pkgs, []cell{txt(p.Name), txt(p.Version), txt(sev(p.Severity)), num(float64(len(p.Vulnerabilities))),
-			txt(p.UpgradeTo), txt(fixes), txt(p.LastUsed.UTC().Format("2006-01-02")), txt(strings.Join(p.Repositories, ", ")), txt(p.PURL)})
+			txt(up), txt(fixes), txt(p.LastUsed.UTC().Format("2006-01-02")), txt(strings.Join(p.Repositories, ", ")), txt(p.PURL)})
 		for _, v := range p.Vulnerabilities {
 			sc := txt("")
 			if v.Score != nil {
 				sc = num(*v.Score)
 			}
+			fix := v.FixTo
+			if v.Malicious {
+				fix = L("remove")
+			}
 			vulns = append(vulns, []cell{txt(p.Name), txt(p.Version), txt(sev(v.Severity)), sc, txt(v.ID),
-				txt(strings.Join(v.Aliases, ", ")), txt(v.Summary), txt(v.FixTo), txt(strings.Join(v.FixedIn, ", ")),
+				txt(strings.Join(v.Aliases, ", ")), txt(v.Summary), txt(fix), txt(strings.Join(v.FixedIn, ", ")),
 				txt(date(v.Published)), txt(v.FirstSeen.UTC().Format("2006-01-02")), txt(strings.Join(p.Repositories, ", ")), txt(v.URL)})
 		}
 	}

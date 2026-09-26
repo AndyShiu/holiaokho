@@ -48,6 +48,14 @@ English | [繁體中文](security.zh-TW.md)
 - Backup files contain ciphertext and require the same key to be usable
 - TLS minimum version is 1.2
 
+**Supply chain: malicious packages (1.4.0)**
+- Packages OSV lists as malicious (`MAL-` records from the OpenSSF malicious-packages database, and advisories classed CWE-506) are refused at download (403 `package.malicious`), from the cache and from proxy upstreams alike; other members of a group do not serve them instead
+- A package the scan has checked is judged from that result; a new one is looked up in OSV on its first request (5-second timeout, one lookup however many requests arrive together, verdict cached for an hour)
+- **When OSV cannot be reached, downloads go ahead** (fail open) and a warning is logged: an internal network with no route out is a normal deployment, and failing closed would stop every build. Where failing closed matters, point `vulnerabilities.osv_url` at an internal OSV mirror
+- Every block is recorded (package, repository, user, count); the first is sent by email and as a `package.blocked` webhook
+- Only `app:system write` can allow a listed version, with a required reason; allowing and withdrawing are both in the audit log
+- This matches a list of known malicious packages; it is not behavioural analysis. A malicious package not yet listed is not stopped
+
 ## 2026-09-13 Review Findings and Fixes
 
 | Severity | Issue | Fix |

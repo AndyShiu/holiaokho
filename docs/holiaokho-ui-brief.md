@@ -69,6 +69,7 @@ Design priority: **the admin's efficiency and sense of trust come first**; devel
 ├── Dashboard
 ├── Browse (browse all repositories and their content)        ← Developer's main entry point
 ├── Search (search packages across all repositories)
+├── Vulnerabilities (findings and export; blocked malicious packages)
 ├── Repositories (management)
 │   ├── List
 │   ├── Creation wizard (choose format → choose type → configure)
@@ -257,6 +258,26 @@ Each page follows this shape: **route / permissions** → **layout and component
 - With no criteria at all, no query runs — show an empty state with example keywords (`gson`, `@babel/core`, `library/alpine`).
 - Deleting a version removes it from the results.
 
+### 6.5.1 Vulnerabilities `/ui/vulnerabilities?tab=&level=&severity=&format=&repository=&q=`
+
+**Permissions**: signed in (anonymous callers always get 401, even with anonymous access on) plus `app:search read`; only findings in repositories the user can read are listed. Allowing a malicious package takes `app:system write`.
+
+**Layout**: a Segmented control at the top with two tabs — "Vulnerabilities" and "Blocked malicious packages (N)"; `tab=blocked` is kept in the URL.
+
+**Vulnerabilities tab**
+- Four severity cards (Critical / High / Moderate / Low; a click filters to that level) and a coverage line (checked, waiting, not covered by OSV — which is not the same as safe, scanning off).
+- Filter bar: keyword (package, GHSA or CVE id), minimum severity, format, repository.
+- Results table (sorted by the server, 50 per page): severity (malicious packages get an extra red "Malicious" tag), vulnerability id (links to osv.dev, with its CVE alias), package, repository, summary, fixed in (malicious packages say "Remove it — no version is safe"), last used, found. Clicking a row opens the Package Drawer.
+- Top right: "Export report" — choose the format (PDF / Excel / CSV / JSON) and the severities to include; the PDF follows the interface language. "Scan now" (`app:tasks write`).
+
+**Blocked malicious packages tab**
+- An explanation: downloads of packages OSV lists as malicious are refused, from the cache and from upstream; the first block of each is sent by email and as a `package.blocked` webhook.
+- Table: package, repository, the record listing it as malicious (MAL- or GHSA id and summary), attempts, last requested by, last and first blocked, status (Blocked / Allowed; hover shows who allowed it and why).
+- Administrator actions: "Allow…" opens a modal (a warning and a required reason; `POST /vulnerabilities/allowed`), "Block again" (Popconfirm; `DELETE /vulnerabilities/allowed?purl=`). Both are written to the audit log.
+- When the server has blocking off (`vulnerabilities.block_malicious: false`), say so.
+
+**Data sources**: `GET /vulnerabilities/summary`, `GET /vulnerabilities?…&sort&order`, `GET /vulnerabilities/export?as&levels&lang`, `GET /vulnerabilities/blocked`.
+
 ### 6.6 Repositories management `/ui/admin/repositories`
 
 **Permissions**: `app:repositories read`; create/edit needs `write`; delete needs `delete`.
@@ -403,9 +424,9 @@ A pure front-end component with no API of its own. It generates 1–3 snippets p
 
 **List** (`GET /tasks`, polled every 3s while anything is running): name (translated, with the raw name alongside), description, schedule (shows the cron expression plus a plain-language reading when `cron` is set; otherwise shows `interval`), an enabled Switch, lastRun (relative time + a colour dot for `lastStatus`), nextRun, a running spinner; row actions: "Run now" (`POST /tasks/{name}/run` → 202 → a toast, then polling starts), "Schedule."
 
-**Schedule Modal** (`PUT /tasks/{name}/schedule {cron?, enabled}`): a radio for "Default interval" / "Cron"; a cron input with common templates (Daily 02:00, Hourly, Sunday 03:00), a plain-language reading, and a "Next 5 runs" preview (computed front-end-side with a cron-parsing library); an enabled toggle.
+**Schedule Modal** (`PUT /tasks/{name}/schedule {cron?, enabled}`): a radio for "Default interval" / "Cron"; a cron input with common templates (Daily 02:00, Hourly, Sunday 03:00), a plain-language reading, and a "Next 5 runs" preview (computed by the server — `GET /tasks/cron-preview?expr=` — since tasks run on its clock; the modal names the server's time zone and, when it differs, shows each run in the user's time next to the server's); an enabled toggle.
 
-**Run history** (the lower half of the page, or a tab; `GET /tasks/runs?task=`): time, task, a status tag (success/failed/running), duration, an expandable row showing the `log` (monospace, dark background).
+**Run history** (the lower half of the page, or a tab; `GET /tasks/runs?task=`, filtered by task with a searchable dropdown): time, task, a status tag (success/failed/running), duration, an expandable row showing the `log` (monospace, dark background).
 
 **Built-in tasks and their translations**: `blob-gc` (reclaims unreferenced blobs, a soft delete), `compact-blobs` (actually deletes files to free space), `cleanup-policies` (applies cleanup rules), `prune-expired` (clears expired caches/sessions/tokens), `rebuild-indexes` (rebuilds each format's index), `backup` (appears only when configured).
 

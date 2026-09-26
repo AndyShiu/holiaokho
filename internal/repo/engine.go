@@ -40,6 +40,8 @@ var (
 	ErrInvalidPath    = errors.New("invalid path")
 	ErrUpstreamDenied = errors.New("upstream denied")
 	ErrRouted         = errors.New("path blocked by routing rule")
+	// ErrMalicious is what a Gate refusal matches (see BlockedError).
+	ErrMalicious = errors.New("known malicious package")
 	// ErrBlocked is an ErrUpstream: the upstream is blocked, by an
 	// administrator or after failures, so it was not asked. Distinct so
 	// callers merging group members need not log it on every request — the
@@ -126,6 +128,11 @@ type Engine struct {
 	spools  map[string]*spool
 	// retries is proxy.retries from the configuration (see doWithRetry).
 	retries int
+
+	// Gate, when set, may refuse to serve a package: one known to be
+	// malicious. It sees every fetch that carries package coordinates, from
+	// the cache or upstream, and returns a *BlockedError to refuse.
+	Gate func(ctx context.Context, repo *model.Repository, pkg *model.Package) error
 	// autoBlock tracks upstream failures per repo (name -> until).
 	blockedMu sync.Mutex
 	blocked   map[string]time.Time
@@ -217,6 +224,20 @@ func CleanPath(p string) (string, error) {
 	return p, nil
 }
 
+// BlockedError is a download refused because the package is known to be
+// malicious. It says which record says so, for the client's error message.
+type BlockedError struct {
+	Package string // name@version
+	ID      string // the record, MAL-… or GHSA-…
+	Summary string
+}
+
+func (e *BlockedError) Error() string {
+	return fmt.Sprintf("download blocked: %s is a known malicious package (%s)", e.Package, e.ID)
+}
+
+func (e *BlockedError) Is(target error) bool { return target == ErrMalicious }
+
 // ------------------------------------------------------------------- Fetch
 
 // Fetch resolves path in repo according to its type.
@@ -226,6 +247,12 @@ func (e *Engine) Fetch(ctx context.Context, repo *model.Repository, path string,
 	}
 	if rule := e.RuleFor(ctx, repo); rule != nil && !rule.Allows(path) {
 		return nil, ErrRouted
+	}
+	// A group asks its members, and each member asks the Gate.
+	if e.Gate != nil && pol.Package != nil && repo.Type != model.Group {
+		if err := e.Gate(ctx, repo, pol.Package); err != nil {
+			return nil, err
+		}
 	}
 	switch repo.Type {
 	case model.Hosted:
@@ -289,6 +316,10 @@ func (e *Engine) fetchGroup(ctx context.Context, group *model.Repository, path s
 		res, err := e.Fetch(ctx, m, path, pol)
 		if err == nil {
 			return res, nil
+		}
+		// Refused as malicious: another member must not serve it instead.
+		if errors.Is(err, ErrMalicious) {
+			return nil, err
 		}
 		// A member that cannot serve the path (missing, offline, routed away,
 		// or the upstream refused it) must not mask other members.

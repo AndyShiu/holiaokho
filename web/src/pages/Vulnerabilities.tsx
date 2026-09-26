@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Alert, App, Button, Checkbox, Input, Modal, Radio, Select, Table } from 'antd'
+import { Alert, App, Button, Checkbox, Input, Modal, Radio, Segmented, Select, Table, Tag } from 'antd'
 import { DownloadOutlined, SearchOutlined } from '@ant-design/icons'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -14,6 +14,7 @@ import { Num, RelTime } from '@/components/Format'
 import { SeverityTag, VulnId, packageLabel, severities } from '@/components/Vulns'
 import { formatInfo } from '@/theme/tokens'
 import { useServerSort } from '@/components/SortableTable'
+import { BlockedDownloads } from '@/components/BlockedDownloads'
 
 const PAGE = 50
 
@@ -38,7 +39,10 @@ export default function Vulnerabilities() {
   const [pkg, setPkg] = useState<string | null>(null)
   const [asset, setAsset] = useState<string | null>(null)
 
+  const tab = sp.get('tab') === 'blocked' ? 'blocked' : 'findings'
   const summary = useQuery({ queryKey: ['vuln-summary'], queryFn: () => get<VulnSummary>('vulnerabilities/summary') })
+  const blocked = useQuery({ queryKey: ['vuln-blocked'], queryFn: () => get<{ blocking: boolean; items: { allowed: unknown }[] }>('vulnerabilities/blocked') })
+  const blockedCount = (blocked.data?.items ?? []).filter((b) => !b.allowed).length
   const repos = useQuery({ queryKey: ['repositories'], queryFn: () => get<Repository[]>('repositories') })
   const list = useQuery({
     queryKey: ['vulns', severity, level, repository, format, q, page, sort.params],
@@ -117,7 +121,7 @@ export default function Vulnerabilities() {
       <PageHeader
         title={t('vulns.title', 'Vulnerabilities')}
         sub={s?.lastOkAt && <span style={{ color: 'var(--hlk-text-tertiary)', fontSize: 12 }}>{t('vulns.lastScan', 'Last checked')} <RelTime value={s.lastOkAt} /> · {t('vulns.source', 'data from OSV.dev')}</span>}
-        extra={
+        extra={tab === 'findings' &&
           <span style={{ display: 'inline-flex', gap: 8 }}>
             <Button icon={<DownloadOutlined />} onClick={openExport} disabled={!total}>{t('vulns.export.button', 'Export report')}</Button>
             {can('app:tasks', 'write') && s?.enabled && <Button onClick={scanNow}>{t('vulns.scanNow', 'Scan now')}</Button>}
@@ -125,6 +129,15 @@ export default function Vulnerabilities() {
         }
       />
 
+      <Segmented
+        style={{ marginBottom: 16 }} value={tab}
+        onChange={(v) => { const next = new URLSearchParams(sp); if (v === 'blocked') next.set('tab', 'blocked'); else next.delete('tab'); setSp(next, { replace: true }) }}
+        options={[
+          { value: 'findings', label: t('vulns.tabFindings', 'Vulnerabilities') },
+          { value: 'blocked', label: <span>{t('vulns.tabBlocked', 'Blocked malicious packages')}{blockedCount > 0 && <Tag color="red" style={{ marginLeft: 6, marginRight: 0 }}>{blockedCount}</Tag>}</span> },
+        ]}
+      />
+      {tab === 'blocked' ? <BlockedDownloads /> : <>
       {s && !s.enabled && (
         <Alert type="info" showIcon style={{ marginBottom: 16 }} message={t('vulns.disabled', 'Vulnerability scanning is turned off in the server configuration (vulnerabilities.enabled).')} />
       )}
@@ -187,7 +200,12 @@ export default function Vulnerabilities() {
           }}
           pagination={{ current: page + 1, pageSize: PAGE, total: list.data?.total ?? 0, onChange: (p) => setPage(p - 1), showSizeChanger: false, showTotal: (n) => t('vulns.total', '{{n}} findings', { n }) }}
           columns={[
-            { title: t('vulns.severity', 'Severity'), dataIndex: 'severity', width: 130, ...sort.col('severity'), render: (_: unknown, r) => <SeverityTag severity={r.severity} score={r.score} /> },
+            { title: t('vulns.severity', 'Severity'), dataIndex: 'severity', width: 130, ...sort.col('severity'), render: (_: unknown, r) => (
+              <span style={{ display: 'inline-flex', flexDirection: 'column', gap: 4, alignItems: 'flex-start' }}>
+                <SeverityTag severity={r.severity} score={r.score} />
+                {r.malicious && <Tag color="red" style={{ margin: 0 }}>{t('vulns.malicious', 'Malicious')}</Tag>}
+              </span>
+            ) },
             { title: t('vulns.id', 'Vulnerability'), dataIndex: 'id', width: 190, ...sort.col('id'), render: (_: unknown, r) => <span onClick={(e) => e.stopPropagation()}><VulnId f={r} /></span> },
             {
               title: t('vulns.package', 'Package'), ...sort.col('package'), render: (_: unknown, r) => (
@@ -200,7 +218,7 @@ export default function Vulnerabilities() {
             },
             { title: t('common.repository', 'Repository'), dataIndex: 'repository', width: 160, ...sort.col('repository'), render: (x: string) => <Link to={`/browse/${x}`} onClick={(e) => e.stopPropagation()} className="hlk-mono" style={{ fontSize: 12 }}>{x}</Link> },
             { title: t('vulns.summary', 'Summary'), dataIndex: 'summary', ...sort.col('summary'), render: (x: string) => <span style={{ fontSize: 12.5 }}>{x || '—'}</span> },
-            { title: t('vulns.fixedIn', 'Fixed in'), dataIndex: 'fixedIn', width: 150, render: (x: string[]) => x.length ? <span className="hlk-mono" style={{ fontSize: 12 }}>{x.join(', ')}</span> : <span style={{ color: 'var(--hlk-text-tertiary)', fontSize: 12 }}>{t('vulns.noFixShort', 'none yet')}</span> },
+            { title: t('vulns.fixedIn', 'Fixed in'), dataIndex: 'fixedIn', width: 150, render: (x: string[], r) => r.malicious ? <span style={{ color: 'var(--hlk-error)', fontSize: 12, fontWeight: 500 }}>{t('vulns.removeIt', 'Remove it — no version is safe')}</span> : x.length ? <span className="hlk-mono" style={{ fontSize: 12 }}>{x.join(', ')}</span> : <span style={{ color: 'var(--hlk-text-tertiary)', fontSize: 12 }}>{t('vulns.noFixShort', 'none yet')}</span> },
             // Whether anyone still pulls it: the same finding matters more in
             // a package fetched yesterday than in one nobody has touched in months.
             { title: t('vulns.lastUsed', 'Last used'), dataIndex: 'lastUsed', width: 110, ...sort.col('lastUsed'), render: (x: string) => <RelTime value={x} /> },
@@ -208,6 +226,7 @@ export default function Vulnerabilities() {
           ]}
         />
       </div>
+      </>}
       <Modal
         open={exportOpen} onCancel={() => setExportOpen(false)} title={t('vulns.export.button', 'Export report')}
         okText={t('vulns.export.download', 'Download')} onOk={doExport} okButtonProps={{ disabled: levels.length === 0, icon: <DownloadOutlined /> }}

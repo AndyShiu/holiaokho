@@ -50,6 +50,13 @@ vulnerabilities:
   # Newly found vulnerabilities at or above this level are sent by email and
   # as a "vulnerability.found" webhook: CRITICAL | HIGH | MODERATE | LOW
   notify_min_severity: HIGH
+  # Refuse to serve packages OSV lists as malicious (the OpenSSF
+  # malicious-packages database, and advisories classed CWE-506), whether
+  # from the cache or on the way in from a proxy. A package not seen before
+  # is looked up when it is first requested; if OSV cannot be reached the
+  # download goes ahead. An administrator can allow a wrongly listed package
+  # on the Vulnerabilities page. Blocks are sent as "package.blocked".
+  block_malicious: true
 updates:
   # Once a day, ask GitHub whether a newer release exists and tell
   # administrators in the UI. The request carries nothing but a User-Agent

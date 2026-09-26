@@ -66,8 +66,11 @@ type PkgEntry struct {
 	LastUsed     time.Time `json:"lastUsed"` // latest across its repositories
 	// UpgradeTo is the lowest version that fixes every vulnerability listed
 	// that has a fix; FixesAll says whether that is all of them.
-	UpgradeTo       string       `json:"upgradeTo,omitempty"`
-	FixesAll        bool         `json:"fixesAll"`
+	UpgradeTo string `json:"upgradeTo,omitempty"`
+	FixesAll  bool   `json:"fixesAll"`
+	// Malicious: the package is malicious code, not a bug. No version is
+	// safe; it is to be removed (and UpgradeTo is empty).
+	Malicious       bool         `json:"malicious"`
 	Vulnerabilities []ReportVuln `json:"vulnerabilities"`
 }
 
@@ -82,6 +85,7 @@ type ReportVuln struct {
 	Published *time.Time `json:"published,omitempty"`
 	FirstSeen time.Time  `json:"firstSeen"`
 	URL       string     `json:"url"`
+	Malicious bool       `json:"malicious,omitempty"`
 }
 
 // exportLimit bounds one report. Far above what any instance has had; it is
@@ -217,7 +221,12 @@ func assemble(r *Report, found []Finding) {
 			ID: x.VulnID, Aliases: nonNil(x.Aliases), Severity: x.Severity, Score: x.Score, Summary: x.Summary,
 			FixedIn: nonNil(x.FixedIn), FixTo: fixFor(x.Version, x.FixedIn),
 			Published: x.Published, FirstSeen: x.FirstSeen, URL: "https://osv.dev/vulnerability/" + x.VulnID,
+			Malicious: x.Malicious,
 		})
+		if x.Malicious {
+			p.Malicious = true
+			p.Vulnerabilities[len(p.Vulnerabilities)-1].FixTo = ""
+		}
 		if SeverityRank(x.Severity) > SeverityRank(p.Severity) {
 			p.Severity = x.Severity
 		}
@@ -235,6 +244,9 @@ func assemble(r *Report, found []Finding) {
 			} else if p.UpgradeTo == "" || compareVersions(v.FixTo, p.UpgradeTo) > 0 {
 				p.UpgradeTo = v.FixTo
 			}
+		}
+		if p.Malicious {
+			p.UpgradeTo, p.FixesAll = "", false
 		}
 		sort.Strings(p.Repositories)
 		r.Packages = append(r.Packages, *p)
