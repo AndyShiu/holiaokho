@@ -325,14 +325,15 @@
     "step2a": "例：Maven Central",
     "step3": "クライアント設定をコピー",
     "step3a": "リポジトリの「使い方」タブから",
-    "welcome": "Holiaokho へようこそ",
-    "welcomeHint": "3 ステップで最初のリポジトリを稼働させましょう。",
+    "updateAvailable": "Holiaokho {{latest}} が公開されました。このサーバーは {{current}} です。",
+    "updateNotes": "更新内容を見る",
     "vulnsFound": "保存されている {{n}} 件のパッケージに既知の脆弱性があります",
-    "vulnsView": "表示",
+    "vulnsFound_one": "保存されている {{n}} 件のパッケージに既知の脆弱性があります",
     "vulnsStale": "脆弱性データを更新できません：2 日以上 OSV に接続できていません。",
     "vulnsStaleShort": "（未更新：OSV に接続できません）",
-    "updateAvailable": "Holiaokho {{latest}} が公開されました。このサーバーは {{current}} です。",
-    "updateNotes": "更新内容を見る"
+    "vulnsView": "表示",
+    "welcome": "Holiaokho へようこそ",
+    "welcomeHint": "3 ステップで最初のリポジトリを稼働させましょう。"
   },
   "email": {
     "encryption": "暗号化方式",

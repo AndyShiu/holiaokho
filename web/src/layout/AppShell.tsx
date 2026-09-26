@@ -107,7 +107,7 @@ export default function AppShell() {
     it.push({ key: '/browse', icon: <FolderOpenOutlined />, label: <Link to="/browse">{t('nav.browse', 'Browse')}</Link> })
     if (can('app:search', 'read')) {
       it.push({ key: '/search', icon: <SearchOutlined />, label: <Link to="/search">{t('nav.search', 'Search')}</Link> })
-      it.push({ key: '/vulnerabilities', icon: <BugOutlined />, label: <Link to="/vulnerabilities">{t('vulns.title', 'Vulnerabilities')}</Link> })
+      if (!isAnonymous) it.push({ key: '/vulnerabilities', icon: <BugOutlined />, label: <Link to="/vulnerabilities">{t('vulns.title', 'Vulnerabilities')}</Link> })
     }
     const manage: MenuProps['items'] = []
     if (can('app:repositories', 'read')) manage.push({ key: '/admin/repositories', icon: <AppstoreOutlined />, label: <Link to="/admin/repositories">{t('nav.repositories', 'Repositories')}</Link> })

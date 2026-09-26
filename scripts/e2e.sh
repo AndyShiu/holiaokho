@@ -161,6 +161,14 @@ for as in pdf xlsx csv json; do
 done
 check grep -q "pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1,maven,.*GHSA-jfh8-c2jp-5v3q" "$W/report.csv"
 check grep -q '^%PDF-' "$W/report.pdf"
+# Anonymous access exists so CI can pull without credentials. It must not
+# hand anyone on the network a sorted list of what is exploitable here.
+for path in vulnerabilities vulnerabilities/summary "vulnerabilities/export?as=csv"; do
+  code=$(curl -s -o /dev/null -w '%{http_code}' "$H/api/v1/$path")
+  if [ "$code" = 401 ]; then ok "anonymous cannot read $path"; else bad "anonymous cannot read $path (got $code)"; fi
+done
+code=$(curl -s -o /dev/null -w '%{http_code}' "$H/repository/maven-central/org/apache/logging/log4j/log4j-core/2.14.1/log4j-core-2.14.1.jar")
+if [ "$code" = 200 ]; then ok "anonymous can still pull"; else bad "anonymous can still pull (got $code)"; fi
 
 echo "== oci referrers"
 # Signatures, SBOMs and attestations are separate manifests that name the image

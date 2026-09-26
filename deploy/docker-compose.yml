@@ -16,7 +16,7 @@ services:
 
   holiaokho:
     # The published image, so trying it out is a pull rather than a build.
-    # Pin a release with HOLIAOKHO_VERSION=1.3.2; add --build to run your own
+    # Pin a release with HOLIAOKHO_VERSION=1.3.3; add --build to run your own
     # checkout instead.
     image: ghcr.io/andyshiu/holiaokho:${HOLIAOKHO_VERSION:-latest}
     build: ..

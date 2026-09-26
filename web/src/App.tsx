@@ -48,7 +48,9 @@ function Guard({ children, target, action = 'read', authed }: { children: ReactN
   if (mustChangePassword(session, loc.pathname)) return <Navigate to="/change-password?forced=1" replace />
   const anon = !session || session.anonymous
   if ((authed || target) && anon) {
-    if (target && methods?.anonymous && can(target, action)) return <>{children}</>
+    // Anonymous access can open a page its role allows — unless the page
+    // asks for a signed-in user, whatever the role grants.
+    if (!authed && target && methods?.anonymous && can(target, action)) return <>{children}</>
     return <Navigate to={`/login?next=${encodeURIComponent(loc.pathname + loc.search)}`} replace />
   }
   if (target && !can(target, action)) return <Navigate to="/browse" replace />
@@ -80,7 +82,7 @@ export default function App() {
             <Route path="/changelog" element={<Changelog />} />
             <Route path="/browse/:repo/*" element={<Browse />} />
             <Route path="/search" element={<Guard target="app:search"><Search /></Guard>} />
-            <Route path="/vulnerabilities" element={<Guard target="app:search"><Vulnerabilities /></Guard>} />
+            <Route path="/vulnerabilities" element={<Guard authed target="app:search"><Vulnerabilities /></Guard>} />
             <Route path="/admin/repositories" element={<Guard target="app:repositories"><Repositories /></Guard>} />
             <Route path="/admin/repositories/new" element={<Guard target="app:repositories" action="write"><RepoWizard /></Guard>} />
             <Route path="/admin/repositories/:name" element={<Guard target="app:repositories"><RepoDetail /></Guard>} />

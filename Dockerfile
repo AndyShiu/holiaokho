@@ -17,7 +17,7 @@ RUN npm run build
 
 FROM --platform=$BUILDPLATFORM golang:1.27-alpine AS build
 WORKDIR /src
-ARG VERSION=1.3.2
+ARG VERSION=1.3.3
 # Supplied by buildx for each image it is producing.
 ARG TARGETOS TARGETARCH
 ENV LDFLAGS="-s -w -X github.com/holiaokho/holiaokho/internal/server.Version=$VERSION"

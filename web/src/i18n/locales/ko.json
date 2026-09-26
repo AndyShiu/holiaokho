@@ -325,14 +325,15 @@
     "step2a": "예: Maven Central",
     "step3": "클라이언트 설정 복사",
     "step3a": "리포지터리의 「사용법」 탭에서",
-    "welcome": "Holiaokho에 오신 것을 환영합니다",
-    "welcomeHint": "세 단계로 첫 리포지터리를 가동해 보세요.",
+    "updateAvailable": "Holiaokho {{latest}}이(가) 출시되었습니다. 이 서버는 {{current}}입니다.",
+    "updateNotes": "새 기능 보기",
     "vulnsFound": "저장된 패키지 {{n}}개에 알려진 취약점이 있습니다",
-    "vulnsView": "보기",
+    "vulnsFound_one": "저장된 패키지 {{n}}개에 알려진 취약점이 있습니다",
     "vulnsStale": "취약점 데이터를 갱신할 수 없습니다: 이틀 넘게 OSV에 연결하지 못했습니다.",
     "vulnsStaleShort": "(갱신 안 됨: OSV 연결 불가)",
-    "updateAvailable": "Holiaokho {{latest}}이(가) 출시되었습니다. 이 서버는 {{current}}입니다.",
-    "updateNotes": "새 기능 보기"
+    "vulnsView": "보기",
+    "welcome": "Holiaokho에 오신 것을 환영합니다",
+    "welcomeHint": "세 단계로 첫 리포지터리를 가동해 보세요."
   },
   "email": {
     "encryption": "암호화 방식",

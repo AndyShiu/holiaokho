@@ -15,6 +15,22 @@ export interface Release {
 
 export const releases: Release[] = [
   {
+    version: '1.3.3',
+    date: '2026-09-26',
+    changes: [
+      {
+        kind: 'fixed',
+        text: {
+          en: 'Vulnerability findings, their summary and report exports now require signing in. With anonymous access on — as it usually is, so builds can pull without credentials — anyone who could reach the server could read or download a list of the known vulnerabilities in the packages it holds. Anonymous pulls are unaffected.',
+          'zh-TW': '漏洞清單、摘要與報告匯出現在都必須登入才能使用。以前在開放匿名存取時(通常都會開,讓建置不需帳密就能拉套件),任何連得到伺服器的人都能看到或下載已存放套件的已知漏洞清單。匿名拉取套件不受影響。',
+          'zh-CN': '漏洞列表、摘要与报告导出现在都必须登录才能使用。以前在开放匿名访问时(通常都会开,让构建不需账密就能拉包),任何连得到服务器的人都能看到或下载已存储包的已知漏洞列表。匿名拉取包不受影响。',
+          ja: '脆弱性の一覧・概要・レポート出力はサインインが必要になりました。匿名アクセスが有効な場合(ビルドが認証なしで取得できるよう通常は有効)、サーバーに到達できる誰もが既知の脆弱性の一覧を閲覧・ダウンロードできていました。匿名での取得は影響を受けません。',
+          ko: '취약점 목록·요약·보고서 내보내기는 이제 로그인해야 사용할 수 있습니다. 익명 접근이 켜져 있으면(빌드가 자격 증명 없이 받을 수 있도록 보통 켜 둠) 서버에 접근할 수 있는 누구나 알려진 취약점 목록을 보거나 내려받을 수 있었습니다. 익명으로 패키지를 받는 것은 영향이 없습니다.',
+        },
+      },
+    ],
+  },
+  {
     version: '1.3.2',
     date: '2026-09-26',
     changes: [

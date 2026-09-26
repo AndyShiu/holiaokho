@@ -325,14 +325,15 @@
     "step2a": "例如 Maven Central",
     "step3": "複製用戶端設定",
     "step3a": "在 repository 的「使用方式」分頁",
-    "welcome": "歡迎使用好料庫",
-    "welcomeHint": "三個步驟讓第一個 repository 開始服務。",
+    "updateAvailable": "好料庫 {{latest}} 已發佈，這台伺服器目前是 {{current}}。",
+    "updateNotes": "查看更新內容",
     "vulnsFound": "有 {{n}} 個已存放的套件含有已知漏洞",
-    "vulnsView": "查看",
+    "vulnsFound_one": "有 {{n}} 個已存放的套件含有已知漏洞",
     "vulnsStale": "漏洞資料無法更新：已經超過兩天無法連線到 OSV。",
     "vulnsStaleShort": "（未更新：無法連線 OSV）",
-    "updateAvailable": "好料庫 {{latest}} 已發佈，這台伺服器目前是 {{current}}。",
-    "updateNotes": "查看更新內容"
+    "vulnsView": "查看",
+    "welcome": "歡迎使用好料庫",
+    "welcomeHint": "三個步驟讓第一個 repository 開始服務。"
   },
   "email": {
     "encryption": "加密方式",

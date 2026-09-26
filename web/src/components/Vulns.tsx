@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { get } from '@/api/client'
 import type { PackageVulns, Severity, VulnFinding } from '@/api/types'
 import { RelTime } from './Format'
+import { useAuth } from '@/auth/AuthContext'
 
 export const severities: Severity[] = ['CRITICAL', 'HIGH', 'MODERATE', 'LOW', 'UNKNOWN']
 
@@ -54,7 +55,9 @@ export function packageLabel(f: Pick<VulnFinding, 'format' | 'namespace' | 'name
 // package that was actually checked.
 export function PackageVulnsSection({ packageId }: { packageId: string }) {
   const { t } = useTranslation()
-  const q = useQuery({ queryKey: ['package-vulns', packageId], queryFn: () => get<PackageVulns>(`packages/${packageId}/vulnerabilities`) })
+  const { isAnonymous } = useAuth()
+  // Signed-in users only; the server refuses anonymous callers anyway.
+  const q = useQuery({ queryKey: ['package-vulns', packageId], queryFn: () => get<PackageVulns>(`packages/${packageId}/vulnerabilities`), enabled: !isAnonymous })
   const v = q.data
   if (!v || v.status === 'disabled') return null
   const note = (text: string) => <p style={{ margin: 0, fontSize: 12.5, color: 'var(--hlk-text-secondary)' }}>{text}</p>

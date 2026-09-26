@@ -147,11 +147,13 @@ func (a *API) Router() http.Handler {
 		r.Delete("/{id}", a.need("app:roles", auth.Delete, a.deleteRole))
 	})
 	r.Get("/search", a.need("app:search", auth.Read, a.search))
-	// Findings are a view over packages, so they follow the same rule:
-	// whoever may search sees the findings in repositories they can read.
-	r.Get("/vulnerabilities", a.need("app:search", auth.Read, a.vulnList))
-	r.Get("/vulnerabilities/summary", a.need("app:search", auth.Read, a.vulnSummary))
-	r.Get("/vulnerabilities/export", a.need("app:search", auth.Read, a.vulnExport))
+	// Findings follow package visibility — you see those in repositories you
+	// can read — but never anonymously. Anonymous access exists so builds
+	// can pull without credentials; a sorted list of what is exploitable in
+	// those builds is not something to hand to anyone on the network.
+	r.Get("/vulnerabilities", a.signedIn(a.need("app:search", auth.Read, a.vulnList)))
+	r.Get("/vulnerabilities/summary", a.signedIn(a.need("app:search", auth.Read, a.vulnSummary)))
+	r.Get("/vulnerabilities/export", a.signedIn(a.need("app:search", auth.Read, a.vulnExport)))
 	// Upgrading is an administrator's decision, so only they are told.
 	r.Get("/updates", a.need("app:system", auth.Read, func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, 200, a.Updates.Status(r.Context()))
@@ -161,7 +163,7 @@ func (a *API) Router() http.Handler {
 		r.Delete("/{id}", a.deletePackage)
 		r.Get("/{id}/assets", a.packageAssets)
 		r.Get("/{id}/referrers", a.packageReferrers)
-		r.Get("/{id}/vulnerabilities", a.packageVulns)
+		r.Get("/{id}/vulnerabilities", a.signedIn(a.packageVulns))
 	})
 	r.Route("/assets", func(r chi.Router) {
 		r.Get("/{id}", a.getAsset)
@@ -242,6 +244,17 @@ func isHTTPS(r *http.Request) bool {
 }
 
 // need wraps a handler with an application-level permission check.
+// signedIn refuses anonymous callers whatever their role grants.
+func (a *API) signedIn(h http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if p := auth.PrincipalFrom(r.Context()); p == nil || p.Anonymous {
+			writeErr(w, 401, "auth.required", "authentication required")
+			return
+		}
+		h(w, r)
+	}
+}
+
 func (a *API) need(target, action string, h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		p := auth.PrincipalFrom(r.Context())

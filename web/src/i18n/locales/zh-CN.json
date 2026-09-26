@@ -325,14 +325,15 @@
     "step2a": "例如 Maven Central",
     "step3": "复制客户端配置",
     "step3a": "在仓库的「使用方式」标签页",
-    "welcome": "欢迎使用好料库",
-    "welcomeHint": "三个步骤让第一个仓库开始服务。",
+    "updateAvailable": "好料库 {{latest}} 已发布，这台服务器当前是 {{current}}。",
+    "updateNotes": "查看更新内容",
     "vulnsFound": "有 {{n}} 个已存储的包含有已知漏洞",
-    "vulnsView": "查看",
+    "vulnsFound_one": "有 {{n}} 个已存储的包含有已知漏洞",
     "vulnsStale": "漏洞数据无法更新：已经超过两天无法连接到 OSV。",
     "vulnsStaleShort": "（未更新：无法连接 OSV）",
-    "updateAvailable": "好料库 {{latest}} 已发布，这台服务器当前是 {{current}}。",
-    "updateNotes": "查看更新内容"
+    "vulnsView": "查看",
+    "welcome": "欢迎使用好料库",
+    "welcomeHint": "三个步骤让第一个仓库开始服务。"
   },
   "email": {
     "encryption": "加密方式",

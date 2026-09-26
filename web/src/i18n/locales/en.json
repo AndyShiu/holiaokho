@@ -325,14 +325,15 @@
     "step2a": "e.g. Maven Central",
     "step3": "Copy the client setup",
     "step3a": "from the repository \"Usage\" tab",
-    "welcome": "Welcome to Holiaokho",
-    "welcomeHint": "Three steps to get your first repository serving.",
+    "updateAvailable": "Holiaokho {{latest}} is available — this server runs {{current}}.",
+    "updateNotes": "What's new",
     "vulnsFound": "{{n}} stored packages have known vulnerabilities",
-    "vulnsView": "View",
+    "vulnsFound_one": "{{n}} stored package has known vulnerabilities",
     "vulnsStale": "Vulnerability data could not be refreshed: OSV has been unreachable for more than two days.",
     "vulnsStaleShort": "(not refreshed: OSV unreachable)",
-    "updateAvailable": "Holiaokho {{latest}} is available — this server runs {{current}}.",
-    "updateNotes": "What's new"
+    "vulnsView": "View",
+    "welcome": "Welcome to Holiaokho",
+    "welcomeHint": "Three steps to get your first repository serving."
   },
   "email": {
     "encryption": "Encryption",

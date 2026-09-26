@@ -58,7 +58,7 @@ function VulnBanner({ s }: { s: VulnSummary }) {
       type={s.counts.CRITICAL ? 'error' : s.counts.HIGH ? 'warning' : 'info'} showIcon style={{ marginBottom: 16, alignItems: 'center' }}
       message={
         <span style={{ fontWeight: 500 }}>
-          {t('dashboard.vulnsFound', '{{n}} stored packages have known vulnerabilities', { n: s.affectedPackages })}
+          {t('dashboard.vulnsFound', '{{n}} stored packages have known vulnerabilities', { n: s.affectedPackages, count: s.affectedPackages })}
         </span>
       }
       description={
@@ -88,7 +88,7 @@ function Stat({ label, value, sub }: { label: string; value: React.ReactNode; su
 
 export default function Dashboard() {
   const { t } = useTranslation()
-  const { can } = useAuth()
+  const { can, isAnonymous } = useAuth()
   const navigate = useNavigate()
   const qc = useQueryClient()
   const { message } = App.useApp()
@@ -99,7 +99,7 @@ export default function Dashboard() {
   const repos = useQuery({ queryKey: ['repositories'], queryFn: () => get<Repository[]>('repositories'), enabled: canRepos })
   const audit = useQuery({ queryKey: ['audit', 10], queryFn: () => get<AuditEntry[]>('audit', { limit: 10 }), enabled: can('app:system', 'read') })
   const tasks = useQuery({ queryKey: ['tasks'], queryFn: () => get<Task[]>('tasks'), enabled: can('app:tasks', 'read') })
-  const vulns = useQuery({ queryKey: ['vuln-summary'], queryFn: () => get<VulnSummary>('vulnerabilities/summary'), enabled: can('app:search', 'read'), refetchInterval: 60000 })
+  const vulns = useQuery({ queryKey: ['vuln-summary'], queryFn: () => get<VulnSummary>('vulnerabilities/summary'), enabled: !isAnonymous && can('app:search', 'read'), refetchInterval: 60000 })
   const updates = useQuery({ queryKey: ['updates'], queryFn: () => get<UpdateStatus>('updates'), enabled: can('app:system', 'read') })
   const upd = updates.data
 
