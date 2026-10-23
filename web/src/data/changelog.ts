@@ -15,6 +15,22 @@ export interface Release {
 
 export const releases: Release[] = [
   {
+    version: '1.4.1',
+    date: '2026-10-23',
+    changes: [
+      {
+        kind: 'fixed',
+        text: {
+          en: 'Built with Go 1.27.3, which fixes thirteen standard-library vulnerabilities present in 1.4.0\'s Go 1.27.1 — among them unbounded memory use parsing request headers and Range headers, which anyone who can reach the server could trigger, certificate checks that still trusted compromised intermediates, and HTTP/2 client flaws reachable from an upstream. Holiaokho\'s own code is unchanged. Release images now pin the Go version instead of taking whatever 1.27 release the build finds.',
+          'zh-TW': '改用 Go 1.27.3 編譯，修正 1.4.0 所用的 Go 1.27.1 中 13 個標準函式庫漏洞——包括解析請求 header 與 Range header 時記憶體用量沒有上限（任何連得到伺服器的人都能觸發）、憑證驗證仍信任已被入侵的中繼憑證，以及可由上游觸發的 HTTP/2 用戶端問題。好料庫本身的程式沒有變動。發佈映像改為固定 Go 版本，不再使用建置當下剛好抓到的 1.27 版本。',
+          'zh-CN': '改用 Go 1.27.3 编译，修复 1.4.0 所用的 Go 1.27.1 中 13 个标准库漏洞——包括解析请求 header 与 Range header 时内存用量没有上限（任何能访问服务器的人都能触发）、证书验证仍信任已被入侵的中间证书，以及可由上游触发的 HTTP/2 客户端问题。Holiaokho 本身的代码没有变动。发布镜像改为固定 Go 版本，不再使用构建时恰好拉到的 1.27 版本。',
+          ja: 'Go 1.27.3 でビルドし、1.4.0 が使っていた Go 1.27.1 の標準ライブラリの脆弱性 13 件を修正しました。サーバーに到達できる誰もが引き起こせる、リクエストヘッダーと Range ヘッダー解析時のメモリ使用量の上限なし、侵害された中間証明書をまだ信頼していた証明書検証、上流から到達しうる HTTP/2 クライアントの問題などです。Holiaokho 自体のコードは変わりません。リリースイメージは Go のバージョンを固定し、ビルド時にたまたま取得した 1.27 を使わなくなりました。',
+          ko: 'Go 1.27.3로 빌드하여 1.4.0이 쓰던 Go 1.27.1의 표준 라이브러리 취약점 13건을 수정했습니다. 서버에 접근할 수 있는 누구나 일으킬 수 있는 요청 헤더·Range 헤더 파싱 시 메모리 사용량 무제한, 침해된 중간 인증서를 여전히 신뢰하던 인증서 검증, 업스트림에서 닿을 수 있는 HTTP/2 클라이언트 문제 등입니다. Holiaokho 자체 코드는 바뀌지 않았습니다. 릴리스 이미지는 이제 Go 버전을 고정하여, 빌드 시점에 마침 받은 1.27 버전을 쓰지 않습니다.',
+        },
+      },
+    ],
+  },
+  {
     version: '1.4.0',
     date: '2026-09-27',
     changes: [
