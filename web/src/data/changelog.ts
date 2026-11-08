@@ -15,6 +15,32 @@ export interface Release {
 
 export const releases: Release[] = [
   {
+    version: '1.4.2',
+    date: '2026-11-09',
+    changes: [
+      {
+        kind: 'fixed',
+        text: {
+          en: 'A crafted .deb uploaded to an APT hosted repository could crash the whole server: the zstd decompressor (klauspost/compress 1.20.0, GO-2026-6865) panicked in a background goroutine. Updated to 1.20.2. It took write permission on an APT repository.',
+          'zh-TW': '上傳特製的 .deb 到 APT hosted repository 可能讓整個伺服器崩潰：zstd 解壓縮元件（klauspost/compress 1.20.0，GO-2026-6865）會在背景 goroutine 中 panic。已更新到 1.20.2。觸發需要 APT repository 的寫入權限。',
+          'zh-CN': '上传特制的 .deb 到 APT hosted repository 可能让整个服务器崩溃：zstd 解压组件（klauspost/compress 1.20.0，GO-2026-6865）会在后台 goroutine 中 panic。已更新到 1.20.2。触发需要 APT repository 的写入权限。',
+          ja: '細工した .deb を APT のホストリポジトリにアップロードすると、サーバー全体が停止するおそれがありました。zstd 展開処理（klauspost/compress 1.20.0、GO-2026-6865）がバックグラウンドの goroutine で panic していました。1.20.2 に更新しました。APT リポジトリへの書き込み権限が必要でした。',
+          ko: '조작된 .deb를 APT 호스티드 저장소에 업로드하면 서버 전체가 중단될 수 있었습니다. zstd 압축 해제(klauspost/compress 1.20.0, GO-2026-6865)가 백그라운드 goroutine에서 panic했습니다. 1.20.2로 업데이트했습니다. APT 저장소 쓰기 권한이 필요했습니다.',
+        },
+      },
+      {
+        kind: 'fixed',
+        text: {
+          en: 'OIDC sign-in: go-jose updated to 4.1.6 (CVE-2026-116587, denial of service through crafted RSA keys in a JWKS). The container image moves from Alpine 3.20, no longer supported, to 3.24.',
+          'zh-TW': 'OIDC 登入：go-jose 更新到 4.1.6（CVE-2026-116587，JWKS 中特製的 RSA 金鑰可造成服務阻斷）。容器映像從已停止支援的 Alpine 3.20 換成 3.24。',
+          'zh-CN': 'OIDC 登录：go-jose 更新到 4.1.6（CVE-2026-116587，JWKS 中特制的 RSA 密钥可造成拒绝服务）。容器镜像从已停止支持的 Alpine 3.20 换成 3.24。',
+          ja: 'OIDC サインイン：go-jose を 4.1.6 に更新しました（CVE-2026-116587、JWKS 内の細工した RSA 鍵によるサービス拒否）。コンテナイメージはサポートが終了した Alpine 3.20 から 3.24 に移行しました。',
+          ko: 'OIDC 로그인: go-jose를 4.1.6으로 업데이트했습니다(CVE-2026-116587, JWKS의 조작된 RSA 키로 인한 서비스 거부). 컨테이너 이미지는 지원이 끝난 Alpine 3.20에서 3.24로 옮겼습니다.',
+        },
+      },
+    ],
+  },
+  {
     version: '1.4.1',
     date: '2026-10-23',
     changes: [

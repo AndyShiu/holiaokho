@@ -17,7 +17,7 @@ RUN npm run build
 
 FROM --platform=$BUILDPLATFORM golang:1.27.3-alpine AS build
 WORKDIR /src
-ARG VERSION=1.4.1
+ARG VERSION=1.4.2
 # Supplied by buildx for each image it is producing.
 ARG TARGETOS TARGETARCH
 ENV LDFLAGS="-s -w -X github.com/holiaokho/holiaokho/internal/server.Version=$VERSION"
@@ -30,7 +30,7 @@ RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
  && CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
     go build -trimpath -ldflags="$LDFLAGS" -o /out/holiao ./cmd/holiao
 
-FROM alpine:3.20
+FROM alpine:3.24
 RUN apk add --no-cache ca-certificates tzdata && adduser -D -u 10001 holiaokho \
  && mkdir -p /data && chown holiaokho:holiaokho /data
 COPY --from=build /out/holiaokho /out/holiao /usr/local/bin/
